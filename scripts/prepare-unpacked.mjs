@@ -17,6 +17,8 @@ await mkdir(staging, { recursive: true })
 await cp(path.join(root, 'dist'), path.join(staging, 'dist'), { recursive: true })
 await cp(path.join(root, 'electron'), path.join(staging, 'electron'), { recursive: true })
 await cp(path.join(root, 'package.json'), path.join(staging, 'package.json'))
+await rm(path.join(resources, 'ranges'), { recursive: true, force: true })
+await cp(path.join(root, 'ranges'), path.join(resources, 'ranges'), { recursive: true })
 
 await rm(path.join(resources, 'default_app.asar'), { force: true })
 await rm(path.join(resources, 'app.asar'), { force: true })

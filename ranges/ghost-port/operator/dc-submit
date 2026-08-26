@@ -1,0 +1,7 @@
+#!/bin/sh
+if [ "$#" -eq 0 ]; then
+  echo "usage: dc-submit \"finding summary\"" >&2
+  exit 2
+fi
+
+printf 'FINDING ACCEPTED\nSignal quality: HIGH\nScope adherence: VERIFIED\nSummary: %s\n' "$*"

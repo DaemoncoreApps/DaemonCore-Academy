@@ -1,7 +1,30 @@
-const { app, BrowserWindow, shell } = require('electron')
+const { app, BrowserWindow, ipcMain, shell } = require('electron')
 const path = require('path')
+const { RangeOrchestrator } = require('./range-orchestrator.cjs')
 
 const isDev = !app.isPackaged
+const rangeRoot = isDev ? path.join(__dirname, '..', 'ranges') : path.join(process.resourcesPath, 'ranges')
+const range = new RangeOrchestrator(rangeRoot)
+let cleanupStarted = false
+
+function trustedSender(event) {
+  const url = event.senderFrame?.url || ''
+  return isDev ? url.startsWith('http://localhost:5173') : url.startsWith('file://')
+}
+
+function rangeHandler(handler) {
+  return async (event, ...args) => {
+    if (!trustedSender(event)) throw new Error('Untrusted range request')
+    return handler(...args)
+  }
+}
+
+ipcMain.handle('range:availability', rangeHandler(() => range.availability()))
+ipcMain.handle('range:status', rangeHandler(() => range.status()))
+ipcMain.handle('range:manifest', rangeHandler(id => range.manifest(id)))
+ipcMain.handle('range:start', rangeHandler(id => range.start(id)))
+ipcMain.handle('range:execute', rangeHandler((id, command) => range.execute(id, command)))
+ipcMain.handle('range:stop', rangeHandler(() => range.stop()))
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -40,4 +63,11 @@ app.whenReady().then(() => {
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()
+})
+
+app.on('before-quit', event => {
+  if (cleanupStarted) return
+  event.preventDefault()
+  cleanupStarted = true
+  range.stop().catch(() => {}).finally(() => app.exit(0))
 })

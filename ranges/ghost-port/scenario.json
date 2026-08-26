@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "ghost-port",
+  "title": "The Ghost Port",
+  "engine": "docker",
+  "operatorContainer": "dc-ghost-operator",
+  "targetContainer": "dc-ghost-target",
+  "network": "dc-ghost-range",
+  "networkPolicy": "internal-only",
+  "objectives": [
+    { "id": "inventory", "label": "Review the supplied host inventory", "command": "cat /opt/mission/inventory.txt" },
+    { "id": "observe", "label": "Compare documented and observed services", "command": "nmap -sV -p 22,445,8088 archive-target" },
+    { "id": "inspect", "label": "Identify the anomalous listener", "command": "curl -s http://archive-target:8088/status" },
+    { "id": "submit", "label": "Submit a concise evidence note", "command": "dc-submit \"undocumented archive console on 8088\"" }
+  ]
+}

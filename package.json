@@ -2,8 +2,8 @@
   "name": "daemoncore-academy",
   "private": true,
   "type": "module",
-  "version": "0.2.0",
-  "description": "A premium, lab-safe cybersecurity training desktop experience.",
+  "version": "0.3.0",
+  "description": "A sealed cyber range and operator training desktop platform.",
   "main": "electron/main.cjs",
   "author": "DaemonCore Academy",
   "scripts": {
@@ -15,7 +15,9 @@
     "package:win": "npm run build && electron-builder --win nsis",
     "package:win:from-unpacked": "node scripts/prepare-unpacked.mjs && electron-builder --win nsis --prepackaged release/win-unpacked",
     "icon": "node scripts/generate-icon.mjs",
-    "check": "eslint src"
+    "check": "eslint src",
+    "check:range": "node scripts/verify-range.mjs",
+    "test": "npm run check && npm run check:range && npm run build"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
@@ -49,6 +51,12 @@
       "dist/**/*",
       "electron/**/*",
       "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "ranges",
+        "to": "ranges"
+      }
     ],
     "win": {
       "target": "nsis",

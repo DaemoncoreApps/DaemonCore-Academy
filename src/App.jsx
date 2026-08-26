@@ -7,7 +7,7 @@ import {
   Settings, Shield, ShieldCheck, Sparkles, Swords, Target, Terminal,
   Trophy, UserRound, X, Zap,
 } from 'lucide-react'
-import { LabSimulation, LessonPlayer, OperatorPage, PhaseBadge } from './phase2.jsx'
+import { LabSimulation, LessonPlayer, OperatorPage, PhaseBadge, RangeEngineCard } from './phase2.jsx'
 
 const nav = [
   { id: 'command', label: 'Command', icon: Grid2X2 },
@@ -145,9 +145,10 @@ function AcademyPage({ selectModule }) {
 
 function LabsPage({ launchMission, completedMissions = [] }) {
   return <div className="page labs-page">
-    <div className="range-banner"><div className="range-radar"><Radar size={38}/><i/><i/><i/></div><div><span className="section-code"><i/> ISOLATED ENVIRONMENT ONLINE</span><h2>Lab Range</h2><p>Controlled scenarios. Synthetic targets. Real analytical pressure.</p></div><div className="range-details"><div><span>ACTIVE INSTANCES</span><strong>03 / 12</strong></div><div><span>ENVIRONMENT</span><strong>LOCAL SIMULATION</strong></div><div><span>BOUNDARY</span><strong>LAB ONLY</strong></div></div></div>
+    <div className="range-banner"><div className="range-radar"><Radar size={38}/><i/><i/><i/></div><div><span className="section-code"><i/> PHASE 3 RANGE ENGINE</span><h2>Lab Range</h2><p>Disposable targets. Root operator shell. Hard containment.</p></div><div className="range-details"><div><span>LIVE SCENARIOS</span><strong>01 / 03</strong></div><div><span>ENGINE</span><strong>DOCKER + SIM</strong></div><div><span>BOUNDARY</span><strong>SEALED</strong></div></div></div>
+    <RangeEngineCard/>
     <div className="section-title"><div><span>CURATED OPERATIONS</span><h3>Available missions</h3></div><button><SlidersIcon/> Filter</button></div>
-    <div className="mission-grid">{missions.map((m,i)=>{ const Icon=m.icon, cleared=completedMissions.includes(m.id); return <article className={`mission-card mission-${i} ${cleared?'cleared':''}`} key={m.id}><div className="mission-top"><span>{m.difficulty}</span><div><Icon size={28}/></div></div><div className="mission-code">MISSION // 00{i+7}</div><PhaseBadge complete={cleared}/><h3>{m.title}</h3><p>{m.brief}</p><div className="mission-tags">{m.tags.map(t=><span key={t}>{t}</span>)}</div><div className="mission-bottom"><div><span><Clock3 size={14}/>{m.time}</span><span><Zap size={14}/>{m.xp} XP</span></div><button onClick={()=>launchMission(m)}>{cleared?'Replay mission':'View brief'} <ArrowRight size={15}/></button></div></article>})}</div>
+    <div className="mission-grid">{missions.map((m,i)=>{ const Icon=m.icon, cleared=completedMissions.includes(m.id); return <article className={`mission-card mission-${i} ${cleared?'cleared':''}`} key={m.id}><div className="mission-top"><span>{m.difficulty}</span><div><Icon size={28}/></div></div><div className="mission-code">MISSION // 00{i+7}</div><PhaseBadge complete={cleared} live={i===0}/><h3>{m.title}</h3><p>{m.brief}</p><div className="mission-tags">{m.tags.map(t=><span key={t}>{t}</span>)}</div><div className="mission-bottom"><div><span><Clock3 size={14}/>{m.time}</span><span><Zap size={14}/>{m.xp} XP</span></div><button onClick={()=>launchMission(m)}>{cleared?'Replay mission':'View brief'} <ArrowRight size={15}/></button></div></article>})}</div>
     <div className="range-protocol"><Shield size={25}/><div><strong>Range protocol is enforced.</strong><p>All exercises use synthetic evidence and intentionally vulnerable training systems. Activity outside the declared lab boundary is never part of an Academy mission.</p></div><span>ROE // ACTIVE</span></div>
   </div>
 }
@@ -219,5 +220,5 @@ export default function App() {
   else if(page==='drills')current=<DrillsPage startQuiz={()=>setQuiz(true)}/>
   else if(page==='operator')current=<OperatorPage profile={operator}/>
   else current=<IntelPage/>
-  return <div className="app-shell"><Sidebar page={page} setPage={p=>{setPage(p);setModule(null)}} collapsed={collapsed} setCollapsed={setCollapsed}/><main><Topbar title={title} onSearch={setSearch}/>{search&&<div className="search-notice">Searching for “{search}” across Academy intelligence…</div>}{current}<footer className="app-footer"><span>DAEMONCORE ACADEMY // PHASE 2 // BUILD 0.2.0</span><span><i/> CONTROLLED TRAINING ENVIRONMENT</span><span>ETHICS BY DESIGN</span></footer></main>{mission&&<MissionModal mission={mission} onClose={()=>setMission(null)} onLaunch={()=>{setActiveMission(mission);setMission(null)}}/>}{quiz&&<QuizModal onClose={()=>setQuiz(false)} onComplete={completeQuiz}/>} {toast&&<Toast message={toast}/>}</div>
+  return <div className="app-shell"><Sidebar page={page} setPage={p=>{setPage(p);setModule(null)}} collapsed={collapsed} setCollapsed={setCollapsed}/><main><Topbar title={title} onSearch={setSearch}/>{search&&<div className="search-notice">Searching for “{search}” across Academy intelligence…</div>}{current}<footer className="app-footer"><span>DAEMONCORE ACADEMY // PHASE 3 // BUILD 0.3.0</span><span><i/> SEALED RANGE ARCHITECTURE</span><span>UNRESTRICTED INSIDE</span></footer></main>{mission&&<MissionModal mission={mission} onClose={()=>setMission(null)} onLaunch={()=>{setActiveMission(mission);setMission(null)}}/>}{quiz&&<QuizModal onClose={()=>setQuiz(false)} onComplete={completeQuiz}/>} {toast&&<Toast message={toast}/>}</div>
 }

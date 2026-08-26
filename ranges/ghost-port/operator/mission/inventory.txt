@@ -1,0 +1,7 @@
+AUTHORIZED ASSET INVENTORY // REV 8
+
+10.40.7.11  dc-auth-01     22/tcp, 443/tcp
+10.40.7.23  dc-archive-02  22/tcp, 445/tcp
+10.40.7.31  dc-mon-01      443/tcp
+
+Scope: daemoncore-ghost-port internal range only
