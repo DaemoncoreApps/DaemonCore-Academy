@@ -69,3 +69,5 @@
 @media (max-width: 1100px) {
   .lesson-brief-grid { grid-template-columns: 1fr; }
 }
+
+.lesson-rail nav button:disabled { opacity: .38; cursor: not-allowed; }

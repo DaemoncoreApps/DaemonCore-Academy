@@ -16,6 +16,7 @@ const cleanState = () => ({
     weekKey: null,
     completedMissions: [],
     completedLessons: [],
+    lessonAttempts: [],
     missionAttempts: [],
     drillAttempts: [],
     achievements: [],
@@ -145,13 +146,16 @@ class DataStore {
   recordLesson(event) {
     if (!/^[a-z0-9-]{2,80}$/.test(event.id || '')) throw new Error('Invalid lesson id')
     const first = !this.state.profile.completedLessons.includes(event.id)
+    const practicalScore = Math.max(0, Math.min(100, Math.round(Number(event.practicalScore) || 0)))
     if (first) {
       this.state.profile.completedLessons.push(event.id)
       this.addXp(180)
       this.state.profile.weeklyMinutes += Math.max(1, Math.min(120, Number(event.minutes) || 15))
     }
+    this.state.profile.lessonAttempts.unshift({ id: randomUUID(), lessonId: event.id, practicalScore, passed: practicalScore >= 67, at: new Date().toISOString() })
+    this.state.profile.lessonAttempts = this.state.profile.lessonAttempts.slice(0, 100)
     this.unlock('scholar')
-    this.addActivity('lesson', event.title || event.id, first ? 180 : 0, first ? 'Knowledge validated' : 'Lesson reviewed')
+    this.addActivity('lesson', event.title || event.id, first ? 180 : 0, `${practicalScore}% practical // ${first ? 'knowledge validated' : 'lesson reviewed'}`)
   }
 
   recordDrill(event) {

@@ -28,7 +28,7 @@ const missions = [
   { id: 'night-shift', difficulty: 'ADVANCED', title: 'Night Shift', brief: 'A simulated endpoint began behaving strangely after hours. Triage the evidence pack and reconstruct the event timeline.', time: '60 min', xp: 1250, icon: Activity, tags: ['Triage', 'Forensics'], objectives: ['Validate the evidence manifest', 'Build a chronological timeline', 'Separate signal from benign noise', 'Deliver an incident hypothesis'] },
 ]
 
-const emptyData = { schemaVersion:1, profile:{handle:null,createdAt:null,xp:0,level:1,streak:0,bestStreak:0,lastActiveDate:null,weekKey:null,weeklyMinutes:0,weeklyGoalMinutes:180,completedMissions:[],completedLessons:[],missionAttempts:[],drillAttempts:[],achievements:[],activity:[]},settings:{reduceMotion:false,compactMode:false} }
+const emptyData = { schemaVersion:1, profile:{handle:null,createdAt:null,xp:0,level:1,streak:0,bestStreak:0,lastActiveDate:null,weekKey:null,weeklyMinutes:0,weeklyGoalMinutes:180,completedMissions:[],completedLessons:[],lessonAttempts:[],missionAttempts:[],drillAttempts:[],achievements:[],activity:[]},settings:{reduceMotion:false,compactMode:false} }
 const weekKey=()=>{const date=new Date(),day=(date.getUTCDay()+6)%7;date.setUTCDate(date.getUTCDate()-day);return date.toISOString().slice(0,10)}
 const previewLicense={configured:false,requireAcademyLicense:false,checkoutUrl:null,licensed:false,fieldOps:false,status:'unlicensed',tier:null,tierLabel:null}
 
@@ -46,7 +46,7 @@ function useAppData() {
     const firstMission=event.type==='mission'&&!p.completedMissions.includes(event.id),firstLesson=event.type==='lesson'&&!p.completedLessons.includes(event.id)
     let earned=0
     if(event.type==='mission'){earned=firstMission?event.score:Math.round(event.score*.2);if(firstMission)p.completedMissions=[...p.completedMissions,event.id];p.missionAttempts=[{id:crypto.randomUUID(),missionId:event.id,score:event.score,hints:event.hints,seconds:event.seconds,at:now.toISOString()},...(p.missionAttempts||[])].slice(0,100);awards.add('first-signal');if(!event.hints)awards.add('evidence-led');if(p.completedMissions.length>=3)awards.add('range-veteran')}
-    if(event.type==='lesson'){earned=firstLesson?180:0;if(firstLesson){p.completedLessons=[...p.completedLessons,event.id];p.weeklyMinutes+=(event.minutes||0)}awards.add('scholar')}
+    if(event.type==='lesson'){earned=firstLesson?180:0;if(firstLesson){p.completedLessons=[...p.completedLessons,event.id];p.weeklyMinutes+=(event.minutes||0)}p.lessonAttempts=[{id:crypto.randomUUID(),lessonId:event.id,practicalScore:event.practicalScore||0,passed:(event.practicalScore||0)>=67,at:now.toISOString()},...(p.lessonAttempts||[])].slice(0,100);awards.add('scholar')}
     if(event.type==='drill'){earned=Math.min(event.correct,event.total)*120;p.drillAttempts=[{id:crypto.randomUUID(),drillId:event.id,correct:event.correct,total:event.total,xp:earned,at:now.toISOString()},...(p.drillAttempts||[])].slice(0,100);if(event.correct===event.total)awards.add('clean-sweep')}
     if(p.streak>=14)awards.add('night-operator')
     p.achievements=[...awards];p.xp+=earned;p.level=Math.floor(p.xp/1000)+1;p.activity=[{id:crypto.randomUUID(),type:event.type,title:event.title,xp:earned,at:now.toISOString()},...p.activity].slice(0,100)
@@ -235,7 +235,7 @@ export default function App() {
   const title=module?module.title:page==='settings'?'Settings':nav.find(n=>n.id===page)?.label||'Command'
   const completeQuiz=async event=>{await store.record(event);setToast(`Drill logged // +${event.correct*120} XP`)}
   const completeMission=async({mission:cleared,score,hints,seconds})=>{await store.record({type:'mission',id:cleared.id,title:cleared.title,score,hints,seconds});setActiveMission(null);setPage('labs');setToast('Mission recorded // operator record updated')}
-  const completeLesson=async completedLesson=>{await store.record({type:'lesson',id:completedLesson.id,title:completedLesson.title,minutes:completedLesson.minutes});setLesson(null);setToast('Lesson mastered // operator record updated')}
+  const completeLesson=async completedLesson=>{await store.record({type:'lesson',id:completedLesson.id,title:completedLesson.title,minutes:completedLesson.minutes,practicalScore:completedLesson.practicalScore});setLesson(null);setToast(`Lesson mastered // practical ${completedLesson.practicalScore}% recorded`)}
   if(activeMission)return <LabSimulation mission={activeMission} onExit={()=>setActiveMission(null)} onComplete={completeMission}/>
   if(lesson)return <LessonPlayer lesson={lesson} onExit={()=>setLesson(null)} onComplete={completeLesson}/>
   if(article)return <ArticleReader article={article} onClose={()=>setArticle(null)}/>
@@ -249,5 +249,5 @@ export default function App() {
   else if(page==='intel')current=<IntelPage onOpen={setArticle}/>
   else if(page==='operator')current=<OperatorPage profile={operator}/>
   else current=<SettingsPage data={store.data} {...licenseProps} onUpdate={store.updateSettings} onExport={store.exportData} onReset={store.reset}/>
-  return <div className="app-shell"><Sidebar page={page} setPage={p=>{setPage(p);setModule(null)}} collapsed={navigationCollapsed} setCollapsed={setCollapsed} profile={operator}/><main><Topbar title={title} profile={operator}/>{current}<footer className="app-footer"><span>DAEMONCORE ACADEMY // PHASE 6</span><span><i/> LICENSED LOCAL-FIRST PLATFORM</span><span>{licensing.license.tierLabel?.toUpperCase()||'COMMERCIAL CORE READY'}</span></footer></main>{mission&&<MissionModal mission={mission} onClose={()=>setMission(null)} onLaunch={()=>{setActiveMission(mission);setMission(null)}}/>}{quiz&&<QuizModal drill={quiz} onClose={()=>setQuiz(null)} onComplete={completeQuiz}/>} {toast&&<Toast message={toast}/>}</div>
+  return <div className="app-shell"><Sidebar page={page} setPage={p=>{setPage(p);setModule(null)}} collapsed={navigationCollapsed} setCollapsed={setCollapsed} profile={operator}/><main><Topbar title={title} profile={operator}/>{current}<footer className="app-footer"><span>DAEMONCORE ACADEMY // PHASE 7</span><span><i/> LICENSED LOCAL-FIRST PLATFORM</span><span>{licensing.license.tierLabel?.toUpperCase()||'COMMERCIAL CORE READY'}</span></footer></main>{mission&&<MissionModal mission={mission} onClose={()=>setMission(null)} onLaunch={()=>{setActiveMission(mission);setMission(null)}}/>}{quiz&&<QuizModal drill={quiz} onClose={()=>setQuiz(null)} onComplete={completeQuiz}/>} {toast&&<Toast message={toast}/>}</div>
 }

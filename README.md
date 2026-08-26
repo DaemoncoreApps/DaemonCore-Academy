@@ -6,10 +6,12 @@ DaemonCore is the course I wanted instead: learn the mental model, validate it, 
 
 Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 
-## What ships in 1.3
+## What ships in 1.4
 
 - **Full-Spectrum Security Assessment** — twenty practical lessons and sixteen hours of guided work spanning scope, recon, Windows and Linux attack surfaces, web, sessions, authorization, injection, APIs, enterprise identity, cloud, containers, supply chain, secrets, validation, evidence, cleanup, and retesting.
 - **Operator workshops** — every lesson now includes objectives, prerequisites, an annotated three-step workflow, commands or artifacts, expected signal, interpretation, a required deliverable, success criteria, and primary references.
+- **Interactive operator workbenches** — twenty tailored simulations with sixty decision nodes spanning scope compilation, packet timelines, evidence assembly, access matrices, IAM evaluation, manifest review, vulnerability triage, and closeout control.
+- **Real mastery gating** — the knowledge validation stays locked until the operator passes the lesson workbench. Practical scores and replay attempts are stored in the local operator record.
 - **Twenty validation checks** — progress is recorded only after the lesson check is answered correctly.
 - **Eight scored drill sets** — protocol recognition, request anatomy, evidence triage, finding quality, authorization, cloud controls, credential safety, and assessment triage.
 - **Three field missions** — one live Docker range and two clearly labeled guided simulations.
@@ -99,6 +101,7 @@ scripts/verify-data-store.mjs persistence/recovery contract
 scripts/verify-phase4.mjs     licensing and scope-boundary contract
 scripts/verify-phase5.mjs     curriculum breadth + bounded FieldOps contract
 scripts/verify-phase6.mjs     practical lesson depth and artifact contract
+scripts/verify-phase7.mjs     interactive scenario and mastery-gate contract
 scripts/verify-range.mjs      range and containment contract
 ```
 
