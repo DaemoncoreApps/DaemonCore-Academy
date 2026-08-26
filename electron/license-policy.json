@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "storeId": 0,
-  "requireAcademyLicense": false,
+  "storeId": 230368,
+  "requireAcademyLicense": true,
   "offlineGraceDays": 14,
   "checkoutUrl": "https://daemoncore.lemonsqueezy.com/checkout/buy/17b86570-b95c-49fa-a987-e8fa904d3f34",
   "tiers": [
@@ -15,7 +15,7 @@
       "id": "academy",
       "label": "Academy",
       "productIds": [],
-      "variantIds": []
+      "variantIds": [2062439]
     }
   ]
 }
