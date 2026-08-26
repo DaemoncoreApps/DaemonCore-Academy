@@ -46,6 +46,12 @@ ipcMain.handle('data:snapshot', rangeHandler(() => dataStore.snapshot()))
 ipcMain.handle('data:onboard', rangeHandler(handle => dataStore.onboard(handle)))
 ipcMain.handle('data:record', rangeHandler(event => dataStore.record(event)))
 ipcMain.handle('data:settings', rangeHandler(settings => dataStore.updateSettings(settings)))
+ipcMain.handle('display:set-zoom', async (event, factor) => {
+  if (!trustedSender(event)) throw new Error('Untrusted display request')
+  const scale = Math.max(1, Math.min(1.4, Number(factor) || 1.25))
+  event.sender.setZoomFactor(scale)
+  return scale
+})
 ipcMain.handle('data:reset', rangeHandler(() => dataStore.reset()))
 ipcMain.handle('data:export', rangeHandler(async () => {
   const result = await dialog.showSaveDialog({
@@ -88,8 +94,8 @@ function createWindow() {
   const win = new BrowserWindow({
     width: 1500,
     height: 960,
-    minWidth: 1100,
-    minHeight: 720,
+    minWidth: 1200,
+    minHeight: 760,
     backgroundColor: '#08090b',
     titleBarStyle: 'hidden',
     titleBarOverlay: { color: '#08090b', symbolColor: '#7d8087', height: 42 },
@@ -103,6 +109,7 @@ function createWindow() {
   })
 
   win.once('ready-to-show', () => win.show())
+  win.webContents.on('did-finish-load', () => win.webContents.setZoomFactor(dataStore.snapshot().settings.uiScale || 1.25))
   win.webContents.setWindowOpenHandler(({ url }) => {
     if (url.startsWith('https://')) shell.openExternal(url)
     return { action: 'deny' }

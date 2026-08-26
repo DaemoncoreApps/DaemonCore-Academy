@@ -23,7 +23,7 @@ const cleanState = () => ({
     activity: [],
     createdAt: null,
   },
-  settings: { reduceMotion: false, compactMode: false },
+  settings: { reduceMotion: false, compactMode: false, uiScale: 1.25 },
 })
 
 const dateKey = date => date.toISOString().slice(0, 10)
@@ -173,6 +173,7 @@ class DataStore {
     this.state.settings = {
       reduceMotion: Boolean(next?.reduceMotion),
       compactMode: Boolean(next?.compactMode),
+      uiScale: Math.max(1, Math.min(1.4, Number(next?.uiScale) || 1.25)),
     }
     await this.persist()
     return this.snapshot()

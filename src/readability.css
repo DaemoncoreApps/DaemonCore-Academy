@@ -1,0 +1,71 @@
+/* Readability floor: zoom handles the whole interface; these rules protect the smallest telemetry labels. */
+small {
+  font-size: 8px !important;
+}
+
+.section-code,
+.topbar .eyebrow,
+.nav-label,
+.app-footer,
+.fieldops-page label,
+.fieldops-page button,
+.chaos-engine span,
+.chaos-engine label,
+.chaos-engine button,
+.range-chaos-lab span,
+.range-chaos-lab label,
+.range-chaos-lab button {
+  font-size: 8px !important;
+}
+
+.fieldops-page p,
+.chaos-engine p,
+.range-chaos-lab p {
+  font-size: 9px;
+}
+
+.scale-setting {
+  min-height: 84px;
+  border-bottom: 1px solid #1e2125;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 0 22px;
+}
+
+.scale-setting strong,
+.scale-setting small {
+  display: block;
+}
+
+.scale-setting strong {
+  font-size: 12px;
+}
+
+.scale-setting small {
+  color: #747982;
+  margin-top: 7px;
+}
+
+.scale-setting > div:last-child {
+  display: flex;
+  gap: 7px;
+}
+
+.scale-setting button {
+  width: 57px;
+  height: 35px;
+  border: 1px solid #30343a;
+  background: #111318;
+  color: #92969e;
+  font: 600 9px var(--mono);
+  cursor: pointer;
+}
+
+.scale-setting button.active {
+  border-color: #813038;
+  background: #251216;
+  color: #ff626a;
+  box-shadow: inset 0 -2px var(--red);
+}

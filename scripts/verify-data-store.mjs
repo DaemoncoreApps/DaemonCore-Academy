@@ -37,7 +37,10 @@ try {
   assert.equal(state.profile.drillAttempts.length, 1)
   assert.equal(state.profile.missionAttempts.length, 1)
 
-  await reloaded.updateSettings({ reduceMotion: true, compactMode: true })
+  state = await reloaded.updateSettings({ reduceMotion: true, compactMode: true, uiScale: 1.4 })
+  assert.equal(state.settings.uiScale, 1.4)
+  state = await reloaded.updateSettings({ ...state.settings, uiScale: 5 })
+  assert.equal(state.settings.uiScale, 1.4)
   await writeFile(reloaded.file, '{broken json', 'utf8')
   const recovered = new DataStore(directory)
   state = await recovered.initialize()

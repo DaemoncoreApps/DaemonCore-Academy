@@ -6,7 +6,7 @@ DaemonCore is the course I wanted instead: learn the mental model, validate it, 
 
 Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 
-## What ships in 1.6
+## What ships in 1.7
 
 - **Full-Spectrum Security Assessment** — twenty practical lessons and sixteen hours of guided work spanning scope, recon, Windows and Linux attack surfaces, web, sessions, authorization, injection, APIs, enterprise identity, cloud, containers, supply chain, secrets, validation, evidence, cleanup, and retesting.
 - **Operator workshops** — every lesson now includes objectives, prerequisites, an annotated three-step workflow, commands or artifacts, expected signal, interpretation, a required deliverable, success criteria, and primary references.
@@ -23,6 +23,7 @@ Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 - **Engagement Vault** — append-only scope records, dated testing windows, target and port allowlists, evidence export, and a SHA-256 chained activity ledger that exposes tampering.
 - **DaemonCore Chaos Engine** — four real black-box resilience profiles with a non-blocking native worker, live latency and error telemetry, automatic SLO aborts, emergency stop, recovery validation, resilience scoring, durable run history, and evidence export.
 - **Sealed Power Domain** — a dedicated disposable Chaos Worker can drive up to 500 requests per second, 100 concurrent workers, and 30,000 requests against the Academy black box. The worker and target have no published ports, no host mounts, no privileges, and no internet egress.
+- **Readable by default** — the Windows renderer now opens at 125% with saved 100%, 115%, 125%, and 140% interface choices. A typography floor protects dense FieldOps and Chaos telemetry from collapsing back into microscopic labels.
 
 There are no locked “coming soon” course cards pretending to be content. FieldOps is the one intentional commercial gate.
 

@@ -29,7 +29,7 @@ const missions = [
   { id: 'night-shift', difficulty: 'ADVANCED', title: 'Night Shift', brief: 'A simulated endpoint began behaving strangely after hours. Triage the evidence pack and reconstruct the event timeline.', time: '60 min', xp: 1250, icon: Activity, tags: ['Triage', 'Forensics'], objectives: ['Validate the evidence manifest', 'Build a chronological timeline', 'Separate signal from benign noise', 'Deliver an incident hypothesis'] },
 ]
 
-const emptyData = { schemaVersion:1, profile:{handle:null,createdAt:null,xp:0,level:1,streak:0,bestStreak:0,lastActiveDate:null,weekKey:null,weeklyMinutes:0,weeklyGoalMinutes:180,completedMissions:[],completedLessons:[],lessonAttempts:[],missionAttempts:[],drillAttempts:[],achievements:[],activity:[]},settings:{reduceMotion:false,compactMode:false} }
+const emptyData = { schemaVersion:1, profile:{handle:null,createdAt:null,xp:0,level:1,streak:0,bestStreak:0,lastActiveDate:null,weekKey:null,weeklyMinutes:0,weeklyGoalMinutes:180,completedMissions:[],completedLessons:[],lessonAttempts:[],missionAttempts:[],drillAttempts:[],achievements:[],activity:[]},settings:{reduceMotion:false,compactMode:false,uiScale:1.25} }
 const weekKey=()=>{const date=new Date(),day=(date.getUTCDay()+6)%7;date.setUTCDate(date.getUTCDate()-day);return date.toISOString().slice(0,10)}
 const previewLicense={configured:false,requireAcademyLicense:false,checkoutUrl:null,licensed:false,fieldOps:false,status:'unlicensed',tier:null,tierLabel:null}
 
@@ -230,6 +230,7 @@ export default function App() {
   const [page,setPage]=useState('command'), [collapsed,setCollapsed]=useState(null), [module,setModule]=useState(null), [mission,setMission]=useState(null), [activeMission,setActiveMission]=useState(null), [lesson,setLesson]=useState(null), [quiz,setQuiz]=useState(null), [article,setArticle]=useState(null), [toast,setToast]=useState('')
   useEffect(()=>{if(!toast)return;const t=setTimeout(()=>setToast(''),2600);return()=>clearTimeout(t)},[toast])
   useEffect(()=>{document.body.classList.toggle('reduce-motion',Boolean(store.data?.settings?.reduceMotion))},[store.data?.settings?.reduceMotion])
+  useEffect(()=>{const scale=Math.max(1,Math.min(1.4,Number(store.data?.settings?.uiScale)||1.25));if(window.daemoncore?.display)window.daemoncore.display.setZoom(scale);else document.body.style.zoom=String(scale)},[store.data?.settings?.uiScale])
   useEffect(()=>{window.scrollTo(0,0)},[page,module])
   if(!store.data||!licensing.license||!fieldOps.data)return <LoadingScreen/>
   const licenseProps={license:licensing.license,onActivate:licensing.activate,onValidate:licensing.validate,onDeactivate:licensing.deactivate,onCheckout:licensing.checkout}
