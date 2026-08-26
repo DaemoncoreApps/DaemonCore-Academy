@@ -3,7 +3,7 @@
   "storeId": 0,
   "requireAcademyLicense": false,
   "offlineGraceDays": 14,
-  "checkoutUrl": "",
+  "checkoutUrl": "https://daemoncore.lemonsqueezy.com/checkout/buy/17b86570-b95c-49fa-a987-e8fa904d3f34",
   "tiers": [
     {
       "id": "fieldops",
