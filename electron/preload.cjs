@@ -2,7 +2,7 @@ const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('daemoncore', {
   platform: process.platform,
-  version: '1.0.0',
+  version: '1.1.0',
   range: Object.freeze({
     availability: () => ipcRenderer.invoke('range:availability'),
     status: () => ipcRenderer.invoke('range:status'),
@@ -18,5 +18,19 @@ contextBridge.exposeInMainWorld('daemoncore', {
     updateSettings: settings => ipcRenderer.invoke('data:settings', settings),
     reset: () => ipcRenderer.invoke('data:reset'),
     export: () => ipcRenderer.invoke('data:export'),
+  }),
+  license: Object.freeze({
+    snapshot: () => ipcRenderer.invoke('license:snapshot'),
+    activate: input => ipcRenderer.invoke('license:activate', input),
+    validate: () => ipcRenderer.invoke('license:validate'),
+    deactivate: () => ipcRenderer.invoke('license:deactivate'),
+    checkout: () => ipcRenderer.invoke('license:checkout'),
+  }),
+  fieldops: Object.freeze({
+    snapshot: () => ipcRenderer.invoke('fieldops:snapshot'),
+    create: input => ipcRenderer.invoke('fieldops:create', input),
+    run: input => ipcRenderer.invoke('fieldops:run', input),
+    close: id => ipcRenderer.invoke('fieldops:close', id),
+    export: id => ipcRenderer.invoke('fieldops:export', id),
   }),
 })

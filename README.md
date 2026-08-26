@@ -6,7 +6,7 @@ DaemonCore is the course I wanted instead: learn the mental model, validate it, 
 
 Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 
-## What ships in 1.0
+## What ships in 1.1
 
 - **Network Reconnaissance** — eight written lessons covering scope, hypothesis-driven recon, asset inventory, packet evidence, port state, service fingerprinting, evidence quality, and finding construction.
 - **Eight validation checks** — progress is recorded only after the lesson check is answered correctly.
@@ -15,8 +15,31 @@ Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 - **Four field notes** — short references for recon, HTTP evidence, finding writing, and range rules.
 - **A real operator record** — XP, streaks, weekly minutes, attempts, scores, achievements, and activity are calculated from completed work.
 - **Local-first data** — atomic writes, backup recovery, JSON export, reset controls, and no account dependency.
+- **Lemon Squeezy licensing** — secure activation, instance validation, device deactivation, tier entitlements, and a fourteen-day offline grace window.
+- **FieldOps Pro** — authorization-bound diagnostics against exact public targets using DNS resolution, TCP reachability, HTTP HEAD, and TLS inspection.
+- **Engagement Vault** — append-only scope records, dated testing windows, target and port allowlists, evidence export, and a SHA-256 chained activity ledger that exposes tampering.
 
-There are no locked “coming soon” cards pretending to be content. If the app shows it, it opens.
+There are no locked “coming soon” course cards pretending to be content. FieldOps is the one intentional commercial gate.
+
+## FieldOps is powerful on purpose
+
+A paid license unlocks the tool. It does not authorize a target.
+
+Before an external diagnostic can run, the operator must create an engagement with a client, authorization reference, exact targets, exact TCP ports, a testing window, and an explicit authorization attestation. FieldOps resolves and pins the destination, blocks private, loopback, link-local, reserved, and mixed public/private results, refuses redirects, rate-limits execution, and writes every completed or blocked action to the evidence ledger.
+
+There is no arbitrary public-network shell. Unrestricted command execution stays inside the sealed Docker range.
+
+## Connect Lemon Squeezy
+
+Edit `electron/license-policy.json` before building the commercial installer:
+
+- set the public Lemon Squeezy `storeId`;
+- add the product and/or variant IDs for Academy and FieldOps Pro;
+- add the hosted checkout URL;
+- set `requireAcademyLicense` to `true` when the Academy itself should be gated;
+- choose the offline grace length.
+
+These IDs are entitlement policy, not secrets. Never put a Lemon Squeezy management API key in the desktop app. License keys are encrypted through Electron secure storage and the renderer only receives masked metadata.
 
 ## The Ghost Port is a real range
 
@@ -49,7 +72,7 @@ npm run dev
 npm test
 ```
 
-That command lints the UI, exercises operator-record persistence and recovery, validates the range contract and containment-sensitive Compose settings, then builds the production bundle.
+That command lints the UI, exercises operator-record persistence and recovery, verifies licensing and offline grace, attacks the FieldOps scope boundary, validates the range contract and containment-sensitive Compose settings, then builds the production bundle.
 
 Build the Windows installer with:
 
@@ -64,11 +87,14 @@ The installer lands in `release/`.
 
 ```text
 electron/data-store.cjs       atomic local operator record
+electron/license-manager.cjs  Lemon Squeezy + protected key storage
+electron/engagement-store.cjs scope enforcement + external diagnostics
 electron/range-orchestrator.cjs
 ranges/ghost-port/            live target, operator image, and manifest
 src/content.js                versioned course, drills, and field notes
 src/phase2.jsx                range console, lessons, and operator record UI
 scripts/verify-data-store.mjs persistence/recovery contract
+scripts/verify-phase4.mjs     licensing and scope-boundary contract
 scripts/verify-range.mjs      range and containment contract
 ```
 

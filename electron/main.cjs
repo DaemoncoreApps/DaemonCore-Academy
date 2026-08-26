@@ -1,18 +1,29 @@
-const { app, BrowserWindow, dialog, ipcMain, shell } = require('electron')
+const { app, BrowserWindow, dialog, ipcMain, safeStorage, shell } = require('electron')
 const { writeFile } = require('fs/promises')
+const os = require('os')
 const path = require('path')
+const { pathToFileURL } = require('url')
 const { RangeOrchestrator } = require('./range-orchestrator.cjs')
 const { DataStore } = require('./data-store.cjs')
+const { LicenseManager } = require('./license-manager.cjs')
+const { EngagementStore } = require('./engagement-store.cjs')
 
 const isDev = !app.isPackaged
 const rangeRoot = isDev ? path.join(__dirname, '..', 'ranges') : path.join(process.resourcesPath, 'ranges')
 const range = new RangeOrchestrator(rangeRoot)
+const productionUrl = pathToFileURL(path.join(__dirname, '..', 'dist', 'index.html')).href
 let dataStore
+let licenseManager
+let engagementStore
 let cleanupStarted = false
 
+function trustedUrl(url) {
+  if (isDev) { try { return new URL(url).origin === 'http://localhost:5173' } catch { return false } }
+  return String(url || '').split('#')[0] === productionUrl
+}
+
 function trustedSender(event) {
-  const url = event.senderFrame?.url || ''
-  return isDev ? url.startsWith('http://localhost:5173') : url.startsWith('file://')
+  return event.senderFrame === event.sender.mainFrame && trustedUrl(event.senderFrame?.url)
 }
 
 function rangeHandler(handler) {
@@ -43,6 +54,30 @@ ipcMain.handle('data:export', rangeHandler(async () => {
   await writeFile(result.filePath, `${JSON.stringify(dataStore.snapshot(), null, 2)}\n`, 'utf8')
   return { canceled: false, filePath: result.filePath }
 }))
+ipcMain.handle('license:snapshot', rangeHandler(() => licenseManager.snapshot()))
+ipcMain.handle('license:activate', rangeHandler(input => licenseManager.activate({ ...input, instanceName: input?.instanceName || os.hostname() })))
+ipcMain.handle('license:validate', rangeHandler(() => licenseManager.validate({ force: true })))
+ipcMain.handle('license:deactivate', rangeHandler(() => licenseManager.deactivate()))
+ipcMain.handle('license:checkout', rangeHandler(async () => {
+  const url = licenseManager.snapshot().checkoutUrl
+  if (!url || !url.startsWith('https://')) throw new Error('Checkout URL is not configured')
+  await shell.openExternal(url)
+  return { opened: true }
+}))
+ipcMain.handle('fieldops:snapshot', rangeHandler(() => engagementStore.snapshot()))
+ipcMain.handle('fieldops:create', rangeHandler(input => engagementStore.create(input)))
+ipcMain.handle('fieldops:run', rangeHandler(input => engagementStore.run(input)))
+ipcMain.handle('fieldops:close', rangeHandler(id => engagementStore.close(id)))
+ipcMain.handle('fieldops:export', rangeHandler(async id => {
+  const snapshot = engagementStore.snapshot()
+  const engagement = snapshot.engagements.find(item => item.id === id)
+  if (!engagement) throw new Error('Engagement not found')
+  const bundle = { schemaVersion: 1, exportedAt: new Date().toISOString(), auditIntegrity: snapshot.auditIntegrity, engagement, audit: snapshot.audit.filter(item => item.engagementId === id) }
+  const result = await dialog.showSaveDialog({ title: 'Export FieldOps evidence ledger', defaultPath: `daemoncore-fieldops-${engagement.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}.json`, filters: [{ name: 'JSON evidence bundle', extensions: ['json'] }] })
+  if (result.canceled || !result.filePath) return { canceled: true }
+  await writeFile(result.filePath, `${JSON.stringify(bundle, null, 2)}\n`, 'utf8')
+  return { canceled: false, filePath: result.filePath }
+}))
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -67,14 +102,20 @@ function createWindow() {
     if (url.startsWith('https://')) shell.openExternal(url)
     return { action: 'deny' }
   })
+  win.webContents.on('will-navigate', (event, url) => { if (!trustedUrl(url)) event.preventDefault() })
 
   if (isDev) win.loadURL('http://localhost:5173')
-  else win.loadFile(path.join(__dirname, '..', 'dist', 'index.html'))
+  else win.loadURL(productionUrl)
 }
 
 app.whenReady().then(async () => {
   dataStore = new DataStore(app.getPath('userData'))
   await dataStore.initialize()
+  licenseManager = new LicenseManager(app.getPath('userData'), { safeStorage })
+  await licenseManager.initialize()
+  engagementStore = new EngagementStore(app.getPath('userData'), { entitlement: () => licenseManager.snapshot() })
+  await engagementStore.initialize()
+  licenseManager.validate().catch(() => {})
   createWindow()
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()

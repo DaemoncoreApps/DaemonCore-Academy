@@ -9,12 +9,14 @@ import {
 } from 'lucide-react'
 import { LabSimulation, LessonPlayer, OperatorPage, PhaseBadge, RangeEngineCard } from './phase2.jsx'
 import { course, drillSets, intelArticles } from './content.js'
-import { ArticleReader, LoadingScreen, Onboarding, SettingsPage } from './production.jsx'
+import { ArticleReader, LicenseGate, LoadingScreen, Onboarding, SettingsPage } from './production.jsx'
+import { FieldOpsPage } from './fieldops.jsx'
 
 const nav = [
   { id: 'command', label: 'Command', icon: Grid2X2 },
   { id: 'academy', label: 'Academy', icon: GraduationCap },
   { id: 'labs', label: 'Lab Range', icon: Terminal },
+  { id: 'fieldops', label: 'FieldOps', icon: ShieldCheck },
   { id: 'drills', label: 'Drills', icon: Crosshair },
   { id: 'intel', label: 'Intel', icon: BookOpen },
   { id: 'operator', label: 'Operator', icon: UserRound },
@@ -28,6 +30,7 @@ const missions = [
 
 const emptyData = { schemaVersion:1, profile:{handle:null,createdAt:null,xp:0,level:1,streak:0,bestStreak:0,lastActiveDate:null,weekKey:null,weeklyMinutes:0,weeklyGoalMinutes:180,completedMissions:[],completedLessons:[],missionAttempts:[],drillAttempts:[],achievements:[],activity:[]},settings:{reduceMotion:false,compactMode:false} }
 const weekKey=()=>{const date=new Date(),day=(date.getUTCDay()+6)%7;date.setUTCDate(date.getUTCDate()-day);return date.toISOString().slice(0,10)}
+const previewLicense={configured:false,requireAcademyLicense:false,checkoutUrl:null,licensed:false,fieldOps:false,status:'unlicensed',tier:null,tierLabel:null}
 
 function useAppData() {
   const api=window.daemoncore?.data
@@ -53,6 +56,25 @@ function useAppData() {
   const reset=async()=>{if(api){const next=await api.reset();setData(next);return}saveFallback(emptyData)}
   const exportData=async()=>{if(api)return api.export();const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='daemoncore-operator-record.json';a.click();URL.revokeObjectURL(url);return{canceled:false}}
   return {data,onboard,record,updateSettings,reset,exportData}
+}
+
+function useLicense() {
+  const api=window.daemoncore?.license
+  const [license,setLicense]=useState(api?null:previewLicense)
+  useEffect(()=>{if(api)api.snapshot().then(setLicense)},[api])
+  const invoke=async(method,input)=>{if(!api)throw new Error('License activation is available in the Windows desktop build');const next=await api[method](input);setLicense(next);return next}
+  return {license,activate:input=>invoke('activate',input),validate:()=>invoke('validate'),deactivate:()=>invoke('deactivate'),checkout:()=>api?.checkout()}
+}
+
+function useFieldOps() {
+  const api=window.daemoncore?.fieldops
+  const [data,setData]=useState(api?null:{schemaVersion:1,engagements:[],audit:[]})
+  useEffect(()=>{if(api)api.snapshot().then(setData)},[api])
+  const create=async input=>{if(!api)throw new Error('FieldOps requires the Windows desktop build');const next=await api.create(input);setData(next);return next}
+  const run=async input=>{if(!api)throw new Error('FieldOps requires the Windows desktop build');const result=await api.run(input);setData(await api.snapshot());return result}
+  const close=async id=>{if(!api)throw new Error('FieldOps requires the Windows desktop build');const next=await api.close(id);setData(next);return next}
+  const exportEvidence=id=>api?.export(id)
+  return {data,create,run,close,exportEvidence}
 }
 
 function Brand({ compact = false }) {
@@ -198,10 +220,15 @@ function Toast({ message }) { return <div className="toast"><div><Check size={16
 
 export default function App() {
   const store=useAppData()
+  const licensing=useLicense()
+  const fieldOps=useFieldOps()
   const [page,setPage]=useState('command'), [collapsed,setCollapsed]=useState(null), [module,setModule]=useState(null), [mission,setMission]=useState(null), [activeMission,setActiveMission]=useState(null), [lesson,setLesson]=useState(null), [quiz,setQuiz]=useState(null), [article,setArticle]=useState(null), [toast,setToast]=useState('')
   useEffect(()=>{if(!toast)return;const t=setTimeout(()=>setToast(''),2600);return()=>clearTimeout(t)},[toast])
   useEffect(()=>{document.body.classList.toggle('reduce-motion',Boolean(store.data?.settings?.reduceMotion))},[store.data?.settings?.reduceMotion])
-  if(!store.data)return <LoadingScreen/>
+  useEffect(()=>{window.scrollTo(0,0)},[page,module])
+  if(!store.data||!licensing.license||!fieldOps.data)return <LoadingScreen/>
+  const licenseProps={license:licensing.license,onActivate:licensing.activate,onValidate:licensing.validate,onDeactivate:licensing.deactivate,onCheckout:licensing.checkout}
+  if(licensing.license.requireAcademyLicense&&!licensing.license.licensed)return <LicenseGate {...licenseProps}/>
   if(!store.data.profile.handle)return <Onboarding onComplete={store.onboard}/>
   const operator=store.data.profile
   const navigationCollapsed=collapsed??store.data.settings.compactMode
@@ -217,9 +244,10 @@ export default function App() {
   else if(page==='command')current=<CommandPage setPage={setPage} profile={operator}/>
   else if(page==='academy')current=<AcademyPage selectModule={setModule} profile={operator}/>
   else if(page==='labs')current=<LabsPage launchMission={setMission} completedMissions={operator.completedMissions}/>
+  else if(page==='fieldops')current=<FieldOpsPage license={licensing.license} data={fieldOps.data} onCreate={fieldOps.create} onRun={fieldOps.run} onClose={fieldOps.close} onExport={fieldOps.exportEvidence} onSettings={()=>setPage('settings')}/>
   else if(page==='drills')current=<DrillsPage startQuiz={setQuiz} profile={operator}/>
   else if(page==='intel')current=<IntelPage onOpen={setArticle}/>
   else if(page==='operator')current=<OperatorPage profile={operator}/>
-  else current=<SettingsPage data={store.data} onUpdate={store.updateSettings} onExport={store.exportData} onReset={store.reset}/>
-  return <div className="app-shell"><Sidebar page={page} setPage={p=>{setPage(p);setModule(null)}} collapsed={navigationCollapsed} setCollapsed={setCollapsed} profile={operator}/><main><Topbar title={title} profile={operator}/>{current}<footer className="app-footer"><span>DAEMONCORE ACADEMY // RELEASE 1.0</span><span><i/> LOCAL-FIRST OPERATOR RECORD</span><span>CONTROLLED RANGE ONLY</span></footer></main>{mission&&<MissionModal mission={mission} onClose={()=>setMission(null)} onLaunch={()=>{setActiveMission(mission);setMission(null)}}/>}{quiz&&<QuizModal drill={quiz} onClose={()=>setQuiz(null)} onComplete={completeQuiz}/>} {toast&&<Toast message={toast}/>}</div>
+  else current=<SettingsPage data={store.data} {...licenseProps} onUpdate={store.updateSettings} onExport={store.exportData} onReset={store.reset}/>
+  return <div className="app-shell"><Sidebar page={page} setPage={p=>{setPage(p);setModule(null)}} collapsed={navigationCollapsed} setCollapsed={setCollapsed} profile={operator}/><main><Topbar title={title} profile={operator}/>{current}<footer className="app-footer"><span>DAEMONCORE ACADEMY // PHASE 4</span><span><i/> LICENSED LOCAL-FIRST PLATFORM</span><span>{licensing.license.tierLabel?.toUpperCase()||'COMMERCIAL CORE READY'}</span></footer></main>{mission&&<MissionModal mission={mission} onClose={()=>setMission(null)} onLaunch={()=>{setActiveMission(mission);setMission(null)}}/>}{quiz&&<QuizModal drill={quiz} onClose={()=>setQuiz(null)} onComplete={completeQuiz}/>} {toast&&<Toast message={toast}/>}</div>
 }

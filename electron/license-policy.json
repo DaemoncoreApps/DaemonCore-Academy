@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "storeId": 0,
+  "requireAcademyLicense": false,
+  "offlineGraceDays": 14,
+  "checkoutUrl": "",
+  "tiers": [
+    {
+      "id": "fieldops",
+      "label": "FieldOps Pro",
+      "productIds": [],
+      "variantIds": []
+    },
+    {
+      "id": "academy",
+      "label": "Academy",
+      "productIds": [],
+      "variantIds": []
+    }
+  ]
+}
