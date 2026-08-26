@@ -1,0 +1,64 @@
+{
+  "name": "daemoncore-academy",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "description": "A premium, lab-safe cybersecurity training desktop experience.",
+  "main": "electron/main.cjs",
+  "author": "DaemonCore Academy",
+  "scripts": {
+    "dev": "concurrently -k \"vite\" \"wait-on http://localhost:5173 && electron .\"",
+    "dev:web": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "desktop": "npm run build && electron .",
+    "package:win": "npm run build && electron-builder --win nsis",
+    "package:win:from-unpacked": "node scripts/prepare-unpacked.mjs && electron-builder --win nsis --prepackaged release/win-unpacked",
+    "icon": "node scripts/generate-icon.mjs",
+    "check": "eslint src"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "latest",
+    "lucide-react": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "vite": "latest"
+  },
+  "devDependencies": {
+    "@electron/asar": "^4.3.0",
+    "@eslint/js": "latest",
+    "concurrently": "latest",
+    "electron": "latest",
+    "electron-builder": "latest",
+    "eslint": "latest",
+    "eslint-plugin-react-hooks": "latest",
+    "eslint-plugin-react-refresh": "latest",
+    "globals": "latest",
+    "png-to-ico": "^3.0.2",
+    "rcedit": "^5.0.2",
+    "sharp": "^0.35.4",
+    "wait-on": "latest"
+  },
+  "build": {
+    "appId": "academy.daemoncore.desktop",
+    "productName": "DaemonCore Academy",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.ico",
+      "artifactName": "DaemonCore-Academy-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    }
+  }
+}

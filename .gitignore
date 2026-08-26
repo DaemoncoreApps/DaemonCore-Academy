@@ -1,0 +1,7 @@
+node_modules/
+dist/
+release/
+build/app-staging/
+build/icon-sizes/
+*.log
+.DS_Store
