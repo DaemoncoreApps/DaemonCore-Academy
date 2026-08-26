@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Activity, ArrowLeft, ArrowRight, Award, BarChart3, Bell, BookOpen,
   Box, Braces, Check, ChevronRight, Circle, Clock3, Command, Crosshair,
@@ -7,6 +7,7 @@ import {
   Settings, Shield, ShieldCheck, Sparkles, Swords, Target, Terminal,
   Trophy, UserRound, X, Zap,
 } from 'lucide-react'
+import { LabSimulation, LessonPlayer, OperatorPage, PhaseBadge } from './phase2.jsx'
 
 const nav = [
   { id: 'command', label: 'Command', icon: Grid2X2 },
@@ -14,6 +15,7 @@ const nav = [
   { id: 'labs', label: 'Lab Range', icon: Terminal },
   { id: 'drills', label: 'Drills', icon: Crosshair },
   { id: 'intel', label: 'Intel', icon: BookOpen },
+  { id: 'operator', label: 'Operator', icon: UserRound },
 ]
 
 const modules = [
@@ -42,7 +44,7 @@ const quizQuestions = [
   { q: 'Which finding best communicates professional impact?', options: ['A list of tool output', 'A dramatic severity label', 'Evidence, affected asset, realistic consequence, and remediation', 'A screenshot without context'], answer: 2 },
 ]
 
-const initialProfile = { xp: 4280, level: 7, streak: 12, completed: 18, weeklyGoal: 72 }
+const initialProfile = { xp: 4280, level: 7, streak: 12, completed: 18, weeklyGoal: 72, phase2Xp: 0, completedMissions: [], completedLessons: [], achievements: [] }
 
 function usePersistentState(key, initial) {
   const [value, setValue] = useState(() => {
@@ -141,11 +143,11 @@ function AcademyPage({ selectModule }) {
   </div>
 }
 
-function LabsPage({ launchMission }) {
+function LabsPage({ launchMission, completedMissions = [] }) {
   return <div className="page labs-page">
     <div className="range-banner"><div className="range-radar"><Radar size={38}/><i/><i/><i/></div><div><span className="section-code"><i/> ISOLATED ENVIRONMENT ONLINE</span><h2>Lab Range</h2><p>Controlled scenarios. Synthetic targets. Real analytical pressure.</p></div><div className="range-details"><div><span>ACTIVE INSTANCES</span><strong>03 / 12</strong></div><div><span>ENVIRONMENT</span><strong>LOCAL SIMULATION</strong></div><div><span>BOUNDARY</span><strong>LAB ONLY</strong></div></div></div>
     <div className="section-title"><div><span>CURATED OPERATIONS</span><h3>Available missions</h3></div><button><SlidersIcon/> Filter</button></div>
-    <div className="mission-grid">{missions.map((m,i)=>{ const Icon=m.icon; return <article className={`mission-card mission-${i}`} key={m.id}><div className="mission-top"><span>{m.difficulty}</span><div><Icon size={28}/></div></div><div className="mission-code">MISSION // 00{i+7}</div><h3>{m.title}</h3><p>{m.brief}</p><div className="mission-tags">{m.tags.map(t=><span key={t}>{t}</span>)}</div><div className="mission-bottom"><div><span><Clock3 size={14}/>{m.time}</span><span><Zap size={14}/>{m.xp} XP</span></div><button onClick={()=>launchMission(m)}>View brief <ArrowRight size={15}/></button></div></article>})}</div>
+    <div className="mission-grid">{missions.map((m,i)=>{ const Icon=m.icon, cleared=completedMissions.includes(m.id); return <article className={`mission-card mission-${i} ${cleared?'cleared':''}`} key={m.id}><div className="mission-top"><span>{m.difficulty}</span><div><Icon size={28}/></div></div><div className="mission-code">MISSION // 00{i+7}</div><PhaseBadge complete={cleared}/><h3>{m.title}</h3><p>{m.brief}</p><div className="mission-tags">{m.tags.map(t=><span key={t}>{t}</span>)}</div><div className="mission-bottom"><div><span><Clock3 size={14}/>{m.time}</span><span><Zap size={14}/>{m.xp} XP</span></div><button onClick={()=>launchMission(m)}>{cleared?'Replay mission':'View brief'} <ArrowRight size={15}/></button></div></article>})}</div>
     <div className="range-protocol"><Shield size={25}/><div><strong>Range protocol is enforced.</strong><p>All exercises use synthetic evidence and intentionally vulnerable training systems. Activity outside the declared lab boundary is never part of an Academy mission.</p></div><span>ROE // ACTIVE</span></div>
   </div>
 }
@@ -173,11 +175,11 @@ function IntelPage() {
   </div>
 }
 
-function ModuleDetail({ module, onBack, startQuiz }) {
+function ModuleDetail({ module, onBack, startQuiz, startLesson }) {
   const Icon=module.icon
   const lessons = ['Orientation & rules of engagement','Building a network hypothesis','Reading a host inventory','Packet capture fundamentals','Ports, protocols & services','Service fingerprinting','Evidence quality checkpoint','Reconnaissance field assessment']
   return <div className="page detail-page"><button className="back-button" onClick={onBack}><ArrowLeft size={16}/> All pathways</button><div className="detail-hero"><div className="detail-icon"><Icon size={38}/></div><div><span>{module.code} // PATHWAY</span><h2>{module.title}</h2><p>{module.description}</p><div className="module-tags"><em><BookOpen size={13}/>{module.lessons} lessons</em><em><Clock3 size={13}/>{module.time}</em><em><Zap size={13}/>2,400 XP</em></div></div><div className="detail-progress"><Ring value={module.progress} size={90} stroke={5}/><span>PATHWAY PROGRESS</span></div></div>
-    <div className="detail-layout"><section><div className="section-title"><div><span>CURRICULUM</span><h3>Operational sequence</h3></div></div><div className="lesson-list">{lessons.map((l,i)=>{const complete=i<4, active=i===5; return <button key={l} className={active?'active':''}><span>{complete?<Check size={14}/>:String(i+1).padStart(2,'0')}</span><div><small>{i===6?'KNOWLEDGE CHECK':i===7?'FIELD ASSESSMENT':'LESSON'} // {i<5?'COMPLETE':active?'CURRENT':'QUEUED'}</small><strong>{l}</strong></div><em>{i===6?'12 Q':i===7?'35 MIN':`${12+i} MIN`}</em>{active?<Play size={16} fill="currentColor"/>:<ChevronRight size={16}/>}</button>})}</div></section><aside className="path-aside"><div className="mentor-card"><div className="mentor-avatar"><UserRound/></div><span>PATHWAY MENTOR</span><h3>MARA // RED CELL</h3><p>“Don’t collect data. Collect answers. Every action should reduce uncertainty.”</p></div><button className="primary full" onClick={startQuiz}><Target size={16}/> Run knowledge check</button><div className="unlock-card"><LockKeyhole size={20}/><div><span>NEXT UNLOCK</span><strong>Host Enumeration</strong><small>Complete this pathway</small></div></div></aside></div>
+    <div className="detail-layout"><section><div className="section-title"><div><span>CURRICULUM</span><h3>Operational sequence</h3></div></div><div className="lesson-list">{lessons.map((l,i)=>{const complete=i<4, active=i===5; return <button key={l} className={active?'active':''} onClick={()=>active&&startLesson({title:l,module:module.title})}><span>{complete?<Check size={14}/>:String(i+1).padStart(2,'0')}</span><div><small>{i===6?'KNOWLEDGE CHECK':i===7?'FIELD ASSESSMENT':'LESSON'} // {i<5?'COMPLETE':active?'CURRENT':'QUEUED'}</small><strong>{l}</strong></div><em>{i===6?'12 Q':i===7?'35 MIN':`${12+i} MIN`}</em>{active?<Play size={16} fill="currentColor"/>:<ChevronRight size={16}/>}</button>})}</div></section><aside className="path-aside"><div className="mentor-card"><div className="mentor-avatar"><UserRound/></div><span>PATHWAY MENTOR</span><h3>MARA // RED CELL</h3><p>“Don’t collect data. Collect answers. Every action should reduce uncertainty.”</p></div><button className="primary full" onClick={()=>startLesson({title:'Service Fingerprinting',module:module.title})}><Play size={16}/> Resume current lesson</button><button className="ghost full" onClick={startQuiz}><Target size={16}/> Run knowledge check</button><div className="unlock-card"><LockKeyhole size={20}/><div><span>NEXT UNLOCK</span><strong>Host Enumeration</strong><small>Complete this pathway</small></div></div></aside></div>
   </div>
 }
 
@@ -198,12 +200,24 @@ function QuizModal({ onClose, onComplete }) {
 function Toast({ message }) { return <div className="toast"><div><Check size={16}/></div>{message}</div> }
 
 export default function App() {
-  const [page,setPage]=useState('command'), [collapsed,setCollapsed]=useState(false), [module,setModule]=useState(null), [mission,setMission]=useState(null), [quiz,setQuiz]=useState(false), [toast,setToast]=useState('')
+  const [page,setPage]=useState('command'), [collapsed,setCollapsed]=useState(false), [module,setModule]=useState(null), [mission,setMission]=useState(null), [activeMission,setActiveMission]=useState(null), [lesson,setLesson]=useState(null), [quiz,setQuiz]=useState(false), [toast,setToast]=useState('')
   const [profile,setProfile]=usePersistentState('daemoncore-profile',initialProfile)
   const [search,setSearch]=useState('')
+  const operator={...initialProfile,...profile,completedMissions:profile.completedMissions||[],completedLessons:profile.completedLessons||[],achievements:profile.achievements||[]}
   useEffect(()=>{if(!toast)return;const t=setTimeout(()=>setToast(''),2600);return()=>clearTimeout(t)},[toast])
   const title=module?module.title:nav.find(n=>n.id===page)?.label||'Command'
-  const completeQuiz=(score)=>{setProfile(p=>({...p,xp:p.xp+score*120,completed:p.completed+1}));setToast(`Drill logged // +${score*120} XP`)}
-  const current=useMemo(()=>{if(module)return <ModuleDetail module={module} onBack={()=>setModule(null)} startQuiz={()=>setQuiz(true)}/>;if(page==='command')return <CommandPage setPage={setPage} profile={profile}/>;if(page==='academy')return <AcademyPage selectModule={setModule}/>;if(page==='labs')return <LabsPage launchMission={setMission}/>;if(page==='drills')return <DrillsPage startQuiz={()=>setQuiz(true)}/>;return <IntelPage/>},[page,module,profile])
-  return <div className="app-shell"><Sidebar page={page} setPage={p=>{setPage(p);setModule(null)}} collapsed={collapsed} setCollapsed={setCollapsed}/><main><Topbar title={title} onSearch={setSearch}/>{search&&<div className="search-notice">Searching for “{search}” across Academy intelligence…</div>}{current}<footer className="app-footer"><span>DAEMONCORE ACADEMY // BUILD 0.1.0</span><span><i/> CONTROLLED TRAINING ENVIRONMENT</span><span>ETHICS BY DESIGN</span></footer></main>{mission&&<MissionModal mission={mission} onClose={()=>setMission(null)} onLaunch={()=>{setMission(null);setToast('Simulation initialized // isolated range')}}/>}{quiz&&<QuizModal onClose={()=>setQuiz(false)} onComplete={completeQuiz}/>} {toast&&<Toast message={toast}/>}</div>
+  const completeQuiz=(score)=>{setProfile(p=>{const base={...initialProfile,...p},awards=new Set(base.achievements||[]);if(score===3)awards.add('clean-sweep');const xp=base.xp+score*120;return {...base,xp,level:Math.max(base.level,Math.floor(xp/1000)+3),completed:base.completed+1,phase2Xp:(base.phase2Xp||0)+score*120,achievements:[...awards]}});setToast(`Drill logged // +${score*120} XP`)}
+  const completeMission=({mission:cleared,score,hints})=>{setProfile(p=>{const base={...initialProfile,...p},missionsDone=new Set(base.completedMissions||[]),awards=new Set(base.achievements||[]),first=!missionsDone.has(cleared.id),earned=first?score:Math.round(score*.2);missionsDone.add(cleared.id);awards.add('first-signal');if(hints===0)awards.add('evidence-led');if(missionsDone.size===missions.length)awards.add('range-veteran');const xp=base.xp+earned;return {...base,xp,level:Math.max(base.level,Math.floor(xp/1000)+3),phase2Xp:(base.phase2Xp||0)+earned,completedMissions:[...missionsDone],achievements:[...awards]}});setActiveMission(null);setPage('labs');setToast(`Mission recorded // +${score} XP`)}
+  const completeLesson=completedLesson=>{setProfile(p=>{const base={...initialProfile,...p},lessons=new Set(base.completedLessons||[]),awards=new Set(base.achievements||[]),first=!lessons.has(completedLesson.title),earned=first?180:0;lessons.add(completedLesson.title);awards.add('scholar');const xp=base.xp+earned;return {...base,xp,level:Math.max(base.level,Math.floor(xp/1000)+3),phase2Xp:(base.phase2Xp||0)+earned,completedLessons:[...lessons],achievements:[...awards]}});setLesson(null);setToast('Lesson mastered // +180 XP')}
+  if(activeMission)return <LabSimulation mission={activeMission} onExit={()=>setActiveMission(null)} onComplete={completeMission}/>
+  if(lesson)return <LessonPlayer lesson={lesson} onExit={()=>setLesson(null)} onComplete={completeLesson}/>
+  let current
+  if(module)current=<ModuleDetail module={module} onBack={()=>setModule(null)} startQuiz={()=>setQuiz(true)} startLesson={setLesson}/>
+  else if(page==='command')current=<CommandPage setPage={setPage} profile={operator}/>
+  else if(page==='academy')current=<AcademyPage selectModule={setModule}/>
+  else if(page==='labs')current=<LabsPage launchMission={setMission} completedMissions={operator.completedMissions}/>
+  else if(page==='drills')current=<DrillsPage startQuiz={()=>setQuiz(true)}/>
+  else if(page==='operator')current=<OperatorPage profile={operator}/>
+  else current=<IntelPage/>
+  return <div className="app-shell"><Sidebar page={page} setPage={p=>{setPage(p);setModule(null)}} collapsed={collapsed} setCollapsed={setCollapsed}/><main><Topbar title={title} onSearch={setSearch}/>{search&&<div className="search-notice">Searching for “{search}” across Academy intelligence…</div>}{current}<footer className="app-footer"><span>DAEMONCORE ACADEMY // PHASE 2 // BUILD 0.2.0</span><span><i/> CONTROLLED TRAINING ENVIRONMENT</span><span>ETHICS BY DESIGN</span></footer></main>{mission&&<MissionModal mission={mission} onClose={()=>setMission(null)} onLaunch={()=>{setActiveMission(mission);setMission(null)}}/>}{quiz&&<QuizModal onClose={()=>setQuiz(false)} onComplete={completeQuiz}/>} {toast&&<Toast message={toast}/>}</div>
 }

@@ -1,6 +1,15 @@
 # DaemonCore Academy
 
-A desktop-first cybersecurity training experience for controlled, authorized practice. The MVP combines structured pathways, synthetic lab missions, timed drills, field intelligence, persistent operator progress, and explicit rules-of-engagement boundaries.
+A desktop-first cybersecurity training experience for controlled, authorized practice. Phase 2 combines structured pathways, playable synthetic lab missions, tactical lessons, timed drills, field intelligence, persistent operator progression, achievements, and explicit rules-of-engagement boundaries.
+
+## Phase 2
+
+- Playable range console with three scenario-specific simulations
+- Evidence locker, tracked objectives, time, guidance penalties, and mission scoring
+- Interactive tactical lesson player with section navigation and knowledge validation
+- Persistent mission, lesson, XP, level, and achievement records
+- Dedicated operator profile with readiness metrics and certification progress
+- Replay-aware rewards and five unlockable Phase 2 decorations
 
 ## Run it
 
