@@ -6,9 +6,10 @@ DaemonCore is the course I wanted instead: learn the mental model, validate it, 
 
 Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 
-## What ships in 1.2
+## What ships in 1.3
 
-- **Full-Spectrum Security Assessment** — twenty written lessons spanning scope, recon, Windows and Linux attack surfaces, web, sessions, authorization, injection, APIs, enterprise identity, cloud, containers, supply chain, secrets, validation, evidence, cleanup, and retesting.
+- **Full-Spectrum Security Assessment** — twenty practical lessons and sixteen hours of guided work spanning scope, recon, Windows and Linux attack surfaces, web, sessions, authorization, injection, APIs, enterprise identity, cloud, containers, supply chain, secrets, validation, evidence, cleanup, and retesting.
+- **Operator workshops** — every lesson now includes objectives, prerequisites, an annotated three-step workflow, commands or artifacts, expected signal, interpretation, a required deliverable, success criteria, and primary references.
 - **Twenty validation checks** — progress is recorded only after the lesson check is answered correctly.
 - **Eight scored drill sets** — protocol recognition, request anatomy, evidence triage, finding quality, authorization, cloud controls, credential safety, and assessment triage.
 - **Three field missions** — one live Docker range and two clearly labeled guided simulations.
@@ -72,7 +73,7 @@ npm run dev
 npm test
 ```
 
-That command lints the UI, exercises operator-record persistence and recovery, verifies licensing and offline grace, attacks the FieldOps scope boundary, validates the range contract and containment-sensitive Compose settings, then builds the production bundle.
+That command lints the UI, exercises operator-record persistence and recovery, verifies licensing and offline grace, attacks the FieldOps scope boundary, enforces the practical-lesson quality contract, validates the range contract and containment-sensitive Compose settings, then builds the production bundle.
 
 Build the Windows installer with:
 
@@ -92,10 +93,12 @@ electron/engagement-store.cjs scope enforcement + external diagnostics
 electron/range-orchestrator.cjs
 ranges/ghost-port/            live target, operator image, and manifest
 src/content.js                versioned course, drills, and field notes
+src/lesson-practicals.js      workshops, commands, output, exercises, references
 src/phase2.jsx                range console, lessons, and operator record UI
 scripts/verify-data-store.mjs persistence/recovery contract
 scripts/verify-phase4.mjs     licensing and scope-boundary contract
 scripts/verify-phase5.mjs     curriculum breadth + bounded FieldOps contract
+scripts/verify-phase6.mjs     practical lesson depth and artifact contract
 scripts/verify-range.mjs      range and containment contract
 ```
 

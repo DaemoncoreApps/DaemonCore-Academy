@@ -1,3 +1,5 @@
+import { lessonPracticals } from './lesson-practicals.js'
+
 export const course = {
   schemaVersion: 1,
   id: 'network-recon',
@@ -188,6 +190,12 @@ export const course = {
     },
   ],
 }
+
+for (const lesson of course.lessons) {
+  Object.assign(lesson, lessonPracticals[lesson.id] || {})
+  lesson.minutes=lesson.level==='PRACTITIONER'?50:45
+}
+course.estimatedMinutes=course.lessons.reduce((total,lesson)=>total+lesson.minutes,0)
 
 export const intelArticles = [
   { id: 'recon-loop', type: 'FIELD NOTE', title: 'The reconnaissance loop', readMinutes: 6, summary: 'Move from scope to observation, hypothesis, validation, and evidence without creating noise.', sections: [

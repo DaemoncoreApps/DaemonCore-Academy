@@ -1,0 +1,71 @@
+.lesson-outcome {
+  margin: 30px 0 16px;
+  border: 1px solid #4a2a2f;
+  background: linear-gradient(100deg, rgba(240, 44, 53, .1), transparent);
+  padding: 19px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.lesson-outcome > svg { color: #f04a53; width: 24px; }
+.lesson-outcome span, .lesson-brief-grid > section > span, .workshop-block header span,
+.command-block span, .expected-block > span, .analysis-block span, .operator-exercise header span,
+.operator-exercise > div span, .lesson-references > span {
+  display: block;
+  color: #e74b53;
+  font: 600 7px var(--mono);
+  letter-spacing: 1.2px;
+}
+.lesson-outcome strong { display: block; margin-top: 6px; font-size: 12px; color: #d7d9dd; }
+
+.lesson-brief-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 28px; }
+.lesson-brief-grid > section { border: 1px solid #292c31; background: #0d0f12; padding: 17px; }
+.lesson-brief-grid p { display: flex; gap: 8px; align-items: flex-start; color: #858a92; font-size: 9px; line-height: 1.55; }
+.lesson-brief-grid p svg { width: 13px; height: 13px; flex: 0 0 auto; color: #58cf98; }
+.lesson-brief-grid > section:last-child p svg { color: #737881; }
+
+.workshop-block { margin: 34px 0; border: 1px solid #2b2e34; background: #0b0d10; }
+.workshop-block > header { min-height: 70px; border-bottom: 1px solid #292c31; padding: 16px 19px; display: flex; align-items: center; justify-content: space-between; }
+.workshop-block > header h2, .operator-exercise h2 { margin: 7px 0 0; font: 600 20px var(--display); }
+.workshop-block > header > svg { color: #ef4750; width: 24px; }
+.workshop-block > p { margin: 0; padding: 20px; color: #91969e; font-size: 11px; line-height: 1.75; }
+
+.command-block { margin: 0 20px 14px; border: 1px solid #34373e; background: #07080a; }
+.command-block > div { height: 37px; border-bottom: 1px solid #292c31; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; }
+.command-block button { border: 0; background: transparent; color: #747982; display: flex; align-items: center; gap: 5px; font: 600 7px var(--mono); }
+.command-block button svg { width: 12px; }
+.command-block pre, .expected-block pre { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; padding: 16px; font: 500 11px/1.7 var(--mono); }
+.command-block pre { color: #f2f2f4; }
+
+.expected-block { margin: 0 20px 14px; border-left: 2px solid #4bc38b; background: #0b1410; }
+.expected-block > span { padding: 12px 15px 0; color: #58cf98; }
+.expected-block pre { color: #8dcbaa; padding-top: 10px; }
+
+.analysis-block { margin: 0 20px 20px; border: 1px solid #2b2e34; padding: 16px; display: flex; gap: 13px; }
+.analysis-block > svg { width: 18px; color: #e74b53; flex: 0 0 auto; }
+.analysis-block p { margin: 7px 0 0; color: #858a92; font-size: 10px; line-height: 1.7; }
+
+.operator-exercise { margin: 35px 0 20px; border: 1px solid #563037; background: radial-gradient(circle at 100% 0, rgba(240,44,53,.1), transparent 40%), #0d0e11; padding: 22px; }
+.operator-exercise > header { display: flex; align-items: center; gap: 13px; }
+.operator-exercise > header > svg { color: #ef4750; }
+.operator-exercise > p { color: #999da5; font-size: 11px; line-height: 1.7; }
+.operator-exercise > div { border: 1px solid #2c2f35; background: #090a0c; padding: 14px; }
+.operator-exercise > div strong { display: block; color: #d8dadd; margin-top: 7px; font-size: 10px; line-height: 1.6; }
+.operator-exercise ul { list-style: none; padding: 0; display: grid; gap: 8px; }
+.operator-exercise li { display: flex; gap: 8px; align-items: center; color: #858a92; font-size: 9px; }
+.operator-exercise li svg { width: 13px; color: #58cf98; }
+.operator-exercise label { margin-top: 18px; border-top: 1px solid #2c2f35; padding-top: 16px; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.operator-exercise label input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.operator-exercise label i { width: 22px; height: 22px; border: 1px solid #41444b; display: grid; place-items: center; }
+.operator-exercise label i svg { width: 13px; color: #58cf98; }
+.operator-exercise label span { color: #a6a9af; font-size: 9px; line-height: 1.5; }
+
+.lesson-references { border: 1px solid #292c31; padding: 17px; margin: 20px 0; }
+.lesson-references a { min-height: 36px; border-top: 1px solid #24272c; color: #868b94; text-decoration: none; display: flex; align-items: center; justify-content: space-between; font-size: 9px; }
+.lesson-references a:first-of-type { margin-top: 10px; }
+.lesson-references a svg { width: 13px; color: #e74b53; }
+
+@media (max-width: 1100px) {
+  .lesson-brief-grid { grid-template-columns: 1fr; }
+}
