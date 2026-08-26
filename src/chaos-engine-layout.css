@@ -1,0 +1,10 @@
+.experiment-form {
+  grid-template-columns: 1.5fr 1.2fr .65fr 1fr;
+  gap: 9px;
+}
+
+@media (max-width: 1250px) {
+  .experiment-form {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

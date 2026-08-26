@@ -67,12 +67,14 @@ ipcMain.handle('license:checkout', rangeHandler(async () => {
 ipcMain.handle('fieldops:snapshot', rangeHandler(() => engagementStore.snapshot()))
 ipcMain.handle('fieldops:create', rangeHandler(input => engagementStore.create(input)))
 ipcMain.handle('fieldops:run', rangeHandler(input => engagementStore.run(input)))
+ipcMain.handle('fieldops:chaos-start', rangeHandler(input => engagementStore.startChaos(input)))
+ipcMain.handle('fieldops:chaos-abort', rangeHandler(id => engagementStore.abortChaos(id)))
 ipcMain.handle('fieldops:close', rangeHandler(id => engagementStore.close(id)))
 ipcMain.handle('fieldops:export', rangeHandler(async id => {
   const snapshot = engagementStore.snapshot()
   const engagement = snapshot.engagements.find(item => item.id === id)
   if (!engagement) throw new Error('Engagement not found')
-  const bundle = { schemaVersion: 1, exportedAt: new Date().toISOString(), auditIntegrity: snapshot.auditIntegrity, engagement, audit: snapshot.audit.filter(item => item.engagementId === id) }
+  const bundle = { schemaVersion: 2, exportedAt: new Date().toISOString(), auditIntegrity: snapshot.auditIntegrity, engagement, chaosRuns: snapshot.chaosRuns.filter(item => item.engagementId === id), audit: snapshot.audit.filter(item => item.engagementId === id) }
   const result = await dialog.showSaveDialog({ title: 'Export FieldOps evidence ledger', defaultPath: `daemoncore-fieldops-${engagement.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}.json`, filters: [{ name: 'JSON evidence bundle', extensions: ['json'] }] })
   if (result.canceled || !result.filePath) return { canceled: true }
   await writeFile(result.filePath, `${JSON.stringify(bundle, null, 2)}\n`, 'utf8')

@@ -2,7 +2,7 @@ const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('daemoncore', {
   platform: process.platform,
-  version: '1.4.0',
+  version: '1.5.0',
   range: Object.freeze({
     availability: () => ipcRenderer.invoke('range:availability'),
     status: () => ipcRenderer.invoke('range:status'),
@@ -30,6 +30,8 @@ contextBridge.exposeInMainWorld('daemoncore', {
     snapshot: () => ipcRenderer.invoke('fieldops:snapshot'),
     create: input => ipcRenderer.invoke('fieldops:create', input),
     run: input => ipcRenderer.invoke('fieldops:run', input),
+    startChaos: input => ipcRenderer.invoke('fieldops:chaos-start', input),
+    abortChaos: id => ipcRenderer.invoke('fieldops:chaos-abort', id),
     close: id => ipcRenderer.invoke('fieldops:close', id),
     export: id => ipcRenderer.invoke('fieldops:export', id),
   }),

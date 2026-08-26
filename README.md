@@ -6,7 +6,7 @@ DaemonCore is the course I wanted instead: learn the mental model, validate it, 
 
 Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 
-## What ships in 1.4
+## What ships in 1.5
 
 - **Full-Spectrum Security Assessment** — twenty practical lessons and sixteen hours of guided work spanning scope, recon, Windows and Linux attack surfaces, web, sessions, authorization, injection, APIs, enterprise identity, cloud, containers, supply chain, secrets, validation, evidence, cleanup, and retesting.
 - **Operator workshops** — every lesson now includes objectives, prerequisites, an annotated three-step workflow, commands or artifacts, expected signal, interpretation, a required deliverable, success criteria, and primary references.
@@ -21,6 +21,7 @@ Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 - **Lemon Squeezy licensing** — secure activation, instance validation, device deactivation, tier entitlements, and a fourteen-day offline grace window.
 - **FieldOps Pro** — authorization-bound diagnostics against exact public targets using DNS resolution, TCP reachability, bounded allowed-port surveys, configurable-path HTTP header inspection, TLS inspection, and fixed-rate resilience baselines.
 - **Engagement Vault** — append-only scope records, dated testing windows, target and port allowlists, evidence export, and a SHA-256 chained activity ledger that exposes tampering.
+- **DaemonCore Chaos Engine** — four real black-box resilience profiles with a non-blocking native worker, live latency and error telemetry, automatic SLO aborts, emergency stop, recovery validation, resilience scoring, durable run history, and evidence export.
 
 There are no locked “coming soon” course cards pretending to be content. FieldOps is the one intentional commercial gate.
 
@@ -28,9 +29,11 @@ There are no locked “coming soon” course cards pretending to be content. Fie
 
 A paid license unlocks the tool. It does not authorize a target.
 
-Before an external diagnostic can run, the operator must create an engagement with a client, authorization reference, exact targets, exact TCP ports, a testing window, and an explicit authorization attestation. FieldOps resolves and pins the destination, blocks private, loopback, link-local, reserved, and mixed public/private results, refuses redirects, rate-limits execution, and writes every completed or blocked action to the evidence ledger. Port surveys are limited to the declared allowlist and thirty ports. Resilience sampling is fixed at ten HEAD requests, concurrency one, with at least 500 milliseconds between requests.
+Before an external diagnostic or Chaos Engine experiment can run, the operator must create an engagement with a client, authorization reference, exact targets, exact TCP ports, a testing window, and an explicit authorization attestation. FieldOps resolves and pins the destination, blocks private, loopback, link-local, reserved, and mixed public/private results, refuses redirects, and writes every completed or blocked action to the evidence ledger. Port surveys are limited to the declared allowlist and thirty ports. Basic resilience sampling is fixed at ten HEAD requests, concurrency one, with at least 500 milliseconds between requests.
 
-There is no arbitrary public-network shell, DDoS engine, or online password-guessing system. High-volume availability testing and credential attacks can damage systems even when someone claims authorization. DaemonCore replaces those workflows with bounded resilience sampling, synthetic identity exercises, sanctioned offline credential-audit training, and the sealed range. Unrestricted command execution stays inside that range.
+Chaos Engine provides baseline, controlled-ramp, spike, and bounded-soak profiles against the exact authorized target. Every experiment is capped at sixty seconds, four requests per second, four concurrent probes, and 240 total requests. Operators set P95 latency and error-rate abort conditions before launch. A breached SLO stops the load phase, records the reason, measures recovery, computes a resilience score, and seals the result into the engagement ledger. The emergency stop remains available throughout execution.
+
+There is no arbitrary public-network shell, DDoS engine, or online password-guessing system. High-volume availability testing and credential attacks can damage systems even when someone claims authorization. DaemonCore provides controlled resilience experiments, synthetic identity exercises, sanctioned offline credential-audit training, and the sealed range. Unrestricted command execution stays inside that range.
 
 ## Connect Lemon Squeezy
 
@@ -97,11 +100,13 @@ ranges/ghost-port/            live target, operator image, and manifest
 src/content.js                versioned course, drills, and field notes
 src/lesson-practicals.js      workshops, commands, output, exercises, references
 src/phase2.jsx                range console, lessons, and operator record UI
+src/ChaosEngine.jsx           experiment composer + live resilience telemetry
 scripts/verify-data-store.mjs persistence/recovery contract
 scripts/verify-phase4.mjs     licensing and scope-boundary contract
 scripts/verify-phase5.mjs     curriculum breadth + bounded FieldOps contract
 scripts/verify-phase6.mjs     practical lesson depth and artifact contract
 scripts/verify-phase7.mjs     interactive scenario and mastery-gate contract
+scripts/verify-phase8.mjs     Chaos Engine caps, abort, recovery, and audit contract
 scripts/verify-range.mjs      range and containment contract
 ```
 

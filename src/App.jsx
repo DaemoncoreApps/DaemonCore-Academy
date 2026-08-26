@@ -68,13 +68,16 @@ function useLicense() {
 
 function useFieldOps() {
   const api=window.daemoncore?.fieldops
-  const [data,setData]=useState(api?null:{schemaVersion:1,engagements:[],audit:[]})
+  const [data,setData]=useState(api?null:{schemaVersion:2,engagements:[],chaosRuns:[],audit:[]})
   useEffect(()=>{if(api)api.snapshot().then(setData)},[api])
   const create=async input=>{if(!api)throw new Error('FieldOps requires the Windows desktop build');const next=await api.create(input);setData(next);return next}
   const run=async input=>{if(!api)throw new Error('FieldOps requires the Windows desktop build');const result=await api.run(input);setData(await api.snapshot());return result}
+  const startChaos=async input=>{if(!api)throw new Error('Chaos Engine requires the Windows desktop build');const next=await api.startChaos(input);setData(next);return next}
+  const abortChaos=async id=>{if(!api)throw new Error('Chaos Engine requires the Windows desktop build');const next=await api.abortChaos(id);setData(next);return next}
+  const refresh=async()=>{if(!api)return data;const next=await api.snapshot();setData(next);return next}
   const close=async id=>{if(!api)throw new Error('FieldOps requires the Windows desktop build');const next=await api.close(id);setData(next);return next}
   const exportEvidence=id=>api?.export(id)
-  return {data,create,run,close,exportEvidence}
+  return {data,create,run,startChaos,abortChaos,refresh,close,exportEvidence}
 }
 
 function Brand({ compact = false }) {
@@ -244,10 +247,10 @@ export default function App() {
   else if(page==='command')current=<CommandPage setPage={setPage} profile={operator}/>
   else if(page==='academy')current=<AcademyPage selectModule={setModule} profile={operator}/>
   else if(page==='labs')current=<LabsPage launchMission={setMission} completedMissions={operator.completedMissions}/>
-  else if(page==='fieldops')current=<FieldOpsPage license={licensing.license} data={fieldOps.data} onCreate={fieldOps.create} onRun={fieldOps.run} onClose={fieldOps.close} onExport={fieldOps.exportEvidence} onSettings={()=>setPage('settings')}/>
+  else if(page==='fieldops')current=<FieldOpsPage license={licensing.license} data={fieldOps.data} onCreate={fieldOps.create} onRun={fieldOps.run} onChaosStart={fieldOps.startChaos} onChaosAbort={fieldOps.abortChaos} onRefresh={fieldOps.refresh} onClose={fieldOps.close} onExport={fieldOps.exportEvidence} onSettings={()=>setPage('settings')}/>
   else if(page==='drills')current=<DrillsPage startQuiz={setQuiz} profile={operator}/>
   else if(page==='intel')current=<IntelPage onOpen={setArticle}/>
   else if(page==='operator')current=<OperatorPage profile={operator}/>
   else current=<SettingsPage data={store.data} {...licenseProps} onUpdate={store.updateSettings} onExport={store.exportData} onReset={store.reset}/>
-  return <div className="app-shell"><Sidebar page={page} setPage={p=>{setPage(p);setModule(null)}} collapsed={navigationCollapsed} setCollapsed={setCollapsed} profile={operator}/><main><Topbar title={title} profile={operator}/>{current}<footer className="app-footer"><span>DAEMONCORE ACADEMY // PHASE 7</span><span><i/> LICENSED LOCAL-FIRST PLATFORM</span><span>{licensing.license.tierLabel?.toUpperCase()||'COMMERCIAL CORE READY'}</span></footer></main>{mission&&<MissionModal mission={mission} onClose={()=>setMission(null)} onLaunch={()=>{setActiveMission(mission);setMission(null)}}/>}{quiz&&<QuizModal drill={quiz} onClose={()=>setQuiz(null)} onComplete={completeQuiz}/>} {toast&&<Toast message={toast}/>}</div>
+  return <div className="app-shell"><Sidebar page={page} setPage={p=>{setPage(p);setModule(null)}} collapsed={navigationCollapsed} setCollapsed={setCollapsed} profile={operator}/><main><Topbar title={title} profile={operator}/>{current}<footer className="app-footer"><span>DAEMONCORE ACADEMY // PHASE 8</span><span><i/> LICENSED LOCAL-FIRST PLATFORM</span><span>{licensing.license.tierLabel?.toUpperCase()||'COMMERCIAL CORE READY'}</span></footer></main>{mission&&<MissionModal mission={mission} onClose={()=>setMission(null)} onLaunch={()=>{setActiveMission(mission);setMission(null)}}/>}{quiz&&<QuizModal drill={quiz} onClose={()=>setQuiz(null)} onComplete={completeQuiz}/>} {toast&&<Toast message={toast}/>}</div>
 }

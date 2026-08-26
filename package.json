@@ -2,7 +2,7 @@
   "name": "daemoncore-academy",
   "private": true,
   "type": "module",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "A sealed cyber range and operator training desktop platform.",
   "main": "electron/main.cjs",
   "author": "DaemonCore Academy",
@@ -21,8 +21,9 @@
     "check:phase5": "node scripts/verify-phase5.mjs",
     "check:phase6": "node scripts/verify-phase6.mjs",
     "check:phase7": "node scripts/verify-phase7.mjs",
+    "check:phase8": "node scripts/verify-phase8.mjs",
     "check:range": "node scripts/verify-range.mjs",
-    "test": "npm run check && npm run check:data && npm run check:phase4 && npm run check:phase5 && npm run check:phase6 && npm run check:phase7 && npm run check:range && npm run build"
+    "test": "npm run check && npm run check:data && npm run check:phase4 && npm run check:phase5 && npm run check:phase6 && npm run check:phase7 && npm run check:phase8 && npm run check:range && npm run build"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
