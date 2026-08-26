@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "storeId": 230368,
-  "requireAcademyLicense": true,
+  "requireAcademyLicense": false,
   "offlineGraceDays": 14,
   "checkoutUrl": "https://daemoncore.lemonsqueezy.com/checkout/buy/17b86570-b95c-49fa-a987-e8fa904d3f34",
   "tiers": [
@@ -9,13 +9,13 @@
       "id": "fieldops",
       "label": "FieldOps Pro",
       "productIds": [],
-      "variantIds": []
+      "variantIds": [2062439]
     },
     {
       "id": "academy",
       "label": "Academy",
       "productIds": [],
-      "variantIds": [2062439]
+      "variantIds": []
     }
   ]
 }
