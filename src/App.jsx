@@ -11,6 +11,7 @@ import { LabSimulation, LessonPlayer, OperatorPage, PhaseBadge, RangeEngineCard 
 import { course, drillSets, intelArticles } from './content.js'
 import { ArticleReader, LicenseGate, LoadingScreen, Onboarding, SettingsPage } from './production.jsx'
 import { FieldOpsPage } from './fieldops.jsx'
+import { RangeChaosLab } from './RangeChaosLab.jsx'
 
 const nav = [
   { id: 'command', label: 'Command', icon: Grid2X2 },
@@ -172,6 +173,7 @@ function LabsPage({ launchMission, completedMissions = [] }) {
   return <div className="page labs-page">
     <div className="range-banner"><div className="range-radar"><Radar size={38}/><i/><i/><i/></div><div><span className="section-code"><i/> PHASE 3 RANGE ENGINE</span><h2>Lab Range</h2><p>Disposable targets. Root operator shell. Hard containment.</p></div><div className="range-details"><div><span>LIVE SCENARIOS</span><strong>01 / 03</strong></div><div><span>ENGINE</span><strong>DOCKER + SIM</strong></div><div><span>BOUNDARY</span><strong>SEALED</strong></div></div></div>
     <RangeEngineCard/>
+    <RangeChaosLab/>
     <div className="section-title"><div><span>CURATED OPERATIONS // 1 LIVE RANGE + 2 GUIDED SIMULATIONS</span><h3>Available missions</h3></div></div>
     <div className="mission-grid">{missions.map((m,i)=>{ const Icon=m.icon, cleared=completedMissions.includes(m.id); return <article className={`mission-card mission-${i} ${cleared?'cleared':''}`} key={m.id}><div className="mission-top"><span>{m.difficulty}</span><div><Icon size={28}/></div></div><div className="mission-code">MISSION // 00{i+7}</div><PhaseBadge complete={cleared} live={i===0}/><h3>{m.title}</h3><p>{m.brief}</p><div className="mission-tags">{m.tags.map(t=><span key={t}>{t}</span>)}</div><div className="mission-bottom"><div><span><Clock3 size={14}/>{m.time}</span><span><Zap size={14}/>{m.xp} XP</span></div><button onClick={()=>launchMission(m)}>{cleared?'Replay mission':'View brief'} <ArrowRight size={15}/></button></div></article>})}</div>
     <div className="range-protocol"><Shield size={25}/><div><strong>Range protocol is enforced.</strong><p>All exercises use synthetic evidence and intentionally vulnerable training systems. Activity outside the declared lab boundary is never part of an Academy mission.</p></div><span>ROE // ACTIVE</span></div>
@@ -252,5 +254,5 @@ export default function App() {
   else if(page==='intel')current=<IntelPage onOpen={setArticle}/>
   else if(page==='operator')current=<OperatorPage profile={operator}/>
   else current=<SettingsPage data={store.data} {...licenseProps} onUpdate={store.updateSettings} onExport={store.exportData} onReset={store.reset}/>
-  return <div className="app-shell"><Sidebar page={page} setPage={p=>{setPage(p);setModule(null)}} collapsed={navigationCollapsed} setCollapsed={setCollapsed} profile={operator}/><main><Topbar title={title} profile={operator}/>{current}<footer className="app-footer"><span>DAEMONCORE ACADEMY // PHASE 8</span><span><i/> LICENSED LOCAL-FIRST PLATFORM</span><span>{licensing.license.tierLabel?.toUpperCase()||'COMMERCIAL CORE READY'}</span></footer></main>{mission&&<MissionModal mission={mission} onClose={()=>setMission(null)} onLaunch={()=>{setActiveMission(mission);setMission(null)}}/>}{quiz&&<QuizModal drill={quiz} onClose={()=>setQuiz(null)} onComplete={completeQuiz}/>} {toast&&<Toast message={toast}/>}</div>
+  return <div className="app-shell"><Sidebar page={page} setPage={p=>{setPage(p);setModule(null)}} collapsed={navigationCollapsed} setCollapsed={setCollapsed} profile={operator}/><main><Topbar title={title} profile={operator}/>{current}<footer className="app-footer"><span>DAEMONCORE ACADEMY // PHASE 9</span><span><i/> LICENSED LOCAL-FIRST PLATFORM</span><span>{licensing.license.tierLabel?.toUpperCase()||'COMMERCIAL CORE READY'}</span></footer></main>{mission&&<MissionModal mission={mission} onClose={()=>setMission(null)} onLaunch={()=>{setActiveMission(mission);setMission(null)}}/>}{quiz&&<QuizModal drill={quiz} onClose={()=>setQuiz(null)} onComplete={completeQuiz}/>} {toast&&<Toast message={toast}/>}</div>
 }

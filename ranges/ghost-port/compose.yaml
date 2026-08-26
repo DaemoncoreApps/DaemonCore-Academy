@@ -44,6 +44,23 @@ services:
       retries: 20
       start_period: 2s
 
+  chaos-worker:
+    build:
+      context: ./chaos-worker
+    container_name: dc-ghost-chaos
+    command: ["sleep", "infinity"]
+    networks: [range]
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,noexec,nosuid,nodev
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 160
+    mem_limit: 512m
+    cpus: 1.00
+    restart: "no"
+
 networks:
   range:
     name: dc-ghost-range

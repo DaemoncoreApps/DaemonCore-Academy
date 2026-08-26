@@ -2,13 +2,16 @@ const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('daemoncore', {
   platform: process.platform,
-  version: '1.5.0',
+  version: '1.6.0',
   range: Object.freeze({
     availability: () => ipcRenderer.invoke('range:availability'),
     status: () => ipcRenderer.invoke('range:status'),
     manifest: id => ipcRenderer.invoke('range:manifest', id),
     start: id => ipcRenderer.invoke('range:start', id),
     execute: (id, command) => ipcRenderer.invoke('range:execute', id, command),
+    chaosStatus: () => ipcRenderer.invoke('range:chaos-status'),
+    chaosStart: input => ipcRenderer.invoke('range:chaos-start', input),
+    chaosAbort: () => ipcRenderer.invoke('range:chaos-abort'),
     stop: () => ipcRenderer.invoke('range:stop'),
   }),
   data: Object.freeze({

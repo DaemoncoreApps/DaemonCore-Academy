@@ -6,6 +6,7 @@ const PROJECT = 'daemoncore-ghost-port'
 const NETWORK = 'dc-ghost-range'
 const OPERATOR = 'dc-ghost-operator'
 const TARGET = 'dc-ghost-target'
+const CHAOS_WORKER = 'dc-ghost-chaos'
 const ALLOWED_SCENARIOS = new Set(['ghost-port'])
 
 function runDocker(args, options = {}) {
@@ -96,7 +97,7 @@ class RangeOrchestrator {
     const { stdout: internal } = await runDocker(['network', 'inspect', NETWORK, '--format', '{{.Internal}}'])
     if (internal.trim() !== 'true') throw new Error('Containment check failed: range network is not internal')
 
-    for (const container of [OPERATOR, TARGET]) {
+    for (const container of [OPERATOR, TARGET, CHAOS_WORKER]) {
       const { stdout } = await runDocker(['inspect', container, '--format', '{{json .Mounts}}'])
       const mounts = JSON.parse(stdout.trim() || '[]')
       const hostMounts = mounts.filter(mount => mount.Type === 'bind' || mount.Type === 'volume')
@@ -147,6 +148,51 @@ class RangeOrchestrator {
         exitCode: Number.isInteger(error.code) ? error.code : 1,
       }
     }
+  }
+
+  normalizeChaosPlan(input = {}) {
+    const clamp = (value, minimum, maximum, fallback) => Math.max(minimum, Math.min(maximum, Math.round(Number(value) || fallback)))
+    const profile = String(input.profile || 'ramp')
+    if (!['baseline', 'ramp', 'spike', 'soak'].includes(profile)) throw new Error('Unsupported sealed-range Chaos profile')
+    return {
+      profile,
+      durationSeconds: clamp(input.durationSeconds, 10, 60, 20),
+      requestsPerSecond: clamp(input.requestsPerSecond, 10, 500, 100),
+      concurrency: clamp(input.concurrency, 1, 100, 25),
+      p95LimitMs: clamp(input.p95LimitMs, 100, 10_000, 1_000),
+      errorRateLimit: clamp(input.errorRateLimit, 1, 80, 20),
+    }
+  }
+
+  async chaosStatus() {
+    if (this.activeScenario !== 'ghost-port') return { state: 'offline', status: 'idle', reason: 'The sealed range is not active.' }
+    try {
+      const { stdout } = await runDocker(['exec', CHAOS_WORKER, 'cat', '/tmp/daemoncore-chaos.json'], { timeout: 5_000 })
+      return { state: 'sealed', ...JSON.parse(stdout.trim()) }
+    } catch {
+      return { state: 'sealed', status: 'idle', phase: 'standby' }
+    }
+  }
+
+  async startChaos(input) {
+    if (this.activeScenario !== 'ghost-port') throw new Error('Start the sealed Ghost Port range before arming Chaos Engine')
+    const current = await this.chaosStatus()
+    if (['running', 'recovering'].includes(current.status)) throw new Error('A sealed-range Chaos experiment is already active')
+    const plan = this.normalizeChaosPlan(input)
+    await runDocker(['exec', CHAOS_WORKER, 'sh', '-lc', 'rm -f /tmp/daemoncore-chaos.json /tmp/daemoncore-chaos.json.tmp /tmp/daemoncore-chaos.stop'])
+    await runDocker(['exec', '--detach', CHAOS_WORKER, 'node', '/opt/chaos/load-runner.mjs', plan.profile, String(plan.durationSeconds), String(plan.requestsPerSecond), String(plan.concurrency), String(plan.p95LimitMs), String(plan.errorRateLimit)])
+    for (let attempt = 0; attempt < 25; attempt += 1) {
+      await delay(100)
+      const status = await this.chaosStatus()
+      if (status.status !== 'idle') return status
+    }
+    throw new Error('The sealed Chaos Worker did not publish startup telemetry')
+  }
+
+  async abortChaos() {
+    if (this.activeScenario !== 'ghost-port') throw new Error('The sealed range is not active')
+    await runDocker(['exec', CHAOS_WORKER, 'touch', '/tmp/daemoncore-chaos.stop'], { timeout: 5_000 })
+    return this.chaosStatus()
   }
 
   async stopInternal(id = this.activeScenario || 'ghost-port') {

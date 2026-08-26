@@ -2,6 +2,20 @@ import http from 'node:http'
 import net from 'node:net'
 
 const bind = '0.0.0.0'
+let capacityWindow = Date.now()
+let requestsInWindow = 0
+
+function pressureSignal() {
+  const now = Date.now()
+  if (now - capacityWindow >= 1000) {
+    capacityWindow = now
+    requestsInWindow = 0
+  }
+  requestsInWindow += 1
+  if (requestsInWindow > 300) return { status: 503, delayMs: 180, state: 'saturated' }
+  if (requestsInWindow > 120) return { status: 200, delayMs: Math.min(900, 20 + (requestsInWindow - 120) * 4), state: 'degraded' }
+  return { status: 200, delayMs: 0, state: 'nominal' }
+}
 
 net.createServer(socket => {
   socket.end('SSH-2.0-OpenSSH_9.3 DaemonCore_Training\r\n')
@@ -14,8 +28,11 @@ net.createServer(socket => {
 http.createServer((request, response) => {
   response.setHeader('Server', 'Archive Console/0.8-training')
   if (request.url === '/health') {
-    response.writeHead(200, { 'content-type': 'text/plain' })
-    response.end('healthy')
+    const signal = pressureSignal()
+    setTimeout(() => {
+      response.writeHead(signal.status, { 'content-type': 'text/plain', 'x-daemoncore-capacity': signal.state, ...(signal.status === 503 ? { 'retry-after': '1' } : {}) })
+      response.end(signal.status === 503 ? 'capacity exhausted' : 'healthy')
+    }, signal.delayMs)
     return
   }
   if (request.url === '/status') {
