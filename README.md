@@ -6,17 +6,17 @@ DaemonCore is the course I wanted instead: learn the mental model, validate it, 
 
 Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 
-## What ships in 1.1
+## What ships in 1.2
 
-- **Network Reconnaissance** — eight written lessons covering scope, hypothesis-driven recon, asset inventory, packet evidence, port state, service fingerprinting, evidence quality, and finding construction.
-- **Eight validation checks** — progress is recorded only after the lesson check is answered correctly.
-- **Four scored drill sets** — protocol recognition, request anatomy, evidence triage, and finding quality.
+- **Full-Spectrum Security Assessment** — twenty written lessons spanning scope, recon, Windows and Linux attack surfaces, web, sessions, authorization, injection, APIs, enterprise identity, cloud, containers, supply chain, secrets, validation, evidence, cleanup, and retesting.
+- **Twenty validation checks** — progress is recorded only after the lesson check is answered correctly.
+- **Eight scored drill sets** — protocol recognition, request anatomy, evidence triage, finding quality, authorization, cloud controls, credential safety, and assessment triage.
 - **Three field missions** — one live Docker range and two clearly labeled guided simulations.
 - **Four field notes** — short references for recon, HTTP evidence, finding writing, and range rules.
 - **A real operator record** — XP, streaks, weekly minutes, attempts, scores, achievements, and activity are calculated from completed work.
 - **Local-first data** — atomic writes, backup recovery, JSON export, reset controls, and no account dependency.
 - **Lemon Squeezy licensing** — secure activation, instance validation, device deactivation, tier entitlements, and a fourteen-day offline grace window.
-- **FieldOps Pro** — authorization-bound diagnostics against exact public targets using DNS resolution, TCP reachability, HTTP HEAD, and TLS inspection.
+- **FieldOps Pro** — authorization-bound diagnostics against exact public targets using DNS resolution, TCP reachability, bounded allowed-port surveys, configurable-path HTTP header inspection, TLS inspection, and fixed-rate resilience baselines.
 - **Engagement Vault** — append-only scope records, dated testing windows, target and port allowlists, evidence export, and a SHA-256 chained activity ledger that exposes tampering.
 
 There are no locked “coming soon” course cards pretending to be content. FieldOps is the one intentional commercial gate.
@@ -25,9 +25,9 @@ There are no locked “coming soon” course cards pretending to be content. Fie
 
 A paid license unlocks the tool. It does not authorize a target.
 
-Before an external diagnostic can run, the operator must create an engagement with a client, authorization reference, exact targets, exact TCP ports, a testing window, and an explicit authorization attestation. FieldOps resolves and pins the destination, blocks private, loopback, link-local, reserved, and mixed public/private results, refuses redirects, rate-limits execution, and writes every completed or blocked action to the evidence ledger.
+Before an external diagnostic can run, the operator must create an engagement with a client, authorization reference, exact targets, exact TCP ports, a testing window, and an explicit authorization attestation. FieldOps resolves and pins the destination, blocks private, loopback, link-local, reserved, and mixed public/private results, refuses redirects, rate-limits execution, and writes every completed or blocked action to the evidence ledger. Port surveys are limited to the declared allowlist and thirty ports. Resilience sampling is fixed at ten HEAD requests, concurrency one, with at least 500 milliseconds between requests.
 
-There is no arbitrary public-network shell. Unrestricted command execution stays inside the sealed Docker range.
+There is no arbitrary public-network shell, DDoS engine, or online password-guessing system. High-volume availability testing and credential attacks can damage systems even when someone claims authorization. DaemonCore replaces those workflows with bounded resilience sampling, synthetic identity exercises, sanctioned offline credential-audit training, and the sealed range. Unrestricted command execution stays inside that range.
 
 ## Connect Lemon Squeezy
 
@@ -95,6 +95,7 @@ src/content.js                versioned course, drills, and field notes
 src/phase2.jsx                range console, lessons, and operator record UI
 scripts/verify-data-store.mjs persistence/recovery contract
 scripts/verify-phase4.mjs     licensing and scope-boundary contract
+scripts/verify-phase5.mjs     curriculum breadth + bounded FieldOps contract
 scripts/verify-range.mjs      range and containment contract
 ```
 

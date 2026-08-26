@@ -2,7 +2,7 @@ const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('daemoncore', {
   platform: process.platform,
-  version: '1.1.0',
+  version: '1.2.0',
   range: Object.freeze({
     availability: () => ipcRenderer.invoke('range:availability'),
     status: () => ipcRenderer.invoke('range:status'),

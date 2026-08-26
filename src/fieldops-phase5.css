@@ -1,0 +1,28 @@
+.diagnostic-controls input {
+  width: 100%;
+  height: 35px;
+  margin-top: 6px;
+  background: #101216;
+  border: 1px solid #30333a;
+  color: #d9dade;
+  padding: 0 8px;
+  font: 500 8px var(--mono);
+}
+
+.diagnostic-notice {
+  margin: 0 14px 14px;
+  padding: 10px 12px;
+  border: 1px solid #263d34;
+  background: #0c1511;
+  color: #75b795;
+  font: 500 7px/1.6 var(--mono);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.diagnostic-notice svg {
+  width: 14px;
+  flex: 0 0 auto;
+  color: #55d69b;
+}

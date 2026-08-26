@@ -29,6 +29,14 @@ function normalizeTarget(value) {
   return target
 }
 
+function normalizeHttpPath(value) {
+  const requestPath=String(value||'/').trim()
+  if(!requestPath.startsWith('/')||requestPath.length>500||/[\r\n]/.test(requestPath))throw new Error('HTTP path must start with / and contain no control characters')
+  return requestPath
+}
+
+const pause=milliseconds=>new Promise(resolve=>setTimeout(resolve,milliseconds))
+
 class EngagementStore {
   constructor(directory, options={}) {
     this.directory=directory
@@ -37,6 +45,7 @@ class EngagementStore {
     this.entitlement=options.entitlement||(()=>({fieldOps:false}))
     this.now=options.now||(()=>new Date())
     this.lookup=options.lookup||lookup
+    this.pause=options.pause||pause
     this.lastRunAt=0
     this.running=false
     this.writeQueue=Promise.resolve()
@@ -88,27 +97,34 @@ class EngagementStore {
     if(this.running)throw new Error('Another diagnostic is already running')
     const wait=750-(Date.now()-this.lastRunAt);if(wait>0)throw new Error('FieldOps rate limit: wait before the next diagnostic')
     this.running=true;this.lastRunAt=Date.now()
-    let engagement,target,type,port
+    let engagement,target,type,port,requestPath
     try{
       engagement=this.getActive(input?.engagementId);target=normalizeTarget(input?.target);type=String(input?.type||'')
       if(!engagement.targets.includes(target))throw new Error('Target is outside the signed engagement allowlist')
-      port=Number(input?.port||({dns:53,http:80,tls:443}[type]))
-      if(type!=='dns'&&!engagement.ports.includes(port))throw new Error('Port is outside the engagement allowlist')
-      if(!['dns','tcp','http','tls'].includes(type))throw new Error('Unsupported diagnostic')
+      port=type==='ports'?null:Number(input?.port||({dns:53,http:80,baseline:443,tls:443}[type]))
+      if(!['dns','ports'].includes(type)&&!engagement.ports.includes(port))throw new Error('Port is outside the engagement allowlist')
+      if(!['dns','tcp','ports','http','baseline','tls'].includes(type))throw new Error('Unsupported diagnostic')
+      requestPath=['http','baseline'].includes(type)?normalizeHttpPath(input?.path):null
       const addresses=await this.resolvePublic(target),started=Date.now()
       let result
       if(type==='dns')result={addresses}
       if(type==='tcp')result=await this.tcp(addresses[0].address,port)
-      if(type==='http')result=await this.head(target,addresses[0].address,port,Boolean(input?.tls))
+      if(type==='ports')result=await this.portSurvey(addresses[0].address,engagement.ports)
+      if(type==='http')result=await this.head(target,addresses[0].address,port,Boolean(input?.tls),requestPath)
+      if(type==='baseline')result=await this.baseline(target,addresses[0].address,port,Boolean(input?.tls),requestPath)
       if(type==='tls')result=await this.certificate(target,addresses[0].address,port)
-      const output={id:randomUUID(),engagementId:engagement.id,type,target,port:type==='dns'?null:port,addresses:addresses.map(item=>item.address),durationMs:Date.now()-started,result,at:this.now().toISOString()}
-      this.audit(engagement.id,type,'completed',`${target}${type==='dns'?'':`:${port}`}`,output);await this.persist();return output
+      const output={id:randomUUID(),engagementId:engagement.id,type,target,port:['dns','ports'].includes(type)?null:port,path:requestPath,addresses:addresses.map(item=>item.address),durationMs:Date.now()-started,result,at:this.now().toISOString()}
+      this.audit(engagement.id,type,'completed',`${target}${port?`:${port}`:''}${requestPath||''}`,output);await this.persist();return output
     }catch(error){if(engagement)this.audit(engagement.id,type||'diagnostic','blocked',error.message,{target,port});await this.persist().catch(()=>{});throw error}finally{this.running=false}
   }
 
-  tcp(address,port){return new Promise((resolve,reject)=>{const started=Date.now(),socket=net.createConnection({host:address,port});socket.setTimeout(5000);socket.once('connect',()=>{const latencyMs=Date.now()-started;socket.destroy();resolve({connected:true,latencyMs})});socket.once('timeout',()=>{socket.destroy();reject(new Error('TCP connection timed out'))});socket.once('error',error=>reject(new Error(`TCP connection failed: ${error.code||error.message}`)))})}
+  tcp(address,port,timeoutMs=5000){return new Promise((resolve,reject)=>{const started=Date.now(),socket=net.createConnection({host:address,port});socket.setTimeout(timeoutMs);socket.once('connect',()=>{const latencyMs=Date.now()-started;socket.destroy();resolve({connected:true,latencyMs})});socket.once('timeout',()=>{socket.destroy();reject(new Error('TCP connection timed out'))});socket.once('error',error=>reject(new Error(`TCP connection failed: ${error.code||error.message}`)))})}
 
-  head(target,address,port,secure){return new Promise((resolve,reject)=>{const client=secure?https:http,request=client.request({method:'HEAD',host:address,port,path:'/',servername:secure&&!net.isIP(target)?target:undefined,headers:{Host:target,'User-Agent':'DaemonCore-FieldOps/1.0'},timeout:7000,rejectUnauthorized:true},response=>{const headers=Object.fromEntries(Object.entries(response.headers).slice(0,30).map(([key,value])=>[key,String(value).slice(0,500)]));response.resume();resolve({statusCode:response.statusCode,statusMessage:response.statusMessage,headers})});request.once('timeout',()=>request.destroy(new Error('HTTP request timed out')));request.once('error',error=>reject(new Error(`HTTP HEAD failed: ${error.message}`)));request.end()})}
+  async portSurvey(address,ports){const observations=[];for(const port of ports){const started=Date.now();try{const result=await this.tcp(address,port,1500);observations.push({port,state:'open',latencyMs:result.latencyMs})}catch(error){observations.push({port,state:error.message.includes('timed out')?'filtered-or-unresponsive':'closed-or-rejected',latencyMs:Date.now()-started})}await this.pause(100)}return{tested:observations.length,hardCap:30,observations}}
+
+  head(target,address,port,secure,requestPath='/'){return new Promise((resolve,reject)=>{const client=secure?https:http,request=client.request({method:'HEAD',host:address,port,path:requestPath,servername:secure&&!net.isIP(target)?target:undefined,headers:{Host:target,'User-Agent':'DaemonCore-FieldOps/1.1'},timeout:7000,rejectUnauthorized:true},response=>{const headers=Object.fromEntries(Object.entries(response.headers).slice(0,30).map(([key,value])=>[key,String(value).slice(0,500)]));response.resume();resolve({statusCode:response.statusCode,statusMessage:response.statusMessage,headers})});request.once('timeout',()=>request.destroy(new Error('HTTP request timed out')));request.once('error',error=>reject(new Error(`HTTP HEAD failed: ${error.message}`)));request.end()})}
+
+  async baseline(target,address,port,secure,requestPath){const samples=[];for(let index=0;index<10;index+=1){const started=Date.now();try{const response=await this.head(target,address,port,secure,requestPath);samples.push({sequence:index+1,statusCode:response.statusCode,durationMs:Date.now()-started})}catch(error){samples.push({sequence:index+1,error:error.message,durationMs:Date.now()-started})}if(index<9)await this.pause(500)}const successful=samples.filter(item=>item.statusCode),durations=successful.map(item=>item.durationMs);return{mode:'bounded-head-baseline',requestCount:10,concurrency:1,minimumIntervalMs:500,successful:successful.length,averageMs:durations.length?Math.round(durations.reduce((sum,value)=>sum+value,0)/durations.length):null,samples}}
 
   certificate(target,address,port){return new Promise((resolve,reject)=>{const socket=tls.connect({host:address,port,servername:net.isIP(target)?undefined:target,rejectUnauthorized:false,timeout:7000},()=>{const cert=socket.getPeerCertificate(),authorized=socket.authorized,authorizationError=socket.authorizationError;socket.end();resolve({authorized,authorizationError:authorizationError||null,subject:cert.subject||null,issuer:cert.issuer||null,validFrom:cert.valid_from||null,validTo:cert.valid_to||null,fingerprint256:cert.fingerprint256||null,serialNumber:cert.serialNumber||null})});socket.once('timeout',()=>{socket.destroy();reject(new Error('TLS handshake timed out'))});socket.once('error',error=>reject(new Error(`TLS handshake failed: ${error.message}`)))})}
 
@@ -117,4 +133,4 @@ class EngagementStore {
   persist(){const serialized=`${JSON.stringify(this.state,null,2)}\n`;this.writeQueue=this.writeQueue.then(async()=>{const temporary=`${this.file}.tmp`;await writeFile(temporary,serialized,'utf8');await rename(temporary,this.file)});return this.writeQueue}
 }
 
-module.exports={EngagementStore,isPublicAddress,normalizeTarget}
+module.exports={EngagementStore,isPublicAddress,normalizeTarget,normalizeHttpPath}

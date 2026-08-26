@@ -2,7 +2,7 @@
   "name": "daemoncore-academy",
   "private": true,
   "type": "module",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "description": "A sealed cyber range and operator training desktop platform.",
   "main": "electron/main.cjs",
   "author": "DaemonCore Academy",
@@ -18,8 +18,9 @@
     "check": "eslint src",
     "check:data": "node scripts/verify-data-store.mjs",
     "check:phase4": "node scripts/verify-phase4.mjs",
+    "check:phase5": "node scripts/verify-phase5.mjs",
     "check:range": "node scripts/verify-range.mjs",
-    "test": "npm run check && npm run check:data && npm run check:phase4 && npm run check:range && npm run build"
+    "test": "npm run check && npm run check:data && npm run check:phase4 && npm run check:phase5 && npm run check:range && npm run build"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",

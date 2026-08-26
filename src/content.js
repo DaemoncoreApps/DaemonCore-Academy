@@ -1,10 +1,10 @@
 export const course = {
   schemaVersion: 1,
   id: 'network-recon',
-  code: 'NET-01',
-  title: 'Network Reconnaissance',
-  description: 'Build an authorized asset picture, test service hypotheses, preserve evidence, and report what the data actually supports.',
-  estimatedMinutes: 205,
+  code: 'CORE-01',
+  title: 'Full-Spectrum Security Assessment',
+  description: 'Move from authorization and asset discovery through web, API, identity, cloud, container, validation, evidence, and remediation workflows.',
+  estimatedMinutes: 515,
   lessons: [
     {
       id: 'rules-of-engagement', title: 'Scope and rules of engagement', minutes: 18,
@@ -78,6 +78,114 @@ export const course = {
       ],
       check: { q: 'What belongs at the center of a finding?', options: ['The scanner name', 'The broken condition, evidence, consequence, and corrective control', 'A dramatic title', 'Every command used during recon'], answer: 1, rationale: 'A finding must explain a defensible condition and how to correct it.' },
     },
+    {
+      id: 'os-attack-surface', title: 'Windows and Linux attack surfaces', minutes: 28,
+      sections: [
+        { title: 'Model exposure by role', body: 'Start from what the system is meant to do. Services, scheduled work, administrative paths, local identities, and installed agents create different trust boundaries on workstations, servers, and appliances.' },
+        { title: 'Configuration beats folklore', body: 'A platform name is not a finding. Compare observed configuration with the organization’s intended baseline, vendor guidance, patch state, and compensating controls.' },
+        { title: 'Privilege is a graph', body: 'Treat users, groups, services, files, tokens, and management channels as connected paths. A weak edge matters when it joins an untrusted starting point to a protected capability.' },
+      ],
+      check: { q: 'What is the strongest way to describe an operating-system exposure?', options: ['The OS is old', 'A specific trust path connects an accessible condition to a protected capability', 'A scanner assigned a high score', 'The host runs many processes'], answer: 1, rationale: 'Concrete trust paths are testable and lead directly to useful remediation.' },
+    },
+    {
+      id: 'web-surface-mapping', title: 'Web application surface mapping', minutes: 27,
+      sections: [
+        { title: 'Inventory behavior, not just routes', body: 'Map entry points, identities, objects, state changes, file handling, asynchronous jobs, and third-party callbacks. Routes only become meaningful when tied to trust decisions.' },
+        { title: 'Follow transformations', body: 'Record where input is decoded, normalized, validated, stored, rendered, and forwarded. Different components may interpret the same value differently.' },
+        { title: 'Use representative accounts', body: 'A useful test matrix separates anonymous, ordinary, privileged, suspended, and cross-tenant states. Keep every account synthetic and approved.' },
+      ],
+      check: { q: 'What should a web attack-surface map connect?', options: ['Routes to CSS files', 'Inputs and identities to objects, state changes, and trust decisions', 'Status codes to severity labels', 'Tools to screenshots'], answer: 1, rationale: 'Security failures occur at decisions and transformations, not merely at URLs.' },
+    },
+    {
+      id: 'auth-sessions', title: 'Authentication and session security', minutes: 29,
+      sections: [
+        { title: 'Trace the identity lifecycle', body: 'Review enrollment, verification, sign-in, recovery, step-up, session renewal, revocation, and account closure as one system. An isolated strong login cannot repair a weak recovery path.' },
+        { title: 'Separate proof from possession', body: 'Document what each factor proves, where secrets are handled, and how replay is prevented. A token proves possession only under the conditions in which it is validated.' },
+        { title: 'Test state transitions', body: 'Safely verify that logout, password reset, privilege change, and administrative suspension invalidate the sessions they are supposed to invalidate.' },
+      ],
+      check: { q: 'Why assess account recovery alongside login?', options: ['Recovery pages are faster', 'Recovery can bypass the assurances enforced by login', 'It changes password length', 'It removes the need for sessions'], answer: 1, rationale: 'The weakest identity lifecycle path often defines the real authentication strength.' },
+    },
+    {
+      id: 'authorization-testing', title: 'Authorization and tenant boundaries', minutes: 30,
+      sections: [
+        { title: 'Name subject, action, and object', body: 'Every authorization test should identify who is acting, what operation is attempted, and which object or tenant boundary is involved.' },
+        { title: 'Server decisions are authoritative', body: 'Hidden buttons and client-side route guards improve usability but do not enforce access. The server must evaluate permission for every protected operation.' },
+        { title: 'Build a compact access matrix', body: 'Use approved synthetic roles and objects to compare allowed and denied outcomes. Stop once the control failure is proven; do not enumerate unrelated customer data.' },
+      ],
+      check: { q: 'Which evidence best supports an object-level authorization failure?', options: ['A hidden UI control', 'An approved low-privilege identity receives a protected synthetic object it does not own', 'A route contains an ID', 'The response is JSON'], answer: 1, rationale: 'The result demonstrates the broken server-side decision while minimizing data exposure.' },
+    },
+    {
+      id: 'injection-validation', title: 'Injection classes and safe validation', minutes: 28,
+      sections: [
+        { title: 'Find interpreter boundaries', body: 'Injection risk appears when untrusted data crosses into a query, template, command, expression, or parser as structure instead of data.' },
+        { title: 'Prefer harmless proofs', body: 'Use synthetic records, reversible behavior, and the smallest observable signal. Never make destructive changes merely to increase confidence.' },
+        { title: 'Fix composition', body: 'Primary controls include parameterization, safe APIs, contextual encoding, strict schemas, and removal of unnecessary interpreter features. Filtering alone is rarely the whole repair.' },
+      ],
+      check: { q: 'What is the safest useful validation of suspected injection?', options: ['Delete a test table', 'Produce the smallest reversible signal using synthetic data', 'Dump all available records', 'Increase request volume'], answer: 1, rationale: 'A minimal proof establishes the condition without manufacturing additional harm.' },
+    },
+    {
+      id: 'api-security', title: 'API and GraphQL assessment', minutes: 28,
+      sections: [
+        { title: 'Start from the contract', body: 'Compare documentation, schemas, client behavior, and observed endpoints. Undocumented operations, legacy versions, and inconsistent gateways are common sources of drift.' },
+        { title: 'Track object and function controls', body: 'Test whether identity, tenant, role, object ownership, and workflow state are enforced consistently across read and write operations.' },
+        { title: 'Bound resource tests', body: 'Validate pagination, query complexity, upload size, and rate controls with conservative limits and an agreed stop threshold. Availability testing requires its own authorization.' },
+      ],
+      check: { q: 'What requires a separate stop threshold during API testing?', options: ['Reading documentation', 'Any test that can consume meaningful resources or affect availability', 'Comparing schemas', 'Recording response headers'], answer: 1, rationale: 'Resource-consumption tests can affect service health even when the endpoint is in scope.' },
+    },
+    {
+      id: 'identity-directory', title: 'Enterprise identity and directory paths', minutes: 27,
+      sections: [
+        { title: 'Map control relationships', body: 'Directory security depends on group membership, delegated rights, service identities, policy application, certificate trust, and administrative tiers—not merely password strength.' },
+        { title: 'Protect credential material', body: 'Use designated test accounts and approved exports. Do not collect production secrets when configuration and access-control evidence can prove the same condition.' },
+        { title: 'Prioritize path reduction', body: 'Remediation should remove unnecessary control edges, isolate administrative identities, rotate exposed material, and add detection around sensitive transitions.' },
+      ],
+      check: { q: 'What makes a directory permission important?', options: ['Its name sounds privileged', 'It creates a usable control path to a protected identity or system', 'It appears in a large group', 'It was found by automation'], answer: 1, rationale: 'Effective paths, not labels, determine privilege exposure.' },
+    },
+    {
+      id: 'cloud-control-plane', title: 'Cloud control-plane assessment', minutes: 28,
+      sections: [
+        { title: 'Separate planes', body: 'Inventory identities, management APIs, public data paths, workload networks, secrets, logs, and deployment automation. Each plane has distinct exposure and evidence.' },
+        { title: 'Reason about effective access', body: 'Combine identity policies, resource policies, trust relationships, organization controls, and temporary credentials before concluding what an actor can do.' },
+        { title: 'Review guardrails and recovery', body: 'A mature assessment checks preventive policy, detection, immutable logging, backup isolation, and the ability to recover from compromised automation.' },
+      ],
+      check: { q: 'Why is one cloud policy document insufficient to prove access?', options: ['Policies are encrypted', 'Effective access can depend on several intersecting policy and trust layers', 'Cloud platforms ignore policies', 'Only network rules matter'], answer: 1, rationale: 'The final decision is produced by multiple identity, resource, and organization controls.' },
+    },
+    {
+      id: 'containers-supply-chain', title: 'Containers and software supply chain', minutes: 26,
+      sections: [
+        { title: 'Trace artifact provenance', body: 'Record where source, dependencies, build workers, registries, signatures, and deployment identities meet. A trustworthy runtime begins before the image exists.' },
+        { title: 'Inspect isolation assumptions', body: 'Review capabilities, mounts, identities, network boundaries, admission controls, secret delivery, and host interaction. Containers are process isolation, not an automatic security boundary.' },
+        { title: 'Prioritize reachable risk', body: 'A dependency advisory matters when the affected component is present, reachable, and used in the vulnerable way. Preserve both version evidence and runtime context.' },
+      ],
+      check: { q: 'What makes a vulnerable dependency operationally relevant?', options: ['It has a logo', 'The affected code is present and reachable in the deployed context', 'It appears in any lockfile', 'Its score is above zero'], answer: 1, rationale: 'Reachability and actual use convert inventory into an evidence-backed exposure.' },
+    },
+    {
+      id: 'secrets-credential-audit', title: 'Secrets and credential auditing', minutes: 25,
+      sections: [
+        { title: 'Audit handling before strength', body: 'Review creation, storage, distribution, rotation, revocation, logging, and recovery. A strong secret copied into an unsafe channel is still exposed.' },
+        { title: 'Prefer offline and synthetic checks', body: 'Password-policy evaluation should use approved test identities or sanctioned offline datasets. Network guessing creates account-lockout and availability risk and requires explicit technique-level approval.' },
+        { title: 'Prove revocation', body: 'After rotation or role removal, verify that old material, cached sessions, build artifacts, and downstream copies no longer authorize access.' },
+      ],
+      check: { q: 'What is the preferred way to assess password controls?', options: ['Guess against every account', 'Use approved synthetic identities or sanctioned offline data with defined limits', 'Disable lockout', 'Collect employee passwords'], answer: 1, rationale: 'Controlled offline or synthetic validation avoids harming identities and production authentication.' },
+    },
+    {
+      id: 'vulnerability-validation', title: 'Vulnerability validation and prioritization', minutes: 25,
+      sections: [
+        { title: 'Separate detection from proof', body: 'A version match or scanner signature is a lead. Confirm the affected component, configuration, reachability, prerequisite access, and protective controls before writing the finding.' },
+        { title: 'Model realistic chains', body: 'Prioritize conditions that combine into credible paths, but keep each link evidence-backed. Do not inflate impact with an imaginary starting position.' },
+        { title: 'Use environmental severity', body: 'Technical severity is one input. Asset role, exposure, data sensitivity, exploit preconditions, monitoring, and recovery determine the operational priority.' },
+      ],
+      check: { q: 'What turns an automated detection into a defensible finding?', options: ['A higher scanner confidence', 'Validated affected behavior, context, prerequisites, and evidence', 'A public headline', 'More duplicate detections'], answer: 1, rationale: 'Validation connects a generic signature to the actual environment and risk.' },
+    },
+    {
+      id: 'impact-cleanup', title: 'Impact demonstration, cleanup, and retest', minutes: 34,
+      sections: [
+        { title: 'Agree on the ceiling', body: 'Before impact validation, define which data, roles, state changes, and service effects are permitted. The assessment should stop at the agreed proof point.' },
+        { title: 'Track every artifact', body: 'Maintain a cleanup ledger for accounts, files, jobs, tokens, callbacks, test records, and temporary infrastructure. Verify removal rather than assuming it.' },
+        { title: 'Retest the control', body: 'A good retest repeats the minimal original validation, confirms the intended denial or safe behavior, and checks that the fix did not merely move the exposure.' },
+      ],
+      check: { q: 'When should an impact demonstration stop?', options: ['When every possible action is tried', 'At the pre-agreed proof point that establishes the risk', 'After production data is copied', 'When the tool exits'], answer: 1, rationale: 'A defined ceiling proves risk while respecting authorization and minimizing harm.' },
+    },
   ],
 }
 
@@ -124,5 +232,25 @@ export const drillSets = [
     { q: 'Which title is strongest?', options: ['Critical vulnerability found', 'Unauthenticated archive status service exposed on the internal range', 'Nmap results', 'Server problem'], answer: 1 },
     { q: 'A useful remediation fixes what?', options: ['The screenshot', 'The broken trust assumption or missing control', 'The tester’s command', 'The severity label'], answer: 1 },
     { q: 'What makes impact credible?', options: ['Maximum theoretical damage', 'A realistic path tied to evidence and stated assumptions', 'More adjectives', 'A public exploit link'], answer: 1 },
+  ]},
+  { id: 'authorization-matrix', title: 'Authorization matrix', description: 'Reason across roles, objects, actions, and tenants.', questions: [
+    { q: 'A standard user can read a synthetic record owned by another tenant. What failed?', options: ['Transport encryption', 'Object-level authorization', 'DNS resolution', 'Input encoding'], answer: 1 },
+    { q: 'Which comparison gives the clearest access-control evidence?', options: ['Two browsers with the same account', 'Approved identities with different roles acting on the same synthetic object', 'Two public pages', 'Two response times'], answer: 1 },
+    { q: 'When should cross-tenant validation stop?', options: ['After enumerating all tenants', 'Once the approved synthetic proof establishes the control failure', 'After downloading a backup', 'When the session expires'], answer: 1 },
+  ]},
+  { id: 'cloud-reasoning', title: 'Cloud control reasoning', description: 'Combine identity, resource, and organization policies.', questions: [
+    { q: 'What is effective access?', options: ['The text of one identity policy', 'The final result of all applicable policy and trust layers', 'The console button color', 'The account name'], answer: 1 },
+    { q: 'Which evidence best supports public data exposure?', options: ['A bucket-like name', 'An anonymous approved request retrieves a designated synthetic object', 'A policy contains an asterisk', 'A scanner warning'], answer: 1 },
+    { q: 'What should accompany a cloud permission finding?', options: ['Only the permission name', 'The principal, resource, action, conditions, and observed outcome', 'A billing estimate', 'Every account ID'], answer: 1 },
+  ]},
+  { id: 'credential-safety', title: 'Credential audit safety', description: 'Evaluate credential controls without harming accounts.', questions: [
+    { q: 'Which password assessment is safest by default?', options: ['High-rate network guessing', 'A bounded check using approved synthetic identities or sanctioned offline data', 'Disabling lockout', 'Testing executive accounts first'], answer: 1 },
+    { q: 'What must be defined before any online authentication test?', options: ['A color theme', 'Accounts, rate, timing, lockout risk, monitoring, and stop conditions', 'The longest wordlist', 'A public proxy'], answer: 1 },
+    { q: 'After secret rotation, what still needs validation?', options: ['Only that a new value exists', 'Old copies and sessions no longer authorize access', 'The secret is longer', 'The UI changed'], answer: 1 },
+  ]},
+  { id: 'assessment-triage', title: 'Assessment triage', description: 'Prioritize evidence, exposure, and realistic attack paths.', questions: [
+    { q: 'Which issue should usually be validated first?', options: ['The one with the longest output', 'A reachable high-impact trust failure with clear evidence', 'The newest CVE number', 'The issue with the most screenshots'], answer: 1 },
+    { q: 'What reduces confidence in an automated detection?', options: ['The affected feature is absent or unreachable', 'The scanner is popular', 'The port is open', 'The asset has an owner'], answer: 0 },
+    { q: 'What makes a retest complete?', options: ['The alert disappeared', 'The minimal original proof now fails safely and the intended control is observed', 'The version changed', 'The ticket closed'], answer: 1 },
   ]},
 ]
