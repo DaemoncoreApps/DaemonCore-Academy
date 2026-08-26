@@ -1,6 +1,6 @@
 # DaemonCore Academy
 
-I got tired of cyber courses that are either forty hours of passive video or a fake terminla waiting for three magic commands.
+I got tired of cyber courses that are either forty hours of passive video or a fake terminal waiting for three magic commands.
 
 DaemonCore is the course I wanted instead: learn the mental model, validate it, drop into a disposable range, collect evidence, and leave with a record you actually earned.
 
