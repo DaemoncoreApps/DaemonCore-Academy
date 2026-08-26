@@ -1,10 +1,13 @@
-const { app, BrowserWindow, ipcMain, shell } = require('electron')
+const { app, BrowserWindow, dialog, ipcMain, shell } = require('electron')
+const { writeFile } = require('fs/promises')
 const path = require('path')
 const { RangeOrchestrator } = require('./range-orchestrator.cjs')
+const { DataStore } = require('./data-store.cjs')
 
 const isDev = !app.isPackaged
 const rangeRoot = isDev ? path.join(__dirname, '..', 'ranges') : path.join(process.resourcesPath, 'ranges')
 const range = new RangeOrchestrator(rangeRoot)
+let dataStore
 let cleanupStarted = false
 
 function trustedSender(event) {
@@ -25,6 +28,21 @@ ipcMain.handle('range:manifest', rangeHandler(id => range.manifest(id)))
 ipcMain.handle('range:start', rangeHandler(id => range.start(id)))
 ipcMain.handle('range:execute', rangeHandler((id, command) => range.execute(id, command)))
 ipcMain.handle('range:stop', rangeHandler(() => range.stop()))
+ipcMain.handle('data:snapshot', rangeHandler(() => dataStore.snapshot()))
+ipcMain.handle('data:onboard', rangeHandler(handle => dataStore.onboard(handle)))
+ipcMain.handle('data:record', rangeHandler(event => dataStore.record(event)))
+ipcMain.handle('data:settings', rangeHandler(settings => dataStore.updateSettings(settings)))
+ipcMain.handle('data:reset', rangeHandler(() => dataStore.reset()))
+ipcMain.handle('data:export', rangeHandler(async () => {
+  const result = await dialog.showSaveDialog({
+    title: 'Export DaemonCore operator record',
+    defaultPath: `daemoncore-operator-${new Date().toISOString().slice(0, 10)}.json`,
+    filters: [{ name: 'JSON record', extensions: ['json'] }],
+  })
+  if (result.canceled || !result.filePath) return { canceled: true }
+  await writeFile(result.filePath, `${JSON.stringify(dataStore.snapshot(), null, 2)}\n`, 'utf8')
+  return { canceled: false, filePath: result.filePath }
+}))
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -54,7 +72,9 @@ function createWindow() {
   else win.loadFile(path.join(__dirname, '..', 'dist', 'index.html'))
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  dataStore = new DataStore(app.getPath('userData'))
+  await dataStore.initialize()
   createWindow()
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()

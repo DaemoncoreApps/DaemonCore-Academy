@@ -1,51 +1,38 @@
 # DaemonCore Academy
 
-Cyber training usually dies in one of two places: endless video playlists or fake terminals that accept three magic commands.
+I got tired of cyber courses that are either forty hours of passive video or a fake terminal waiting for three magic commands.
 
-DaemonCore is an attempt to build the thing I actually wanted: learn the idea, drop into a disposable range, get a root shell, prove the finding, and leave with evidence instead of vibes.
+DaemonCore is the course I wanted instead: learn the mental model, validate it, drop into a disposable range, collect evidence, and leave with a record you actually earned.
 
-Black UI. Red team energy. Hard walls around the blast radius.
+Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 
-## Phase 3: the range is real now
+## What ships in 1.0
 
-`The Ghost Port` can run as an actual two-container lab:
+- **Network Reconnaissance** — eight written lessons covering scope, hypothesis-driven recon, asset inventory, packet evidence, port state, service fingerprinting, evidence quality, and finding construction.
+- **Eight validation checks** — progress is recorded only after the lesson check is answered correctly.
+- **Four scored drill sets** — protocol recognition, request anatomy, evidence triage, and finding quality.
+- **Three field missions** — one live Docker range and two clearly labeled guided simulations.
+- **Four field notes** — short references for recon, HTTP evidence, finding writing, and range rules.
+- **A real operator record** — XP, streaks, weekly minutes, attempts, scores, achievements, and activity are calculated from completed work.
+- **Local-first data** — atomic writes, backup recovery, JSON export, reset controls, and no account dependency.
 
-- a root operator workstation based on Netshoot;
-- a purpose-built synthetic target with live services on 22, 445, and 8088;
-- arbitrary shell commands inside the operator container;
-- real Nmap and curl output;
-- tracked objectives, evidence, hints, scoring, and teardown;
-- automatic fallback to the Phase 2 simulator when the range engine is unavailable.
+There are no locked “coming soon” cards pretending to be content. If the app shows it, it opens.
 
-The rest of the app is still here: pathways, tactical lessons, drills, achievements, persistent XP, and the operator record.
+## The Ghost Port is a real range
 
-## Unrestricted inside. Dead end outside.
+When Docker Desktop is available, The Ghost Port provisions a root operator container and a purpose-built target. Nmap and curl return live results, arbitrary shell commands work inside the operator container, and the target is destroyed when the run ends.
 
-The operator shell is deliberately unrestricted. The network is not.
+The shell is unrestricted. The boundary is not.
 
-Before the shell opens, DaemonCore verifies:
+Before access is released, DaemonCore verifies an internal-only Docker network, zero host mounts, blocked egress, no privileged containers, dropped capabilities, `no-new-privileges`, and resource ceilings. No target ports are published to the host. Failed containment means no shell.
 
-- the Docker network is marked `internal`;
-- the range containers have zero host mounts;
-- outbound internet access fails;
-- no container is privileged;
-- capabilities are dropped unless a target needs one specific capability;
-- `no-new-privileges`, PID ceilings, memory limits, and CPU limits are active.
+## Run it from source
 
-No ports are published to the host. Destroying or closing the range runs `docker compose down --volumes --remove-orphans`.
+Requirements:
 
-If a containment check fails, the shell stays locked. That rule is not negotiable.
-
-## What you need
-
-- Windows 10/11
+- Windows 10 or 11
 - Node.js 20+
-- Docker Desktop using Linux containers
-- roughly 2 GB of free memory for the current range
-
-Docker is only required for the live range. The Academy and simulated missions still work without it.
-
-## Run it
+- Docker Desktop with Linux containers for the live range
 
 ```powershell
 git clone https://github.com/gtited-jpg/DaemonCore-Academy.git
@@ -54,7 +41,7 @@ npm install
 npm run dev
 ```
 
-Use `npm run dev:web` when you only want the UI. Browser mode intentionally uses the simulator because it has no desktop range bridge.
+`npm run dev:web` runs the browser preview. The preview uses local storage and the simulation path because browsers do not receive the Electron range bridge.
 
 ## Break it before shipping it
 
@@ -62,9 +49,9 @@ Use `npm run dev:web` when you only want the UI. Browser mode intentionally uses
 npm test
 ```
 
-That runs the UI lint pass, validates the range contract, checks the containment-sensitive Compose settings, and builds the production bundle.
+That command lints the UI, exercises operator-record persistence and recovery, validates the range contract and containment-sensitive Compose settings, then builds the production bundle.
 
-To build the Windows installer:
+Build the Windows installer with:
 
 ```powershell
 npm run icon
@@ -73,18 +60,16 @@ npm run package:win
 
 The installer lands in `release/`.
 
-## Where the bodies are buried
+## Project map
 
 ```text
-electron/                  hardened desktop bridge + range orchestrator
-ranges/ghost-port/         Compose file, operator image, target, manifest
-src/phase2.jsx             missions, live terminal, lessons, operator record
-src/phase2.css             the expensive-looking pixels
-scripts/verify-range.mjs   cheap checks for expensive containment mistakes
+electron/data-store.cjs       atomic local operator record
+electron/range-orchestrator.cjs
+ranges/ghost-port/            live target, operator image, and manifest
+src/content.js                versioned course, drills, and field notes
+src/phase2.jsx                range console, lessons, and operator record UI
+scripts/verify-data-store.mjs persistence/recovery contract
+scripts/verify-range.mjs      range and containment contract
 ```
 
-## Current state
-
-Phase 3 proves the architecture with one real range. Broken Trust and Night Shift still use the simulator. The next move is converting those, then adding the scenario SDK, evidence-backed reports, and live event telemetry.
-
-Use this on systems you own or are explicitly authorized to test. The range is built to be a cage, not an excuse.
+This is training software, not authorization. Use it only on systems you own or have explicit permission to test.
