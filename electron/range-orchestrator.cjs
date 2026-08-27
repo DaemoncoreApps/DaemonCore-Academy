@@ -2,12 +2,8 @@ const { execFile } = require('child_process')
 const { readFile } = require('fs/promises')
 const path = require('path')
 
-const PROJECT = 'daemoncore-ghost-port'
-const NETWORK = 'dc-ghost-range'
-const OPERATOR = 'dc-ghost-operator'
-const TARGET = 'dc-ghost-target'
 const CHAOS_WORKER = 'dc-ghost-chaos'
-const ALLOWED_SCENARIOS = new Set(['ghost-port'])
+const ALLOWED_SCENARIOS = new Set(['ghost-port', 'broken-trust', 'night-shift'])
 
 function runDocker(args, options = {}) {
   return new Promise((resolve, reject) => {
@@ -46,7 +42,11 @@ class RangeOrchestrator {
   }
 
   composeArgs(id, ...args) {
-    return ['compose', '--project-name', PROJECT, '--file', path.join(this.scenarioPath(id), 'compose.yaml'), ...args]
+    return ['compose', '--project-name', `daemoncore-${id}`, '--file', path.join(this.scenarioPath(id), 'compose.yaml'), ...args]
+  }
+
+  containers(manifest) {
+    return [manifest.operatorContainer, manifest.targetContainer, manifest.chaosWorkerContainer].filter(Boolean)
   }
 
   async availability() {
@@ -72,17 +72,18 @@ class RangeOrchestrator {
     if (!availability.available) return { ...availability, state: 'offline' }
     if (!this.activeScenario) return { ...availability, state: 'ready' }
     try {
-      const { stdout } = await runDocker(['inspect', '--format', '{{.State.Running}}', OPERATOR], { timeout: 5_000 })
+      const manifest = await this.manifest(this.activeScenario)
+      const { stdout } = await runDocker(['inspect', '--format', '{{.State.Running}}', manifest.operatorContainer], { timeout: 5_000 })
       return { ...availability, state: stdout.trim() === 'true' ? 'sealed' : 'stopped', scenario: this.activeScenario }
     } catch {
       return { ...availability, state: 'stopped', scenario: this.activeScenario }
     }
   }
 
-  async waitForHealthy() {
+  async waitForHealthy(manifest) {
     for (let attempt = 0; attempt < 45; attempt += 1) {
       try {
-        const { stdout } = await runDocker(['inspect', '--format', '{{.State.Health.Status}}', TARGET], { timeout: 5_000 })
+        const { stdout } = await runDocker(['inspect', '--format', '{{.State.Health.Status}}', manifest.targetContainer], { timeout: 5_000 })
         if (stdout.trim() === 'healthy') return
         if (stdout.trim() === 'unhealthy') throw new Error('Range target failed its health check')
       } catch (error) {
@@ -93,11 +94,11 @@ class RangeOrchestrator {
     throw new Error('Range target did not become healthy in time')
   }
 
-  async verifyContainment() {
-    const { stdout: internal } = await runDocker(['network', 'inspect', NETWORK, '--format', '{{.Internal}}'])
+  async verifyContainment(manifest) {
+    const { stdout: internal } = await runDocker(['network', 'inspect', manifest.network, '--format', '{{.Internal}}'])
     if (internal.trim() !== 'true') throw new Error('Containment check failed: range network is not internal')
 
-    for (const container of [OPERATOR, TARGET, CHAOS_WORKER]) {
+    for (const container of this.containers(manifest)) {
       const { stdout } = await runDocker(['inspect', container, '--format', '{{json .Mounts}}'])
       const mounts = JSON.parse(stdout.trim() || '[]')
       const hostMounts = mounts.filter(mount => mount.Type === 'bind' || mount.Type === 'volume')
@@ -106,13 +107,13 @@ class RangeOrchestrator {
 
     let egressBlocked = false
     try {
-      await runDocker(['exec', OPERATOR, 'sh', '-lc', 'curl --silent --show-error --max-time 2 https://example.com >/dev/null 2>&1'], { timeout: 5_000 })
+      await runDocker(['exec', manifest.operatorContainer, 'sh', '-lc', 'curl --silent --show-error --max-time 2 https://example.com >/dev/null 2>&1'], { timeout: 5_000 })
     } catch {
       egressBlocked = true
     }
     if (!egressBlocked) throw new Error('Containment check failed: internet egress is reachable')
 
-    return { internalNetwork: true, hostMounts: 0, egressBlocked: true, network: NETWORK }
+    return { internalNetwork: true, hostMounts: 0, egressBlocked: true, network: manifest.network }
   }
 
   async start(id) {
@@ -121,12 +122,13 @@ class RangeOrchestrator {
       if (!availability.available) throw new Error(availability.reason)
       await this.stopInternal()
       const cwd = this.scenarioPath(id)
+      const manifest = await this.manifest(id)
       try {
         await runDocker(this.composeArgs(id, 'up', '--detach', '--build', '--remove-orphans'), { cwd, timeout: 8 * 60_000 })
-        await this.waitForHealthy()
-        const containment = await this.verifyContainment()
+        await this.waitForHealthy(manifest)
+        const containment = await this.verifyContainment(manifest)
         this.activeScenario = id
-        return { state: 'sealed', scenario: id, containment, manifest: await this.manifest(id) }
+        return { state: 'sealed', scenario: id, containment, manifest }
       } catch (error) {
         await this.stopInternal(id).catch(() => {})
         throw new Error(error.stderr?.trim() || error.message || 'Range startup failed')
@@ -138,8 +140,9 @@ class RangeOrchestrator {
     if (id !== this.activeScenario) throw new Error('This range is not active')
     if (typeof command !== 'string' || !command.trim()) return { stdout: '', stderr: '', exitCode: 0 }
     if (command.length > 4_096) throw new Error('Command exceeds the range console limit')
+    const manifest = await this.manifest(id)
     try {
-      const { stdout, stderr } = await runDocker(['exec', OPERATOR, 'sh', '-lc', command], { timeout: 45_000 })
+      const { stdout, stderr } = await runDocker(['exec', manifest.operatorContainer, 'sh', '-lc', command], { timeout: 45_000 })
       return { stdout, stderr, exitCode: 0 }
     } catch (error) {
       return {
@@ -195,15 +198,17 @@ class RangeOrchestrator {
     return this.chaosStatus()
   }
 
-  async stopInternal(id = this.activeScenario || 'ghost-port') {
-    if (!ALLOWED_SCENARIOS.has(id)) return { state: 'stopped' }
-    try {
-      await runDocker(this.composeArgs(id, 'down', '--volumes', '--remove-orphans', '--timeout', '3'), { cwd: this.scenarioPath(id), timeout: 60_000 })
-    } catch (error) {
-      if (error.code !== 'ENOENT') throw error
-    } finally {
-      this.activeScenario = null
+  async stopInternal(id) {
+    const scenarios = id ? [id] : this.activeScenario ? [this.activeScenario] : [...ALLOWED_SCENARIOS]
+    for (const scenario of scenarios) {
+      if (!ALLOWED_SCENARIOS.has(scenario)) continue
+      try {
+        await runDocker(this.composeArgs(scenario, 'down', '--volumes', '--remove-orphans', '--timeout', '3'), { cwd: this.scenarioPath(scenario), timeout: 60_000 })
+      } catch (error) {
+        if (error.code !== 'ENOENT') throw error
+      }
     }
+    this.activeScenario = null
     return { state: 'stopped' }
   }
 

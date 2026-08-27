@@ -5,6 +5,7 @@
   "engine": "docker",
   "operatorContainer": "dc-ghost-operator",
   "targetContainer": "dc-ghost-target",
+  "chaosWorkerContainer": "dc-ghost-chaos",
   "network": "dc-ghost-range",
   "networkPolicy": "internal-only",
   "objectives": [

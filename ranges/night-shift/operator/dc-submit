@@ -1,0 +1,10 @@
+#!/bin/sh
+case "$(printf '%s' "$*" | tr '[:upper:]' '[:lower:]')" in
+  *updater*sequence*)
+    printf 'HYPOTHESIS ACCEPTED\nEvidence chain: COHERENT\nAlternative explanations: DOCUMENTED\nScope adherence: VERIFIED\n'
+    ;;
+  *)
+    printf 'HYPOTHESIS REJECTED\nName the suspicious updater sequence supported by the timeline.\n' >&2
+    exit 1
+    ;;
+esac

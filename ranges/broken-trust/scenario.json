@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "broken-trust",
+  "title": "Broken Trust",
+  "engine": "docker",
+  "operatorContainer": "dc-trust-operator",
+  "targetContainer": "dc-trust-target",
+  "network": "dc-trust-range",
+  "networkPolicy": "internal-only",
+  "objectives": [
+    { "id": "flow", "label": "Map the authentication and export flow" },
+    { "id": "owned", "label": "Request the operator-owned synthetic account" },
+    { "id": "foreign", "label": "Test one approved cross-tenant object" },
+    { "id": "submit", "label": "Submit the broken authorization condition" }
+  ]
+}

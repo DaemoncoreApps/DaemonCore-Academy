@@ -1,0 +1,10 @@
+#!/bin/sh
+case "$(printf '%s' "$*" | tr '[:upper:]' '[:lower:]')" in
+  *object*authori*)
+    printf 'FINDING ACCEPTED\nCategory: broken object-level authorization\nEvidence threshold: SATISFIED\nScope adherence: VERIFIED\n'
+    ;;
+  *)
+    printf 'FINDING REJECTED\nName the missing object authorization condition.\n' >&2
+    exit 1
+    ;;
+esac

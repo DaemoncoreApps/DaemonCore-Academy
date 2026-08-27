@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "night-shift",
+  "title": "Night Shift",
+  "engine": "docker",
+  "operatorContainer": "dc-night-operator",
+  "targetContainer": "dc-night-target",
+  "network": "dc-night-range",
+  "networkPolicy": "internal-only",
+  "objectives": [
+    { "id": "integrity", "label": "Validate the supplied evidence manifest" },
+    { "id": "timeline", "label": "Build a chronological process timeline" },
+    { "id": "triage", "label": "Isolate the high-confidence sequence" },
+    { "id": "submit", "label": "Submit an evidence-backed hypothesis" }
+  ]
+}

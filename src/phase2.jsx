@@ -22,26 +22,26 @@ const scenarioData = {
     hint: 'Start with the supplied scope record: cat /opt/mission/inventory.txt',
   },
   'broken-trust': {
-    target: 'portal.dc-lab.local', subnet: 'APPLICATION SIMULATION', classification: 'DC-LAB // CONTROLLED',
-    intro: 'The training portal crosses a trust boundary incorrectly. Work from supplied captures and synthetic session data; no live requests leave the Academy environment.',
+    target: 'portal-target:8080', subnet: 'SEALED APPLICATION RANGE', classification: 'DC-LAB // LIVE BOLA TARGET',
+    intro: 'The training portal crosses a trust boundary incorrectly. Interrogate the live synthetic API, compare the operator-owned record with one approved foreign record, and stop when the missing authorization decision is proven.',
     commands: [
-      { command: 'flow', label: 'Map authentication flow', output: ['AUTH FLOW // SYNTHETIC', '1. POST /login -> session issued', '2. GET /profile -> session validated', '3. GET /export?account= -> account parameter trusted'], objective: 0, evidence: 'Export flow accepts an account parameter after authentication.' },
-      { command: 'requests', label: 'Review supplied captures', output: ['CAPTURE 031 // GET /export?account=VX-104', 'Cookie: dc_session=TRAINING_REDACTED', 'Response: 200 // account VX-104', '', 'CAPTURE 032 // GET /export?account=VX-207', 'Cookie: dc_session=TRAINING_REDACTED', 'Response: 200 // account VX-207'], objective: 1, evidence: 'The same synthetic session receives exports for two different account identifiers.' },
-      { command: 'session', label: 'Test trust assumption', output: ['TRUST ANALYSIS', 'Authentication: present', 'Object authorization: absent in supplied flow', 'User-controlled account parameter crosses boundary unchecked'], objective: 2, evidence: 'Object-level authorization is absent after session validation.' },
-      { command: 'submit missing object authorization', label: 'Submit design flaw', output: ['FINDING ACCEPTED', 'Category: broken object-level authorization', 'Scope adherence: VERIFIED', 'Mission objectives satisfied.'], objective: 3 },
+      { command: 'curl -s http://portal-target:8080/flow', label: 'Map authentication flow', output: ['{"flow":["bearer token accepted","account query selected","record returned"],"operatorAccount":"VX-104","testBoundary":"VX-207"}'], objective: 0, evidence: 'The export flow consumes a bearer identity and a caller-controlled account identifier.' },
+      { command: 'curl -s -H "Authorization: Bearer dc-student-token" "http://portal-target:8080/export?account=vx-104"', label: 'Request owned object', output: ['{"authenticatedAs":"training-operator","account":"VX-104","tenant":"EMBER","owner":"training-operator","balance":4100}'], objective: 1, evidence: 'The synthetic token correctly retrieves the operator-owned VX-104 record.' },
+      { command: 'curl -s -H "Authorization: Bearer dc-student-token" "http://portal-target:8080/export?account=vx-207"', label: 'Test approved foreign object', output: ['{"authenticatedAs":"training-operator","account":"VX-207","tenant":"OBSIDIAN","owner":"synthetic-peer","balance":7250}'], objective: 2, evidence: 'The same identity retrieves approved foreign record VX-207 across the tenant boundary.' },
+      { command: 'dc-submit "missing object authorization"', label: 'Submit design flaw', output: ['FINDING ACCEPTED', 'Category: broken object-level authorization', 'Evidence threshold: SATISFIED', 'Scope adherence: VERIFIED'], objective: 3 },
     ],
-    hint: 'Authentication and authorization answer different questions. Type flow to map where each decision occurs.',
+    hint: 'Start with curl -s http://portal-target:8080/flow, then compare only the two designated synthetic accounts.',
   },
   'night-shift': {
-    target: 'DC-ENDPOINT-17', subnet: 'EVIDENCE PACK 17-A', classification: 'DC-LAB // CONTROLLED',
-    intro: 'A synthetic endpoint evidence pack contains benign activity and one suspicious sequence. Validate integrity, build a timeline, and report the strongest hypothesis.',
+    target: 'DC-ENDPOINT-17', subnet: 'SEALED EVIDENCE WORKSTATION', classification: 'DC-LAB // LIVE FORENSIC WORKSPACE',
+    intro: 'A mounted-at-build synthetic evidence pack contains benign activity and one suspicious sequence. Verify the original files, query the records yourself, and report only the hypothesis the timeline supports.',
     commands: [
-      { command: 'manifest', label: 'Validate evidence manifest', output: ['MANIFEST 17-A', 'events.json      SHA256 VERIFIED', 'processes.csv    SHA256 VERIFIED', 'network.pcap     SHA256 VERIFIED', 'Collection window: 22:00—23:00Z'], objective: 0, evidence: 'All three evidence artifacts match the supplied manifest.' },
-      { command: 'timeline', label: 'Build event timeline', output: ['22:14:02  updater.exe scheduled task', '22:31:44  powershell.exe spawned by updater.exe', '22:31:49  archive created in temp', '22:32:10  outbound connection to synthetic sink', '22:47:00  backup agent routine heartbeat'], objective: 1, evidence: 'Updater spawns a shell, creates an archive, then connects to the synthetic sink within 26 seconds.' },
-      { command: 'triage', label: 'Separate signal from noise', output: ['TRIAGE RESULT', 'Routine: scheduled task, backup heartbeat', 'High signal: unusual parent-child process, archive creation, immediate outbound connection', 'Confidence: 0.91'], objective: 2, evidence: 'The 22:31 sequence is temporally linked and inconsistent with the updater baseline.' },
-      { command: 'submit suspicious updater sequence', label: 'Submit incident hypothesis', output: ['HYPOTHESIS ACCEPTED', 'Evidence chain: COHERENT', 'Scope adherence: VERIFIED', 'Mission objectives satisfied.'], objective: 3 },
+      { command: 'sha256sum -c /opt/evidence/SHA256SUMS', label: 'Validate evidence manifest', output: ['/opt/evidence/events.json: OK', '/opt/evidence/processes.csv: OK'], objective: 0, evidence: 'Both original evidence artifacts match the supplied SHA-256 manifest.' },
+      { command: `jq -r 'sort_by(.at)[] | [.at,.process,.parent,.action] | @tsv' /opt/evidence/events.json`, label: 'Build event timeline', output: ['22:14:02Z updater task-scheduler scheduled maintenance start', '22:31:44Z powershell updater encoded child process', '22:31:49Z tar powershell archive created in temp', '22:32:10Z powershell updater connection to synthetic sink', '22:47:00Z backup-agent services routine heartbeat'], objective: 1, evidence: 'Updater launches a shell, creates an archive, and reaches the synthetic sink within 26 seconds.' },
+      { command: `jq -r '.[] | select(.severity=="high") | [.at,.process,.parent,.action] | @tsv' /opt/evidence/events.json`, label: 'Separate signal from noise', output: ['22:31:49Z tar powershell archive created in temp', '22:32:10Z powershell updater connection to synthetic sink', '22:31:44Z powershell updater encoded child process'], objective: 2, evidence: 'Three linked high-severity events are inconsistent with the documented updater baseline.' },
+      { command: 'dc-submit "suspicious updater sequence"', label: 'Submit incident hypothesis', output: ['HYPOTHESIS ACCEPTED', 'Evidence chain: COHERENT', 'Alternative explanations: DOCUMENTED', 'Scope adherence: VERIFIED'], objective: 3 },
     ],
-    hint: 'Evidence integrity comes before interpretation. Type manifest.',
+    hint: 'Evidence integrity comes before interpretation. Start with sha256sum -c /opt/evidence/SHA256SUMS.',
   },
 }
 
@@ -79,7 +79,7 @@ export function LabSimulation({ mission, onExit, onComplete }) {
   const startRef = useRef(false)
 
   useEffect(() => {
-    if (startRef.current || !rangeApi || mission.id !== 'ghost-port') return
+    if (startRef.current || !rangeApi || !['ghost-port', 'broken-trust', 'night-shift'].includes(mission.id)) return
     startRef.current = true
     rangeApi.availability().then(availability => {
       if (!availability.available) {
@@ -93,7 +93,7 @@ export function LabSimulation({ mission, onExit, onComplete }) {
       if (!result) return
       setContainment(result.containment)
       setEngine('live')
-      setHistory([{ type: 'system', lines: ['DAEMONCORE LIVE RANGE // PHASE 3', 'CONTAINMENT VERIFIED // INTERNAL NETWORK // ZERO HOST MOUNTS // EGRESS DENIED', '', scenario.intro, '', 'This is a real root shell inside dc-ghost-operator.', 'Type help for mission commands. Arbitrary in-range shell commands are enabled.'] }])
+      setHistory([{ type: 'system', lines: ['DAEMONCORE LIVE RANGE // PHASE 9', 'CONTAINMENT VERIFIED // INTERNAL NETWORK // ZERO HOST MOUNTS // EGRESS DENIED', '', scenario.intro, '', `This is a disposable root shell inside ${result.manifest.operatorContainer}.`, 'Type help for mission commands. Arbitrary in-range shell commands are enabled.'] }])
     }).catch(error => {
       setEngineError(error.message || 'The range failed to initialize.')
       setEngine('offline')
@@ -121,7 +121,7 @@ export function LabSimulation({ mission, onExit, onComplete }) {
       push({ type: 'command', text: raw }, { type: 'output', lines: evidence.length ? ['EVIDENCE LOCKER', ...evidence.map((e, i) => `E-${String(i + 1).padStart(2, '0')}  ${e}`)] : ['EVIDENCE LOCKER // EMPTY'] })
       return
     }
-    const matched = scenario.commands.find(c => command === c.command)
+    const matched = scenario.commands.find(c => command === c.command.toLowerCase())
     if (!matched && engine !== 'live') {
       push({ type: 'command', text: raw }, { type: 'system', lines: ['COMMAND NOT AVAILABLE IN THIS SIMULATION.', 'Type help to review authorized actions.'] })
       return
@@ -167,7 +167,7 @@ export function LabSimulation({ mission, onExit, onComplete }) {
   return <div className="simulation-shell">
     <header className="simulation-header"><div><button onClick={leaveRange}><ArrowLeft size={16}/></button><div className="sim-brand"><Hexagon size={26}/><i/></div><div><span>DAEMONCORE // {engine === 'live' ? 'UNRESTRICTED SEALED RANGE' : 'SIMULATION FALLBACK'}</span><strong>{mission.title}</strong></div></div><div className="sim-telemetry"><span><i/> {engine === 'live' ? 'CONTAINMENT VERIFIED' : 'ISOLATED'}</span><span><Clock3 size={13}/>{formatTime(seconds)}</span><span>{containment ? `${containment.network} // EGRESS BLOCKED` : `MISSION // ${mission.id.toUpperCase()}`}</span><button onClick={leaveRange}>DESTROY &amp; EXIT</button></div></header>
     <div className="simulation-body">
-      <section className="sim-console"><div className="console-toolbar"><div><span/><span/><span/></div><strong>{engine === 'live' ? 'ROOT@DC-GHOST-OPERATOR' : 'DC_RANGE_SIMULATOR'}</strong><span>{busy ? 'PROCESS RUNNING…' : engine === 'live' ? 'INTERNAL NETWORK // NO EGRESS' : 'LOCAL FALLBACK'}</span></div><div className="terminal-history" ref={scrollRef}>{history.map((item, i) => <TerminalLine key={i} item={item}/>)}</div><form className="terminal-input" onSubmit={e => { e.preventDefault(); run(input) }}><span>{engine === 'live' ? 'root@dc-ghost-operator' : 'operator@dc-range'}</span><em>›</em><input autoFocus disabled={busy} value={input} onChange={e => setInput(e.target.value)} spellCheck="false" autoComplete="off" placeholder={engine === 'live' ? 'run anything inside the sealed range' : 'enter a simulation command'}/><button disabled={busy}>{busy ? 'RUNNING' : 'EXECUTE'}</button></form></section>
+      <section className="sim-console"><div className="console-toolbar"><div><span/><span/><span/></div><strong>{engine === 'live' ? `ROOT@DC-${mission.id.toUpperCase()}` : 'DC_RANGE_SIMULATOR'}</strong><span>{busy ? 'PROCESS RUNNING…' : engine === 'live' ? 'INTERNAL NETWORK // NO EGRESS' : 'LOCAL FALLBACK'}</span></div><div className="terminal-history" ref={scrollRef}>{history.map((item, i) => <TerminalLine key={i} item={item}/>)}</div><form className="terminal-input" onSubmit={e => { e.preventDefault(); run(input) }}><span>{engine === 'live' ? `root@dc-${mission.id}` : 'operator@dc-range'}</span><em>›</em><input autoFocus disabled={busy} value={input} onChange={e => setInput(e.target.value)} spellCheck="false" autoComplete="off" placeholder={engine === 'live' ? 'run anything inside the sealed range' : 'enter a simulation command'}/><button disabled={busy}>{busy ? 'RUNNING' : 'EXECUTE'}</button></form></section>
       <aside className="sim-sidebar"><div className="sim-target"><span>TARGET CONTEXT</span><div><Crosshair size={19}/><strong>{scenario.target}</strong></div><small>{scenario.subnet}</small></div><div className="objective-panel"><div className="sim-panel-title"><Flag size={14}/><span>MISSION OBJECTIVES</span><strong>{done.length}/4</strong></div>{mission.objectives.map((objective, i) => <div className={`sim-objective ${done.includes(i) ? 'done' : ''}`} key={objective}><span>{done.includes(i) ? <Check size={12}/> : `0${i + 1}`}</span><p>{objective}</p></div>)}</div><div className="evidence-panel"><div className="sim-panel-title"><FileText size={14}/><span>EVIDENCE LOCKER</span><strong>{evidence.length}</strong></div>{evidence.length ? evidence.map((item, i) => <div className="evidence-item" key={item}><span>E-{String(i + 1).padStart(2, '0')}</span><p>{item}</p></div>) : <div className="empty-evidence"><Database size={20}/><p>No evidence collected</p></div>}</div><button className="hint-button" onClick={() => run('hint')}><Sparkles size={15}/> Request guidance <span>-75 PTS</span></button></aside>
     </div>
   </div>

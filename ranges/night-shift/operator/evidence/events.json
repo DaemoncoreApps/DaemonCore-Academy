@@ -1,0 +1,7 @@
+[
+  {"at":"22:47:00Z","process":"backup-agent","parent":"services","action":"routine heartbeat","severity":"low"},
+  {"at":"22:31:49Z","process":"tar","parent":"powershell","action":"archive created in temp","severity":"high"},
+  {"at":"22:14:02Z","process":"updater","parent":"task-scheduler","action":"scheduled maintenance start","severity":"low"},
+  {"at":"22:32:10Z","process":"powershell","parent":"updater","action":"connection to synthetic sink","severity":"high"},
+  {"at":"22:31:44Z","process":"powershell","parent":"updater","action":"encoded child process","severity":"high"}
+]

@@ -2,7 +2,7 @@ const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('daemoncore', {
   platform: process.platform,
-  version: '1.7.0',
+  version: '1.8.0',
   display: Object.freeze({
     setZoom: factor => ipcRenderer.invoke('display:set-zoom', factor),
   }),

@@ -1,0 +1,5 @@
+process,parent,baseline
+updater,task-scheduler,scheduled signed updater
+powershell,updater,not observed in baseline
+tar,powershell,not observed in baseline
+backup-agent,services,routine heartbeat
