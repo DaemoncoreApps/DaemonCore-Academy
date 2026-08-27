@@ -22,7 +22,16 @@ Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 
 ![FieldOps Pro license and authorization gate](docs/screenshots/fieldops-pro-gate.png)
 
-## What ships in 5.0
+## What ships in 5.1
+
+### Trust Chain // 5.1
+
+- **Full-tree range fingerprints** — verification now covers every Dockerfile, entrypoint, tool, fixture, case file, scenario contract, and Compose definition. Added files and removed files change the root digest too.
+- **Per-file inventory** — the pack index records the relative path, byte count, and SHA-256 of every shipped file under a deterministic `sha256-tree-v1` root.
+- **Runtime preflight** — Range Fabric checks Docker Engine, Docker Compose, all nine pack roots, and the enforced containment policy through one desktop diagnostic surface.
+- **Digest-sealed launch receipts** — every successful live launch receives a unique receipt binding the runtime version, complete pack digest, containers, network, containment result, and start time.
+- **Evidence export** — operators can export the integrity-checked JSON launch receipt before destroying a completed range. The receipt digest is also retained with the mission attempt.
+- **Bypass regression tests** — the release contract proves rejection of modified Dockerfiles, injected files, and edited receipts.
 
 ### Range Fabric // 5.0
 
@@ -160,6 +169,7 @@ electron/data-store.cjs       atomic local operator record
 electron/license-manager.cjs  Lemon Squeezy + protected key storage
 electron/engagement-store.cjs scope enforcement + external diagnostics
 electron/range-orchestrator.cjs
+electron/range-integrity.cjs    full-tree fingerprints + receipt verification
 ranges/web-range/             22-condition Web + API specialist range
 ranges/enterprise-range/      48-case multi-domain enterprise range
 ranges/identity-citadel/      protocol-native Samba Active Directory range

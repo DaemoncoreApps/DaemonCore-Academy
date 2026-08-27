@@ -251,7 +251,7 @@ export default function App() {
   const navigationCollapsed=collapsed??store.data.settings.compactMode
   const title=module?module.title:page==='settings'?'Settings':nav.find(n=>n.id===page)?.label||'Command'
   const completeQuiz=async event=>{await store.record(event);setToast(`Drill logged // +${event.correct*120} XP`)}
-  const completeMission=async({mission:cleared,score,hints,seconds})=>{await store.record({type:'mission',id:cleared.id,title:cleared.title,score,hints,seconds});setActiveMission(null);setPage('labs');setToast('Mission recorded // operator record updated')}
+  const completeMission=async({mission:cleared,score,hints,seconds,receipt})=>{await store.record({type:'mission',id:cleared.id,title:cleared.title,score,hints,seconds,receiptDigest:receipt?.digest,packDigest:receipt?.pack?.digest,receiptId:receipt?.receiptId});setActiveMission(null);setPage('labs');setToast('Mission recorded // operator record updated')}
   const completeWebLab=async event=>{await store.record(event);setActiveWebLab(null);setPage('webforge');setToast(`Web Forge sealed // +${event.score} XP`)}
   const completeEnterpriseLab=async event=>{await store.record({...event,type:'enterpriseLab'});setActiveEnterpriseLab(null);setPage('enterprise');setToast(`Enterprise Forge sealed // +${event.score} XP`)}
   const completeLesson=async completedLesson=>{await store.record({type:'lesson',id:completedLesson.id,title:completedLesson.title,minutes:completedLesson.minutes,practicalScore:completedLesson.practicalScore});setLesson(null);setToast(`Lesson mastered // practical ${completedLesson.practicalScore}% recorded`)}

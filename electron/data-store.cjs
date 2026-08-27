@@ -142,7 +142,10 @@ class DataStore {
     const first = !this.state.profile.completedMissions.includes(event.id)
     const earned = first ? score : Math.round(score * 0.2)
     if (first) this.state.profile.completedMissions.push(event.id)
-    this.state.profile.missionAttempts.unshift({ id: randomUUID(), missionId: event.id, score, hints: Number(event.hints) || 0, seconds: Number(event.seconds) || 0, at: new Date().toISOString() })
+    const receiptDigest = /^[a-f0-9]{64}$/.test(event.receiptDigest || '') ? event.receiptDigest : null
+    const packDigest = /^[a-f0-9]{64}$/.test(event.packDigest || '') ? event.packDigest : null
+    const receiptId = /^[a-f0-9-]{36}$/.test(event.receiptId || '') ? event.receiptId : null
+    this.state.profile.missionAttempts.unshift({ id: randomUUID(), missionId: event.id, score, hints: Number(event.hints) || 0, seconds: Number(event.seconds) || 0, receiptDigest, packDigest, receiptId, at: new Date().toISOString() })
     this.state.profile.missionAttempts = this.state.profile.missionAttempts.slice(0, 100)
     this.addXp(earned)
     this.unlock('first-signal')

@@ -1,7 +1,8 @@
 const { execFile } = require('child_process')
-const { createHash } = require('crypto')
+const { randomUUID } = require('crypto')
 const { readFile } = require('fs/promises')
 const path = require('path')
+const { fingerprintPack, sealReceipt } = require('./range-integrity.cjs')
 
 const CHAOS_WORKER = 'dc-ghost-chaos'
 const ALLOWED_SCENARIOS = new Set(['ghost-port', 'broken-trust', 'night-shift', 'token-afterlife', 'policy-collision', 'artifact-zero', 'identity-citadel', 'web-range', 'enterprise-range'])
@@ -34,6 +35,7 @@ class RangeOrchestrator {
   constructor(rangeRoot) {
     this.rangeRoot = rangeRoot
     this.activeScenario = null
+    this.activeReceipt = null
     this.operation = Promise.resolve()
   }
 
@@ -78,11 +80,30 @@ class RangeOrchestrator {
     const index = await this.packIndex()
     const entry = index.packs.find(pack => pack.id === id)
     if (!entry) throw new Error('Range pack is not present in the integrity index')
-    const scenario = await readFile(path.join(this.scenarioPath(id), 'scenario.json'))
-    const compose = await readFile(path.join(this.scenarioPath(id), 'compose.yaml'))
-    const digest = createHash('sha256').update(scenario).update('\0').update(compose).digest('hex')
-    if (digest !== entry.digest) throw new Error('Range pack integrity verification failed')
-    return { verified: true, algorithm: index.algorithm, digest, pack: entry }
+    const current = await fingerprintPack(this.scenarioPath(id))
+    if (current.digest !== entry.digest) throw new Error('Range pack integrity verification failed')
+    return { verified: true, algorithm: index.algorithm, digest: current.digest, fileCount: current.fileCount, totalBytes: current.totalBytes, pack: entry }
+  }
+
+  async diagnostics() {
+    const index = await this.packIndex()
+    const packResults = await Promise.all(index.packs.map(async pack => {
+      try { const result = await this.verifyPack(pack.id); return { id: pack.id, title: pack.title, status: 'pass', digest: result.digest, fileCount: result.fileCount, totalBytes: result.totalBytes } }
+      catch (error) { return { id: pack.id, title: pack.title, status: 'fail', reason: error.message } }
+    }))
+    const availability = await this.availability()
+    let compose = { available: false, version: null }
+    if (availability.available) {
+      try { const { stdout } = await runDocker(['compose', 'version', '--short'], { timeout: 8_000 }); compose = { available: true, version: stdout.trim() } } catch (error) { compose = { available: false, reason: error.message } }
+    }
+    return {
+      ready: availability.available && compose.available && packResults.every(pack => pack.status === 'pass'),
+      checkedAt: new Date().toISOString(),
+      runtime: availability,
+      compose,
+      packs: packResults,
+      policy: { internalNetwork: true, hostMounts: 0, egressBlocked: true, publishedPorts: 0 },
+    }
   }
 
   async status() {
@@ -96,6 +117,11 @@ class RangeOrchestrator {
     } catch {
       return { ...availability, state: 'stopped', scenario: this.activeScenario }
     }
+  }
+
+  receipt() {
+    if (!this.activeReceipt) throw new Error('No active range receipt is available')
+    return JSON.parse(JSON.stringify(this.activeReceipt))
   }
 
   async waitForHealthy(manifest) {
@@ -147,7 +173,9 @@ class RangeOrchestrator {
         await this.waitForHealthy(manifest)
         const containment = await this.verifyContainment(manifest)
         this.activeScenario = id
-        return { state: 'sealed', scenario: id, containment, integrity, manifest }
+        const receipt = sealReceipt({ schemaVersion: 1, receiptId: randomUUID(), scenario: id, startedAt: new Date().toISOString(), runtime: { engine: availability.engine, version: availability.version }, pack: { algorithm: integrity.algorithm, digest: integrity.digest, fileCount: integrity.fileCount }, containment, operatorContainer: manifest.operatorContainer, targetContainer: manifest.targetContainer })
+        this.activeReceipt = receipt
+        return { state: 'sealed', scenario: id, containment, integrity, receipt, manifest }
       } catch (error) {
         await this.stopInternal(id).catch(() => {})
         throw new Error(error.stderr?.trim() || error.message || 'Range startup failed')
@@ -228,6 +256,7 @@ class RangeOrchestrator {
       }
     }
     this.activeScenario = null
+    this.activeReceipt = null
     return { state: 'stopped' }
   }
 

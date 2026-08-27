@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import {
   Activity, AlertTriangle, ArrowLeft, ArrowRight, Award, BookOpen, Check,
   CheckCircle2, ChevronRight, Clock3, Code2, Copy, Crosshair, Database,
-  FileText, Flag, Flame, Gauge, HardDrive, Hexagon, KeyRound, Layers3,
+  FileText, Fingerprint, Flag, Flame, Gauge, HardDrive, Hexagon, KeyRound, Layers3,
   LockKeyhole, Network, Radar, RotateCcw, Search, ShieldCheck, Sparkles,
   Target, Terminal, Trophy, UserRound, X, Zap,
 } from 'lucide-react'
@@ -83,6 +83,8 @@ export function LabSimulation({ mission, onExit, onComplete }) {
   const [engineError, setEngineError] = useState('')
   const [busy, setBusy] = useState(false)
   const [containment, setContainment] = useState(null)
+  const [receipt, setReceipt] = useState(null)
+  const [receiptExported, setReceiptExported] = useState(false)
   const scrollRef = useRef(null)
   const startRef = useRef(false)
 
@@ -100,6 +102,7 @@ export function LabSimulation({ mission, onExit, onComplete }) {
     }).then(result => {
       if (!result) return
       setContainment(result.containment)
+      setReceipt(result.receipt)
       setEngine('live')
       setHistory([{ type: 'system', lines: ['DAEMONCORE LIVE RANGE // PHASE 10', 'CONTAINMENT VERIFIED // INTERNAL NETWORK // ZERO HOST MOUNTS // EGRESS DENIED', '', scenario.intro, '', `This is a disposable root shell inside ${result.manifest.operatorContainer}.`, 'Type help for mission commands. Arbitrary in-range shell commands are enabled.'] }])
     }).catch(error => {
@@ -165,7 +168,8 @@ export function LabSimulation({ mission, onExit, onComplete }) {
   const score = Math.max(250, mission.xp - hints * 75 - Math.floor(seconds / 60) * 10)
   const formatTime = s => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
   const leaveRange = async () => { if (rangeApi && ['live', 'provisioning'].includes(engine)) await rangeApi.stop().catch(() => {}); onExit() }
-  const finishRange = async () => { if (rangeApi && engine === 'live') await rangeApi.stop().catch(() => {}); onComplete({ mission, score, hints, seconds }) }
+  const finishRange = async () => { if (rangeApi && engine === 'live') await rangeApi.stop().catch(() => {}); onComplete({ mission, score, hints, seconds, receipt }) }
+  const exportReceipt = async () => { const result=await rangeApi?.exportReceipt(); if(result&&!result.canceled)setReceiptExported(true) }
 
   if (engine === 'probing' || engine === 'provisioning') return <div className="range-gate"><div className="range-gate-grid"/><div className="range-gate-core"><div className="range-loader"><Hexagon size={78}/><i/></div><span>PHASE 10 // RANGE ORCHESTRATOR</span><h1>{engine === 'probing' ? 'Checking the engine.' : 'Building the sealed range.'}</h1><p>{engine === 'probing' ? 'Locating Docker Desktop and verifying the local runtime.' : 'Pulling the operator image, building the target, and proving containment before shell access is released.'}</p><div className="boot-sequence"><span className="done"><Check/> Scenario manifest</span><span className={engine === 'provisioning' ? 'active' : ''}><Activity/> Container network</span><span><ShieldCheck/> Containment proof</span><span><Terminal/> Root shell</span></div><button onClick={leaveRange}>Cancel launch</button></div></div>
 
@@ -173,11 +177,11 @@ export function LabSimulation({ mission, onExit, onComplete }) {
 
   if (report) return <div className="simulation-shell completion-screen">
     <div className="completion-grid" />
-    <div className="completion-core"><div className="completion-seal"><ShieldCheck size={46}/></div><span>MISSION COMPLETE // EVIDENCE ACCEPTED</span><h1>{mission.title}</h1><p>You maintained the declared boundary and converted observations into a defensible conclusion.</p><div className="completion-score"><div><small>OPERATION SCORE</small><strong>{score}</strong></div><div><small>OBJECTIVES</small><strong>{mission.objectives.length} / {mission.objectives.length}</strong></div><div><small>GUIDANCE USED</small><strong>{hints}</strong></div><div><small>ELAPSED</small><strong>{formatTime(seconds)}</strong></div></div><div className="earned-xp"><Zap size={18}/> +{score} EXPERIENCE LOGGED</div><button className="sim-primary" onClick={finishRange}>Destroy range &amp; return <ArrowRight size={16}/></button></div>
+    <div className="completion-core"><div className="completion-seal"><ShieldCheck size={46}/></div><span>MISSION COMPLETE // EVIDENCE ACCEPTED</span><h1>{mission.title}</h1><p>You maintained the declared boundary and converted observations into a defensible conclusion.</p><div className="completion-score"><div><small>OPERATION SCORE</small><strong>{score}</strong></div><div><small>OBJECTIVES</small><strong>{mission.objectives.length} / {mission.objectives.length}</strong></div><div><small>GUIDANCE USED</small><strong>{hints}</strong></div><div><small>ELAPSED</small><strong>{formatTime(seconds)}</strong></div></div>{receipt&&<div className="receipt-seal"><Fingerprint size={16}/><span>DIGEST-SEALED LAUNCH RECEIPT</span><code>{receipt.digest}</code></div>}<div className="earned-xp"><Zap size={18}/> +{score} EXPERIENCE LOGGED</div>{receipt&&<button className="ghost" onClick={exportReceipt}>{receiptExported?'RECEIPT EXPORTED':'EXPORT INTEGRITY RECEIPT'}</button>}<button className="sim-primary" onClick={finishRange}>Destroy range &amp; return <ArrowRight size={16}/></button></div>
   </div>
 
   return <div className="simulation-shell">
-    <header className="simulation-header"><div><button onClick={leaveRange}><ArrowLeft size={16}/></button><div className="sim-brand"><Hexagon size={26}/><i/></div><div><span>DAEMONCORE // {engine === 'live' ? 'UNRESTRICTED SEALED RANGE' : 'SIMULATION FALLBACK'}</span><strong>{mission.title}</strong></div></div><div className="sim-telemetry"><span><i/> {engine === 'live' ? 'CONTAINMENT VERIFIED' : 'ISOLATED'}</span><span><Clock3 size={13}/>{formatTime(seconds)}</span><span>{containment ? `${containment.network} // EGRESS BLOCKED` : `MISSION // ${mission.id.toUpperCase()}`}</span><button onClick={leaveRange}>DESTROY &amp; EXIT</button></div></header>
+    <header className="simulation-header"><div><button onClick={leaveRange}><ArrowLeft size={16}/></button><div className="sim-brand"><Hexagon size={26}/><i/></div><div><span>DAEMONCORE // {engine === 'live' ? 'UNRESTRICTED SEALED RANGE' : 'SIMULATION FALLBACK'}</span><strong>{mission.title}</strong></div></div><div className="sim-telemetry"><span><i/> {engine === 'live' ? 'CONTAINMENT VERIFIED' : 'ISOLATED'}</span><span><Clock3 size={13}/>{formatTime(seconds)}</span><span>{receipt ? `RECEIPT ${receipt.digest.slice(0,12)}` : containment ? `${containment.network} // EGRESS BLOCKED` : `MISSION // ${mission.id.toUpperCase()}`}</span><button onClick={leaveRange}>DESTROY &amp; EXIT</button></div></header>
     <div className="simulation-body">
       <section className="sim-console"><div className="console-toolbar"><div><span/><span/><span/></div><strong>{engine === 'live' ? `ROOT@DC-${mission.id.toUpperCase()}` : 'DC_RANGE_SIMULATOR'}</strong><span>{busy ? 'PROCESS RUNNING…' : engine === 'live' ? 'INTERNAL NETWORK // NO EGRESS' : 'LOCAL FALLBACK'}</span></div><div className="terminal-history" ref={scrollRef}>{history.map((item, i) => <TerminalLine key={i} item={item}/>)}</div><form className="terminal-input" onSubmit={e => { e.preventDefault(); run(input) }}><span>{engine === 'live' ? `root@dc-${mission.id}` : 'operator@dc-range'}</span><em>›</em><input autoFocus disabled={busy} value={input} onChange={e => setInput(e.target.value)} spellCheck="false" autoComplete="off" placeholder={engine === 'live' ? 'run anything inside the sealed range' : 'enter a simulation command'}/><button disabled={busy}>{busy ? 'RUNNING' : 'EXECUTE'}</button></form></section>
       <aside className="sim-sidebar"><div className="sim-target"><span>TARGET CONTEXT</span><div><Crosshair size={19}/><strong>{scenario.target}</strong></div><small>{scenario.subnet}</small></div><div className="objective-panel"><div className="sim-panel-title"><Flag size={14}/><span>MISSION OBJECTIVES</span><strong>{done.length}/{mission.objectives.length}</strong></div>{mission.objectives.map((objective, i) => <div className={`sim-objective ${done.includes(i) ? 'done' : ''}`} key={objective}><span>{done.includes(i) ? <Check size={12}/> : `0${i + 1}`}</span><p>{objective}</p></div>)}</div><div className="evidence-panel"><div className="sim-panel-title"><FileText size={14}/><span>EVIDENCE LOCKER</span><strong>{evidence.length}</strong></div>{evidence.length ? evidence.map((item, i) => <div className="evidence-item" key={item}><span>E-{String(i + 1).padStart(2, '0')}</span><p>{item}</p></div>) : <div className="empty-evidence"><Database size={20}/><p>No evidence collected</p></div>}</div><button className="hint-button" onClick={() => run('hint')}><Sparkles size={15}/> Request guidance <span>-75 PTS</span></button></aside>

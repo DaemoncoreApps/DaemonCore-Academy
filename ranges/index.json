@@ -1,79 +1,452 @@
 {
-  "schemaVersion": 1,
-  "algorithm": "sha256",
-  "generatedAt": "2026-08-27T02:32:46.865Z",
+  "schemaVersion": 2,
+  "algorithm": "sha256-tree-v1",
+  "generatedAt": "2026-08-27T02:52:37.303Z",
   "packs": [
     {
       "id": "artifact-zero",
       "title": "Artifact Zero",
       "engine": "docker",
-      "digest": "1bcc4263d76a60dac3d54dd48cbb4519bbb1b112374dd6f5e74f6a7279de8e4e",
-      "scenarioBytes": 575,
-      "composeBytes": 1055
+      "digest": "7891494c9d387e653ec6707ccc246a7a79a93a1f94a93dbca88f6349e0be5aa2",
+      "files": [
+        {
+          "path": "compose.yaml",
+          "bytes": 1055,
+          "digest": "47231a297910f956539e00c9e1f26188d246fedfe1181715d4d4520095ace05f"
+        },
+        {
+          "path": "operator/dc-submit",
+          "bytes": 377,
+          "digest": "ab9cd2637803f7f2c684ebd5f932da34726790e3bbc30531f003d8e0fc2e1867"
+        },
+        {
+          "path": "operator/Dockerfile",
+          "bytes": 274,
+          "digest": "5171bfc3790e0d04bea55616112792ff48ad54e181166678c3397ede827d77a0"
+        },
+        {
+          "path": "operator/evidence/attestations.json",
+          "bytes": 118,
+          "digest": "7593a03e3ee541e67ef4d1b59a76c832693853f3751c5dd3a0c18412924608a8"
+        },
+        {
+          "path": "operator/evidence/release.json",
+          "bytes": 114,
+          "digest": "5179f6d34f477bb3bd9b37c72149a8974d4e034a4bfa362bc984a909b4484df9"
+        },
+        {
+          "path": "operator/evidence/sbom.json",
+          "bytes": 125,
+          "digest": "cb9905d40f8ab220a95d01ec7c14dbf8863e806fbea7ad5006a4f2cc5f5ace2d"
+        },
+        {
+          "path": "operator/evidence/SHA256SUMS",
+          "bytes": 281,
+          "digest": "11893d4fbbb8e211a6e0607dbf4a723bf507e944acc839c07b2942ee49bdd8f5"
+        },
+        {
+          "path": "scenario.json",
+          "bytes": 575,
+          "digest": "00b47340aa42ada2ff68e63afddcbaaf06d1f4c72b1aa045cebcf301c06e6c5c"
+        },
+        {
+          "path": "target/Dockerfile",
+          "bytes": 110,
+          "digest": "51cfad0bb9430c116738d2cbb9d65e1853ffd3c0f35d50103d2c1d02957d97bc"
+        },
+        {
+          "path": "target/server.mjs",
+          "bytes": 384,
+          "digest": "4403ff459355aa5016d432009412c604b97abc43969eb1c459360997e3111ed0"
+        }
+      ],
+      "fileCount": 10,
+      "totalBytes": 3413
     },
     {
       "id": "broken-trust",
       "title": "Broken Trust",
       "engine": "docker",
-      "digest": "6f147825ca8bd241e782cf7b05a11770d6347aed18f59052ebeeaa53f78db20e",
-      "scenarioBytes": 577,
-      "composeBytes": 1050
+      "digest": "7d04f6a838e60f8797c7e70e3e6fda1653d7d5cbe4a2523ff5cc4e1a91c98f5d",
+      "files": [
+        {
+          "path": "compose.yaml",
+          "bytes": 1050,
+          "digest": "f3c03a52eb3239d1a124a9ee27604012a11f40e47936a44c1d56b64726ed3159"
+        },
+        {
+          "path": "operator/dc-submit",
+          "bytes": 345,
+          "digest": "37613d3fd5972d4e63b0d675458f47a19476a7cdc780048b51da3d49754cb672"
+        },
+        {
+          "path": "operator/Dockerfile",
+          "bytes": 130,
+          "digest": "a48752176071c83e429797abda0eefaa30a3f54eb2c1689f002375e5fe766f52"
+        },
+        {
+          "path": "scenario.json",
+          "bytes": 577,
+          "digest": "47749e22ab0c3641251e2ea01985f8958d72fb6fb3d757d1d352512da83072a4"
+        },
+        {
+          "path": "target/Dockerfile",
+          "bytes": 110,
+          "digest": "8fc2ee2fee77749256c0c902d9a0df98da5cab85adf219a5f34613bc592e19fd"
+        },
+        {
+          "path": "target/server.mjs",
+          "bytes": 1540,
+          "digest": "e6a6049bcb294f144941580e30dc58b9666054485b02be5b09754f292eec9930"
+        }
+      ],
+      "fileCount": 6,
+      "totalBytes": 3752
     },
     {
       "id": "enterprise-range",
       "title": "Enterprise Forge",
       "engine": "docker",
-      "digest": "123b80685159bb012b70e93070d2e414c176a4da53b68d33008a6a37a40c717f",
-      "scenarioBytes": 546,
-      "composeBytes": 1047
+      "digest": "c33464fbd4e56395ab46c7c0fc25d8ef2cd6ce991348b207db5c3946534b9592",
+      "files": [
+        {
+          "path": "cases.json",
+          "bytes": 61435,
+          "digest": "07d3c0a42946732fc1b0134bcb13b7968f8f798da2d6be244191d5f3e771aca0"
+        },
+        {
+          "path": "compose.yaml",
+          "bytes": 1047,
+          "digest": "0fe60c44211e3481843f6d977b315d00fc0cd2260a9a959608d8345b145349d4"
+        },
+        {
+          "path": "operator/dc-case",
+          "bytes": 486,
+          "digest": "3b9972651f699da813980645ce2262d240fe05f8f5b1aa354115fda09ce917e1"
+        },
+        {
+          "path": "operator/dc-submit",
+          "bytes": 241,
+          "digest": "38040796b79ab0821b961fafe77990a06cf196f9ca6e4d34b2bb72ebc7c7b8a8"
+        },
+        {
+          "path": "operator/Dockerfile",
+          "bytes": 311,
+          "digest": "b369de740e1dbccf8bdf50fd0ed390890210ebaac4df956e8bfacf6652d3c178"
+        },
+        {
+          "path": "scenario.json",
+          "bytes": 546,
+          "digest": "82feb3194e049a64d3b40399d3127e50941d4e90334412255196f496c462a431"
+        },
+        {
+          "path": "target/Dockerfile",
+          "bytes": 203,
+          "digest": "e72e9d7962a7a5c57ae47a0db64bad48cc730ef98be6b946f8896a73b515bf83"
+        },
+        {
+          "path": "target/server.mjs",
+          "bytes": 1795,
+          "digest": "acb796ee1bb6ed29251b5c67e30c654df7a19554dc6f0d7c9d83d1a4c21b2129"
+        }
+      ],
+      "fileCount": 8,
+      "totalBytes": 66064
     },
     {
       "id": "ghost-port",
       "title": "The Ghost Port",
       "engine": "docker",
-      "digest": "85c5c462614724815c03aaa628a77c8f922481c05e611d7eb2da75a5344903d9",
-      "scenarioBytes": 822,
-      "composeBytes": 1447
+      "digest": "f29024e6e9ce38d99392076a9cee2d74ee0d5f6b343b79818ffdc86aaee811cb",
+      "files": [
+        {
+          "path": "chaos-worker/Dockerfile",
+          "bytes": 116,
+          "digest": "0f5d3b760db50fce811e2428a91c5ee7e1f33e31ef8a3dc8b00bbc6ff51cd55a"
+        },
+        {
+          "path": "chaos-worker/load-runner.mjs",
+          "bytes": 5072,
+          "digest": "90abad0e8293f5481ddcac1c7c3236f875111e031afcfb5545ccfa923cc1f7d3"
+        },
+        {
+          "path": "compose.yaml",
+          "bytes": 1447,
+          "digest": "8f4aec441641ff859701833100fa6b2928cc4f3dd6c963b2fbb605df7c623f06"
+        },
+        {
+          "path": "operator/dc-submit",
+          "bytes": 192,
+          "digest": "6954c005d2cfec7049aa40f4bd0b45571ed78e1f11f4927c2494eb4c8a53135c"
+        },
+        {
+          "path": "operator/Dockerfile",
+          "bytes": 270,
+          "digest": "82357dbf12094d36b073be55aa4f0039da7b492919fc12ffc480a77d540bcddf"
+        },
+        {
+          "path": "operator/mission/inventory.txt",
+          "bytes": 208,
+          "digest": "38d98b03955bfd07a26660c3512e2fbaa4fdac8047834ab30c2216e5dd41e4b0"
+        },
+        {
+          "path": "scenario.json",
+          "bytes": 822,
+          "digest": "20aaf93999c922f2656c9d0e5691201a4fdf64a290f4fcc1868599f3b84e1df7"
+        },
+        {
+          "path": "target/Dockerfile",
+          "bytes": 117,
+          "digest": "31b8384c48be6c5ce5efac9a9241f4f3696230b165c46b30757e1140e81a022f"
+        },
+        {
+          "path": "target/server.mjs",
+          "bytes": 1867,
+          "digest": "db59954b42974e536611fc8baa7965dc8f8e6e99fa21251ef57c400ded1c8553"
+        }
+      ],
+      "fileCount": 9,
+      "totalBytes": 10111
     },
     {
       "id": "identity-citadel",
       "title": "Identity Citadel",
       "engine": "docker",
-      "digest": "738c7b8a6e096dd96ad16d218c8e97ac5f49c472dfe2acb0ee157475eac81e8a",
-      "scenarioBytes": 581,
-      "composeBytes": 1583
+      "digest": "36942e05a58e42b165d67bc5582aaebd5044af2a6e92d9dfa2ae061479cecdb1",
+      "files": [
+        {
+          "path": "compose.yaml",
+          "bytes": 1583,
+          "digest": "8467526e91ae9cc47945f013cd6a5d2f73a636227f5578454daac88e0c5a134c"
+        },
+        {
+          "path": "domain-controller/Dockerfile",
+          "bytes": 1083,
+          "digest": "8d9cae901c12f4b87a474b2e445c84a053bc6e449734d29a8ef3856732ea77df"
+        },
+        {
+          "path": "domain-controller/entrypoint.sh",
+          "bytes": 104,
+          "digest": "fa8560208f4509dbc24c7e624362f8db7c5f2c66e0f2b4802accd60e613e66f9"
+        },
+        {
+          "path": "operator/dc-submit",
+          "bytes": 424,
+          "digest": "412d03c345503770adc8cf7928d62790faf4e4e2dd19930059bbfe1c87442f29"
+        },
+        {
+          "path": "operator/Dockerfile",
+          "bytes": 340,
+          "digest": "761ad62d2d45e4d7f6e5517926aa4758f518fa0634f964563ebc420e8ed60388"
+        },
+        {
+          "path": "operator/krb5.conf",
+          "bytes": 303,
+          "digest": "90c7630c5e0baacde1e6d6a7bba5f875a6e8aa1327a76c9b6496b55eb470393b"
+        },
+        {
+          "path": "scenario.json",
+          "bytes": 581,
+          "digest": "27401ae137724944808aac92360f03fb31c4b00095b95433a4931e5dde2a6eb8"
+        }
+      ],
+      "fileCount": 7,
+      "totalBytes": 4418
     },
     {
       "id": "night-shift",
       "title": "Night Shift",
       "engine": "docker",
-      "digest": "73e123bca105032f63c6edd706a9fa1431d4161901510083bbf9401dcce929c5",
-      "scenarioBytes": 571,
-      "composeBytes": 1052
+      "digest": "03ea4f88d2cc3abd55adac3a24da9c8360077bc30a0f0e1865564cc0d435463c",
+      "files": [
+        {
+          "path": "compose.yaml",
+          "bytes": 1052,
+          "digest": "35bcab8357f980c026c43b4f0f6bd4d321fee9fe23d55fd06f4bc3c0d01029cc"
+        },
+        {
+          "path": "operator/dc-submit",
+          "bytes": 356,
+          "digest": "f1424f9078bf45e02128cad19c774949d930001e3fcbf0c37957aa6e07bd3721"
+        },
+        {
+          "path": "operator/Dockerfile",
+          "bytes": 274,
+          "digest": "5171bfc3790e0d04bea55616112792ff48ad54e181166678c3397ede827d77a0"
+        },
+        {
+          "path": "operator/evidence/events.json",
+          "bytes": 590,
+          "digest": "18d7d0be831a4be0c43ed013cb286e1e7b24db339249562b95fe968243e55839"
+        },
+        {
+          "path": "operator/evidence/processes.csv",
+          "bytes": 196,
+          "digest": "31c2e40f82739c89623f56d2bf248ce7ddddddb4ae62f0d1b84900f511981e5f"
+        },
+        {
+          "path": "operator/evidence/SHA256SUMS",
+          "bytes": 186,
+          "digest": "526af49ab07c7e14150af99e7362662cbbf9617825ef411d96e24836d6f6035e"
+        },
+        {
+          "path": "scenario.json",
+          "bytes": 571,
+          "digest": "8df0fa5215c3f2d696a653e5e9a1726eef2fb8f5d899c108a414e1a0e4d73116"
+        },
+        {
+          "path": "target/Dockerfile",
+          "bytes": 110,
+          "digest": "1869607da34e4c9dfbb582f62eb9ef7a430599f126b1db0fbddf2ba4fd5faa98"
+        },
+        {
+          "path": "target/server.mjs",
+          "bytes": 387,
+          "digest": "79ae0e19149444a89d0c879ab90744da6f07e3014e26c28ad286fff0e4b3d758"
+        }
+      ],
+      "fileCount": 9,
+      "totalBytes": 3722
     },
     {
       "id": "policy-collision",
       "title": "Policy Collision",
       "engine": "docker",
-      "digest": "1aff241d6459d10184b959bb88fca19e2ce0fbae741aac3fb03300326d509d6d",
-      "scenarioBytes": 567,
-      "composeBytes": 1045
+      "digest": "0e07f8864e350ec7f24ca5cadac091ce8a8c942952610fe18d2b4dec63ee82f2",
+      "files": [
+        {
+          "path": "compose.yaml",
+          "bytes": 1045,
+          "digest": "6190c8cd8d2d38ac2640209a31670d7477bb4cd9d780ea52881d5bde91bdbbbc"
+        },
+        {
+          "path": "operator/dc-submit",
+          "bytes": 368,
+          "digest": "770a1f07050a43667bb52f5b7a1627fcc0dba1a247c8693ff56fd20201475f60"
+        },
+        {
+          "path": "operator/Dockerfile",
+          "bytes": 130,
+          "digest": "a48752176071c83e429797abda0eefaa30a3f54eb2c1689f002375e5fe766f52"
+        },
+        {
+          "path": "scenario.json",
+          "bytes": 567,
+          "digest": "39ba1b59dea3b28532c8194739bd17a13dd8a4614702a8a9b17a10efb548d41e"
+        },
+        {
+          "path": "target/Dockerfile",
+          "bytes": 110,
+          "digest": "dca24a49ae114a328e459d339dc40cfaf656912b548bae8348a4c5be83e95bd8"
+        },
+        {
+          "path": "target/server.mjs",
+          "bytes": 1281,
+          "digest": "9ac93ffbd167043201929b264bd5e0ddac4e80e2842db79ce73a155d74a4536b"
+        }
+      ],
+      "fileCount": 6,
+      "totalBytes": 3501
     },
     {
       "id": "token-afterlife",
       "title": "Token Afterlife",
       "engine": "docker",
-      "digest": "4e2054a6c02f5de5ac4f353a53343926c122849dab19e91f86da8f60e42ab755",
-      "scenarioBytes": 562,
-      "composeBytes": 1043
+      "digest": "4ab417d5c0158c66d09bda7100834b98e680945fe54cfba3b052ca4ee28800a8",
+      "files": [
+        {
+          "path": "compose.yaml",
+          "bytes": 1043,
+          "digest": "d0a9fc7754ff44790aabc5e08d67be4f7de92faa25395630d6f90d5b360dcabd"
+        },
+        {
+          "path": "operator/dc-submit",
+          "bytes": 359,
+          "digest": "8510a6e4d836dd3589e4c17842678aa903d69f6d7a01b17926b066e52c0cea76"
+        },
+        {
+          "path": "operator/Dockerfile",
+          "bytes": 130,
+          "digest": "a48752176071c83e429797abda0eefaa30a3f54eb2c1689f002375e5fe766f52"
+        },
+        {
+          "path": "scenario.json",
+          "bytes": 562,
+          "digest": "b64668a022dccc4cadd34360beb34d8f164c0ca85cc6db168dccd1673273e4d9"
+        },
+        {
+          "path": "target/Dockerfile",
+          "bytes": 110,
+          "digest": "2b6ae6bafbd34a2a88b96e959b6fd00f8096ffea7d8483471ff11c0683769fcb"
+        },
+        {
+          "path": "target/server.mjs",
+          "bytes": 1144,
+          "digest": "81645d5f98d35db6ece2b2ce6a0fbccc3ee59b06d13bf60d0ca5a90a820caf3c"
+        }
+      ],
+      "fileCount": 6,
+      "totalBytes": 3348
     },
     {
       "id": "web-range",
       "title": "Web Forge",
       "engine": "docker",
-      "digest": "75dafff9e5b7a059ab7b3a5f3f701cbb5cd599d9c7aadf57f53af26405dca58a",
-      "scenarioBytes": 554,
-      "composeBytes": 1094
+      "digest": "fe2748b54a03ed022bd2b51138c0f629cab2c1f0ce4a3c0f447f9c1d57fa63da",
+      "files": [
+        {
+          "path": "compose.yaml",
+          "bytes": 1094,
+          "digest": "e978d7e5e08601ed1caa3d6dca55065e0966ce5c35128d43a25af03ad3d81c41"
+        },
+        {
+          "path": "labs.json",
+          "bytes": 6750,
+          "digest": "e348a470c57b99f7f89a21b8e1c19dac77656e9d8235322e3d612fb1ca67a23f"
+        },
+        {
+          "path": "operator/ambiguous-request.txt",
+          "bytes": 120,
+          "digest": "b64a01e53e4f3b7c0261db4221c5e80e09e9c8b4884298a44b5b06304dd403ff"
+        },
+        {
+          "path": "operator/dc-frame",
+          "bytes": 353,
+          "digest": "a2162d5f6a135cb01c0f54d9f950ef4ccb177a615a05ae68ee1e8d0ecd00cb12"
+        },
+        {
+          "path": "operator/dc-race",
+          "bytes": 362,
+          "digest": "e075aa05b9ff11644d6da617ccfdcc0722474091635232d9699f9b83bfef3936"
+        },
+        {
+          "path": "operator/dc-submit",
+          "bytes": 340,
+          "digest": "e2a244e77b69d51b747c1a7d8d8fd698d21e37f2843883b0aa426f80dfde1c81"
+        },
+        {
+          "path": "operator/Dockerfile",
+          "bytes": 374,
+          "digest": "d1c323b5514160ca5ac296261654e878f28f6cb709d88205d2994e9bff9edbac"
+        },
+        {
+          "path": "scenario.json",
+          "bytes": 554,
+          "digest": "aa40ad0b941be1f4ae632bee635c605181156dde51da3f8c29574bdcba82c452"
+        },
+        {
+          "path": "target/Dockerfile",
+          "bytes": 266,
+          "digest": "28714c376f21782cffc62e1e11f40a7966a6aa89c6c823f6d36981bbd80f5b05"
+        },
+        {
+          "path": "target/server.mjs",
+          "bytes": 9939,
+          "digest": "f62fd11a334ff13114a9878d584bc997a4c8f114a4355f5f1b0e62eddc47ae0a"
+        }
+      ],
+      "fileCount": 10,
+      "totalBytes": 20152
     }
   ]
 }
