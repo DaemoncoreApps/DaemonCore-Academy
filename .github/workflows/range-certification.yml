@@ -38,6 +38,9 @@ jobs:
       - name: Verify static contracts
         run: npm run check:phase15
 
+      - name: Build the domain with diagnostic output
+        run: docker compose --file ranges/identity-citadel/compose.yaml build --progress plain domain-controller
+
       - name: Build, contain, and exercise the live realm
         run: node scripts/certify-identity-range.mjs
 
