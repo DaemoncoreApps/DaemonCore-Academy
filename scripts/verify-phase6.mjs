@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict'
 import { course } from '../src/content.js'
 
-assert.equal(course.lessons.length,20)
-assert.ok(course.estimatedMinutes>=900)
+assert.equal(course.lessons.length,28)
+assert.equal(course.estimatedMinutes,1440)
 for(const lesson of course.lessons){
-  assert.ok(['FOUNDATION','PRACTITIONER'].includes(lesson.level),`${lesson.id} needs a level`)
+  assert.ok(['FOUNDATION','PRACTITIONER','ADVANCED'].includes(lesson.level),`${lesson.id} needs a level`)
   assert.ok(lesson.outcome?.length>=40,`${lesson.id} needs a concrete outcome`)
   assert.ok(lesson.objectives?.length>=3,`${lesson.id} needs at least three objectives`)
   assert.ok(lesson.prerequisites?.length>=2,`${lesson.id} needs prerequisites`)

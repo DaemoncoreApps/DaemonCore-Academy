@@ -6,13 +6,14 @@ DaemonCore is the course I wanted instead: learn the mental model, validate it, 
 
 Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 
-## What ships in 1.9
+## What ships in 2.0
 
-- **Full-Spectrum Security Assessment** — twenty practical lessons and sixteen hours of guided work spanning scope, recon, Windows and Linux attack surfaces, web, sessions, authorization, injection, APIs, enterprise identity, cloud, containers, supply chain, secrets, validation, evidence, cleanup, and retesting.
+- **Full-Spectrum Security Assessment** — twenty-eight practical lessons and twenty-four hours of guided work spanning scope, recon, Windows and Linux attack surfaces, web, sessions, authorization, injection, APIs, enterprise identity, cloud, containers, supply chain, secrets, validation, evidence, cleanup, and retesting.
+- **Advanced operator sequence** — eight hour-long deep dives covering Linux privilege graphs, Windows service control, Active Directory paths, Kerberos trust, segmentation and pivot analysis, SSRF, OAuth/OIDC, and CI/CD provenance.
 - **Operator workshops** — every lesson now includes objectives, prerequisites, an annotated three-step workflow, commands or artifacts, expected signal, interpretation, a required deliverable, success criteria, and primary references.
-- **Interactive operator workbenches** — twenty tailored simulations with sixty decision nodes spanning scope compilation, packet timelines, evidence assembly, access matrices, IAM evaluation, manifest review, vulnerability triage, and closeout control.
+- **Interactive operator workbenches** — twenty-eight tailored simulations with eighty-four decision nodes spanning scope compilation, packet timelines, privilege graphs, directory trust, access matrices, IAM evaluation, provenance, vulnerability triage, and closeout control.
 - **Real mastery gating** — the knowledge validation stays locked until the operator passes the lesson workbench. Practical scores and replay attempts are stored in the local operator record.
-- **Twenty validation checks** — progress is recorded only after the lesson check is answered correctly.
+- **Twenty-eight validation checks** — progress is recorded only after the lesson check is answered correctly.
 - **Eight scored drill sets** — protocol recognition, request anatomy, evidence triage, finding quality, authorization, cloud controls, credential safety, and assessment triage.
 - **Six live field missions** — every mission provisions a disposable Docker environment with an unrestricted in-range shell, an internal-only network, zero host mounts, and verified internet-egress denial.
 - **Broken Trust live API range** — interrogate an actual synthetic multi-tenant API, compare an owned record with one authorized foreign record, and submit the missing object-authorization condition.

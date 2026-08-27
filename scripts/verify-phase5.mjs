@@ -5,7 +5,7 @@ import { course, drillSets } from '../src/content.js'
 const require=createRequire(import.meta.url)
 const { EngagementStore, normalizeHttpPath }=require('../electron/engagement-store.cjs')
 
-assert.equal(course.lessons.length,20)
+assert.equal(course.lessons.length,28)
 assert.equal(new Set(course.lessons.map(lesson=>lesson.id)).size,course.lessons.length)
 assert.ok(course.estimatedMinutes>=500)
 for(const lesson of course.lessons){
@@ -37,4 +37,4 @@ assert.equal(baseline.concurrency,1)
 assert.equal(baseline.minimumIntervalMs,500)
 assert.equal(baseline.successful,10)
 
-console.log('Phase 5 verified // 20 lessons, 8 drills, bounded surveys, and fixed-rate resilience sampling')
+console.log('Phase 5 verified // 28 lessons, 8 drills, bounded surveys, and fixed-rate resilience sampling')

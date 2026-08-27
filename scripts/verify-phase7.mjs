@@ -3,6 +3,7 @@ import { course } from '../src/content.js'
 import { lessonInteractives } from '../src/lesson-interactives.js'
 
 assert.equal(Object.keys(lessonInteractives).length,20)
+assert.equal(course.lessons.length,28)
 for(const lesson of course.lessons){
   const interactive=lesson.interactive
   assert.ok(interactive,`${lesson.id} needs an interactive scenario`)
@@ -20,4 +21,4 @@ for(const lesson of course.lessons){
   }
 }
 
-console.log('Phase 7 verified // 20 scored workbenches, 60 decision nodes, mastery gating, and durable practical scores')
+console.log('Phase 7 verified // 28 scored workbenches, 84 decision nodes, mastery gating, and durable practical scores')

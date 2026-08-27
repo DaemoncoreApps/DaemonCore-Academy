@@ -1,5 +1,6 @@
 import { lessonPracticals } from './lesson-practicals.js'
 import { lessonInteractives } from './lesson-interactives.js'
+import { advancedLessons } from './advanced-lessons.js'
 
 export const course = {
   schemaVersion: 1,
@@ -192,10 +193,12 @@ export const course = {
   ],
 }
 
+course.lessons.push(...advancedLessons)
+
 for (const lesson of course.lessons) {
   Object.assign(lesson, lessonPracticals[lesson.id] || {})
-  lesson.interactive=lessonInteractives[lesson.id]
-  lesson.minutes=lesson.level==='PRACTITIONER'?50:45
+  lesson.interactive=lesson.interactive||lessonInteractives[lesson.id]
+  lesson.minutes=lesson.level==='ADVANCED'?60:lesson.level==='PRACTITIONER'?50:45
 }
 course.estimatedMinutes=course.lessons.reduce((total,lesson)=>total+lesson.minutes,0)
 
