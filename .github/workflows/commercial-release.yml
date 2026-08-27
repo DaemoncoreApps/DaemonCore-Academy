@@ -1,0 +1,71 @@
+name: Commercial Windows release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag, for example v2.1.0
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  signed-windows-installer:
+    runs-on: windows-latest
+    environment: commercial-release
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Require signing secrets
+        shell: pwsh
+        env:
+          CERTIFICATE_BASE64: ${{ secrets.WINDOWS_CERTIFICATE_BASE64 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:CERTIFICATE_BASE64)) { throw 'WINDOWS_CERTIFICATE_BASE64 is not configured' }
+          if ([string]::IsNullOrWhiteSpace($env:CERTIFICATE_PASSWORD)) { throw 'WINDOWS_CERTIFICATE_PASSWORD is not configured' }
+          [IO.File]::WriteAllBytes("$env:RUNNER_TEMP\daemoncore-signing.pfx", [Convert]::FromBase64String($env:CERTIFICATE_BASE64))
+
+      - name: Install and verify
+        run: npm ci
+
+      - run: npm test
+
+      - name: Build signed installer
+        env:
+          CSC_LINK: ${{ runner.temp }}\daemoncore-signing.pfx
+          CSC_KEY_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        run: npm run package:win
+
+      - name: Verify Authenticode and checksum
+        id: signature
+        shell: pwsh
+        run: |
+          $installer = Get-ChildItem release\DaemonCore-Academy-Setup-*.exe | Select-Object -First 1
+          if (-not $installer) { throw 'Installer not found' }
+          $signature = Get-AuthenticodeSignature -LiteralPath $installer.FullName
+          if ($signature.Status -ne 'Valid') { throw "Authenticode status is $($signature.Status)" }
+          $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $installer.FullName).Hash
+          "installer=$($installer.FullName)" >> $env:GITHUB_OUTPUT
+          "sha256=$hash" >> $env:GITHUB_OUTPUT
+          "SHA-256: $hash" >> $env:GITHUB_STEP_SUMMARY
+
+      - name: Upload signed asset to private release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: gh release upload "${{ inputs.tag }}" "${{ steps.signature.outputs.installer }}" --clobber
+
+      - name: Remove certificate material
+        if: always()
+        shell: pwsh
+        run: Remove-Item -LiteralPath "$env:RUNNER_TEMP\daemoncore-signing.pfx" -Force -ErrorAction SilentlyContinue

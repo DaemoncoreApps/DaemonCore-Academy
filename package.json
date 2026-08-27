@@ -6,6 +6,7 @@
   "description": "A sealed cyber range and operator training desktop platform.",
   "main": "electron/main.cjs",
   "author": "DaemonCore Academy",
+  "license": "UNLICENSED",
   "scripts": {
     "dev": "concurrently -k \"vite\" \"wait-on http://localhost:5173 && electron .\"",
     "dev:web": "vite",
