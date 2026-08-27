@@ -37,9 +37,14 @@ try {
   assert.equal(state.profile.capstoneAttempts[0].domainScores.identity, 100)
   assert.ok(state.profile.achievements.includes('decision-forged'))
 
+  state = await store.record({ type: 'webLab', id: 'reflected-context', title: 'Reflected Context', score: 400, hints: 0, seconds: 180, minutes: 30 })
+  assert.deepEqual(state.profile.completedWebLabs, ['reflected-context'])
+  assert.equal(state.profile.webLabAttempts[0].score, 400)
+  assert.equal(state.profile.xp, 2120)
+
   const reloaded = new DataStore(directory)
   state = await reloaded.initialize()
-  assert.equal(state.profile.xp, 1720)
+  assert.equal(state.profile.xp, 2120)
   assert.equal(state.profile.drillAttempts.length, 1)
   assert.equal(state.profile.missionAttempts.length, 1)
 
@@ -51,10 +56,10 @@ try {
   const recovered = new DataStore(directory)
   state = await recovered.initialize()
   assert.equal(state.profile.handle, 'NIGHT_SHIFT')
-  assert.equal(state.profile.xp, 1720)
+  assert.equal(state.profile.xp, 2120)
 
   const persisted = JSON.parse(await readFile(recovered.file, 'utf8'))
-  assert.equal(persisted.schemaVersion, 2)
+  assert.equal(persisted.schemaVersion, 3)
   console.log('Operator record verified // atomic write, reload, and backup recovery')
 } finally {
   await rm(directory, { recursive: true, force: true })

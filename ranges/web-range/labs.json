@@ -1,0 +1,178 @@
+[
+  {
+    "id": "reflected-context",
+    "title": "Reflected Context",
+    "category": "BROWSER",
+    "difficulty": "FOUNDATION",
+    "brief": "A search page writes the decoded query into an HTML response without context-aware encoding.",
+    "submission": "reflected input crosses into markup context"
+  },
+  {
+    "id": "stored-context",
+    "title": "Stored Context",
+    "category": "BROWSER",
+    "difficulty": "INTERMEDIATE",
+    "brief": "A synthetic profile renderer combines stored display data with an interpreting DOM sink.",
+    "submission": "stored profile data reaches an interpreting browser sink"
+  },
+  {
+    "id": "csrf-origin",
+    "title": "Borrowed Authority",
+    "category": "IDENTITY",
+    "difficulty": "INTERMEDIATE",
+    "brief": "A preference endpoint accepts an ambient session from a foreign origin without a request-bound token.",
+    "submission": "state change accepts ambient session without csrf binding"
+  },
+  {
+    "id": "cors-reflection",
+    "title": "Origin Mirror",
+    "category": "BROWSER",
+    "difficulty": "INTERMEDIATE",
+    "brief": "A credentialed profile response reflects any Origin value ending in a misleading suffix.",
+    "submission": "credentialed cors decision trusts an attacker controlled origin"
+  },
+  {
+    "id": "sql-parameter",
+    "title": "Query Fracture",
+    "category": "SERVER",
+    "difficulty": "INTERMEDIATE",
+    "brief": "A catalog query concatenates a category into SQL instead of binding a typed value.",
+    "submission": "catalog filter is interpreted as sql structure"
+  },
+  {
+    "id": "nosql-operator",
+    "title": "Operator Drift",
+    "category": "SERVER",
+    "difficulty": "INTERMEDIATE",
+    "brief": "A JSON lookup passes a caller-controlled object directly into a document query.",
+    "submission": "json operator changes the nosql match predicate"
+  },
+  {
+    "id": "command-argv",
+    "title": "Argument Break",
+    "category": "SERVER",
+    "difficulty": "ADVANCED",
+    "brief": "A diagnostic wrapper assembles caller input into shell source rather than a fixed argument vector.",
+    "submission": "diagnostic input crosses into shell grammar"
+  },
+  {
+    "id": "path-canonical",
+    "title": "Root Escape",
+    "category": "SERVER",
+    "difficulty": "INTERMEDIATE",
+    "brief": "A file service joins a decoded name to its content root without verifying the final canonical path.",
+    "submission": "decoded path escapes the intended content root"
+  },
+  {
+    "id": "upload-trust",
+    "title": "False Image",
+    "category": "SERVER",
+    "difficulty": "INTERMEDIATE",
+    "brief": "An upload service trusts filename and declared media type without decoding the supplied content.",
+    "submission": "upload pipeline trusts caller metadata instead of content"
+  },
+  {
+    "id": "xxe-parser",
+    "title": "Entity Window",
+    "category": "PARSER",
+    "difficulty": "ADVANCED",
+    "brief": "An XML importer resolves a designated local external entity during document processing.",
+    "submission": "xml parser resolves a local external entity"
+  },
+  {
+    "id": "template-expression",
+    "title": "Template Pulse",
+    "category": "SERVER",
+    "difficulty": "ADVANCED",
+    "brief": "A welcome renderer compiles the caller-provided name as template source.",
+    "submission": "caller input is evaluated as template source"
+  },
+  {
+    "id": "typed-object",
+    "title": "Type Confusion",
+    "category": "PARSER",
+    "difficulty": "ADVANCED",
+    "brief": "A polymorphic object endpoint lets a caller select a class with an unexpected side effect.",
+    "submission": "caller controlled type selects an unapproved object variant"
+  },
+  {
+    "id": "ssrf-allowlist",
+    "title": "Internal Fetch",
+    "category": "NETWORK",
+    "difficulty": "ADVANCED",
+    "brief": "A server-side fetcher accepts arbitrary HTTP destinations and can reach an internal synthetic canary.",
+    "submission": "fetcher reaches an internal destination selected by the caller"
+  },
+  {
+    "id": "session-rotation",
+    "title": "Session Afterlife",
+    "category": "IDENTITY",
+    "difficulty": "INTERMEDIATE",
+    "brief": "A recovery transition advances password state but leaves the designated old session authorized.",
+    "submission": "password recovery fails to revoke the old session"
+  },
+  {
+    "id": "bola-object",
+    "title": "Foreign Order",
+    "category": "AUTHORIZATION",
+    "difficulty": "INTERMEDIATE",
+    "brief": "An order API authenticates the caller but does not enforce tenant ownership on object reads.",
+    "submission": "tenant a identity reads the designated tenant b object"
+  },
+  {
+    "id": "jwt-algorithm",
+    "title": "Algorithm Trust",
+    "category": "IDENTITY",
+    "difficulty": "ADVANCED",
+    "brief": "A token verifier derives its verification mode from the untrusted JWT header.",
+    "submission": "jwt verifier accepts a caller selected algorithm mode"
+  },
+  {
+    "id": "oauth-redirect",
+    "title": "Redirect Drift",
+    "category": "IDENTITY",
+    "difficulty": "ADVANCED",
+    "brief": "An authorization endpoint validates redirect URIs with prefix matching instead of exact registration.",
+    "submission": "oauth authorization accepts an attacker controlled redirect prefix"
+  },
+  {
+    "id": "graphql-field",
+    "title": "Hidden Field",
+    "category": "API",
+    "difficulty": "ADVANCED",
+    "brief": "A GraphQL endpoint protects the page but not a sensitive field resolver.",
+    "submission": "low privilege graphql query resolves a protected field"
+  },
+  {
+    "id": "race-atomicity",
+    "title": "Double Spend",
+    "category": "LOGIC",
+    "difficulty": "ADVANCED",
+    "brief": "A single-use coupon check and mutation are separated, allowing two synchronized requests to commit.",
+    "submission": "concurrent requests violate the single use invariant"
+  },
+  {
+    "id": "framing-disagreement",
+    "title": "Split Stream",
+    "category": "PROTOCOL",
+    "difficulty": "EXPERT",
+    "brief": "A front parser and back parser disagree about the boundary of one supplied synthetic request stream.",
+    "submission": "adjacent http parsers disagree about request boundaries"
+  },
+  {
+    "id": "cache-key",
+    "title": "Unkeyed Host",
+    "category": "CACHE",
+    "difficulty": "ADVANCED",
+    "brief": "A cached homepage varies on forwarded host metadata that is absent from the cache key.",
+    "submission": "unkeyed host input changes a cacheable response"
+  },
+  {
+    "id": "resource-budget",
+    "title": "Report Furnace",
+    "category": "API",
+    "difficulty": "ADVANCED",
+    "brief": "A report endpoint allocates work from caller-controlled rows and expansion depth before enforcing a budget.",
+    "submission": "one api request bypasses operation cost controls"
+  }
+]

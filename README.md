@@ -22,7 +22,16 @@ Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 
 ![FieldOps Pro license and authorization gate](docs/screenshots/fieldops-pro-gate.png)
 
-## What ships in 2.1
+## What ships in 3.0
+
+### Web Forge // 3.0
+
+- **Twenty-seven Web + API lessons** — 24h45m covering browser contexts, server interpreters, identity, object authorization, OAuth, JWT, GraphQL, business logic, races, request framing, cache keys, and API resource controls.
+- **Twenty-two live Web Forge conditions** — every scenario runs against a purpose-built vulnerable service inside an internal-only Docker network. No canned terminal output and no simulation credit.
+- **Evidence-first operation** — each run starts with a scenario contract, establishes a positive control, changes one security variable, and ends only when the live target accepts the precise finding condition.
+- **One disposable specialist range** — a root operator console, arbitrary in-range commands, no published ports, no host mounts, dropped capabilities, resource ceilings, and verified internet-egress denial.
+- **Durable specialist progression** — attempts, hints, time, operation score, completion, weekly minutes, XP, and the Web Forged achievement are stored in the local operator record.
+- **55 complete lessons // 48h45m** — the original full-spectrum path and the new Web specialist path are both available in Academy. FieldOps remains the only paid gate.
 
 ### Mastery System // 2.1
 
@@ -131,9 +140,13 @@ electron/data-store.cjs       atomic local operator record
 electron/license-manager.cjs  Lemon Squeezy + protected key storage
 electron/engagement-store.cjs scope enforcement + external diagnostics
 electron/range-orchestrator.cjs
+ranges/web-range/             22-condition Web + API specialist range
 ranges/ghost-port/            live target, operator image, and manifest
 ranges/ghost-port/chaos-worker high-intensity contained load worker
 src/content.js                versioned course, drills, and field notes
+src/web-curriculum.js         27-lesson Web + API specialist path
+src/web-labs.js               live Web Forge contracts and commands
+src/WebRange.jsx              catalog, sealed console, evidence ledger
 src/lesson-practicals.js      workshops, commands, output, exercises, references
 src/phase2.jsx                range console, lessons, and operator record UI
 src/ChaosEngine.jsx           experiment composer + live resilience telemetry
@@ -144,6 +157,7 @@ scripts/verify-phase5.mjs     curriculum breadth + bounded FieldOps contract
 scripts/verify-phase6.mjs     practical lesson depth and artifact contract
 scripts/verify-phase7.mjs     interactive scenario and mastery-gate contract
 scripts/verify-phase8.mjs     Chaos Engine caps, abort, recovery, and audit contract
+scripts/verify-phase13.mjs    Web curriculum + live-range quality contract
 scripts/verify-range.mjs      range and containment contract
 ```
 

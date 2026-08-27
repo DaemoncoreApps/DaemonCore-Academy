@@ -1,0 +1,51 @@
+name: daemoncore-web-range
+
+services:
+  operator:
+    build:
+      context: ./operator
+    container_name: dc-web-operator
+    command: ["sleep", "infinity"]
+    networks: [range]
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,noexec,nosuid,nodev
+      - /workspace:size=32m,nosuid,nodev
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 128
+    mem_limit: 384m
+    cpus: 0.75
+    restart: "no"
+
+  web-target:
+    build:
+      context: .
+      dockerfile: target/Dockerfile
+    container_name: dc-web-target
+    networks:
+      range:
+        aliases: [web-target, public-mock, internal-canary]
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,noexec,nosuid,nodev
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 96
+    mem_limit: 256m
+    cpus: 0.75
+    restart: "no"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/health"]
+      interval: 2s
+      timeout: 1s
+      retries: 20
+      start_period: 2s
+
+networks:
+  range:
+    name: dc-web-range
+    driver: bridge
+    internal: true

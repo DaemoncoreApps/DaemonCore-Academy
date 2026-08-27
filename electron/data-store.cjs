@@ -3,7 +3,7 @@ const { randomUUID } = require('crypto')
 const path = require('path')
 
 const cleanState = () => ({
-  schemaVersion: 2,
+  schemaVersion: 3,
   profile: {
     handle: null,
     xp: 0,
@@ -16,8 +16,10 @@ const cleanState = () => ({
     weekKey: null,
     completedMissions: [],
     completedLessons: [],
+    completedWebLabs: [],
     lessonAttempts: [],
     missionAttempts: [],
+    webLabAttempts: [],
     drillAttempts: [],
     capstoneAttempts: [],
     achievements: [],
@@ -66,7 +68,7 @@ class DataStore {
     if (!input || typeof input !== 'object') return base
     return {
       ...base,
-      schemaVersion: 2,
+      schemaVersion: 3,
       profile: { ...base.profile, ...(input.profile || {}) },
       settings: { ...base.settings, ...(input.settings || {}) },
     }
@@ -120,10 +122,11 @@ class DataStore {
 
   async record(event) {
     if (!this.state.profile.handle) throw new Error('Complete onboarding first')
-    if (!event || !['mission', 'lesson', 'drill', 'capstone'].includes(event.type)) throw new Error('Unknown progress event')
+    if (!event || !['mission', 'lesson', 'webLab', 'drill', 'capstone'].includes(event.type)) throw new Error('Unknown progress event')
     this.touchActivity()
     if (event.type === 'mission') this.recordMission(event)
     if (event.type === 'lesson') this.recordLesson(event)
+    if (event.type === 'webLab') this.recordWebLab(event)
     if (event.type === 'drill') this.recordDrill(event)
     if (event.type === 'capstone') this.recordCapstone(event)
     await this.persist()
@@ -158,6 +161,22 @@ class DataStore {
     this.state.profile.lessonAttempts = this.state.profile.lessonAttempts.slice(0, 100)
     this.unlock('scholar')
     this.addActivity('lesson', event.title || event.id, first ? 180 : 0, `${practicalScore}% practical // ${first ? 'knowledge validated' : 'lesson reviewed'}`)
+  }
+
+  recordWebLab(event) {
+    if (!/^[a-z0-9-]{2,80}$/.test(event.id || '')) throw new Error('Invalid Web Forge lab id')
+    const score = Math.max(0, Math.min(2000, Math.round(Number(event.score) || 0)))
+    const first = !this.state.profile.completedWebLabs.includes(event.id)
+    const earned = first ? score : Math.round(score * 0.2)
+    if (first) {
+      this.state.profile.completedWebLabs.push(event.id)
+      this.state.profile.weeklyMinutes += Math.max(1, Math.min(120, Number(event.minutes) || 30))
+    }
+    this.state.profile.webLabAttempts.unshift({ id: randomUUID(), labId: event.id, score, hints: Math.max(0, Number(event.hints) || 0), seconds: Math.max(0, Number(event.seconds) || 0), at: new Date().toISOString() })
+    this.state.profile.webLabAttempts = this.state.profile.webLabAttempts.slice(0, 100)
+    this.addXp(earned)
+    if (this.state.profile.completedWebLabs.length >= 22) this.unlock('web-forged')
+    this.addActivity('webLab', event.title || event.id, earned, `${score} live range score // evidence accepted`)
   }
 
   recordDrill(event) {

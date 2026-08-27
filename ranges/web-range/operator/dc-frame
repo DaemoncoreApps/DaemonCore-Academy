@@ -1,0 +1,7 @@
+#!/bin/sh
+input="$(cat)"
+if printf '%s' "$input" | grep -qi 'Transfer-Encoding:' && printf '%s' "$input" | grep -qi 'Content-Length:'; then
+  printf '{"frontendRequests":1,"backendRequests":2,"agreement":false,"signal":"AMBIGUOUS_FRAMING"}\n'
+else
+  printf '{"frontendRequests":1,"backendRequests":1,"agreement":true,"signal":"CANONICAL_FRAMING"}\n'
+fi

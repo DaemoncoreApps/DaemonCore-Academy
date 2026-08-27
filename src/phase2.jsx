@@ -6,9 +6,11 @@ import {
   LockKeyhole, Network, Radar, RotateCcw, Search, ShieldCheck, Sparkles,
   Target, Terminal, Trophy, UserRound, X, Zap,
 } from 'lucide-react'
-import { course } from './content.js'
+import { course as coreCourse } from './content.js'
 import { InteractiveWorkbench } from './InteractiveWorkbench.jsx'
 import { additionalMissionScenarios } from './mission-catalog.js'
+
+const course = coreCourse
 
 const legacyScenarioData = {
   'ghost-port': {
@@ -56,6 +58,7 @@ const achievements = [
   { id: 'decision-forged', title: 'Decision Forged', desc: 'Pass a principal practicum capstone.', icon: Award },
   { id: 'range-veteran', title: 'Range Veteran', desc: 'Complete every available lab mission.', icon: Trophy },
   { id: 'night-operator', title: 'Night Operator', desc: 'Maintain a 14-day training streak.', icon: Flame },
+  { id: 'web-forged', title: 'Web Forged', desc: 'Seal every live Web Forge condition.', icon: Code2 },
 ]
 
 function TerminalLine({ item }) {
@@ -183,6 +186,7 @@ export function LabSimulation({ mission, onExit, onComplete }) {
 
 export function LessonPlayer({ lesson, onExit, onComplete }) {
   const content = lesson
+  const course = { ...coreCourse, code: content.courseCode || coreCourse.code }
   const [section, setSection] = useState(0)
   const [selected, setSelected] = useState(null)
   const [complete, setComplete] = useState(false)

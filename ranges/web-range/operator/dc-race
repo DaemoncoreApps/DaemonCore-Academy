@@ -1,0 +1,13 @@
+#!/bin/sh
+url="$1"
+count="${2:-2}"
+if [ "$count" -gt 2 ] 2>/dev/null; then count=2; fi
+first="$(mktemp)"
+second="$(mktemp)"
+curl -sS -X POST "$url" > "$first" &
+pid_one=$!
+curl -sS -X POST "$url" > "$second" &
+pid_two=$!
+wait "$pid_one" "$pid_two"
+jq -sc '{responses:.,accepted:(map(select(.accepted==true))|length)}' "$first" "$second"
+rm -f "$first" "$second"

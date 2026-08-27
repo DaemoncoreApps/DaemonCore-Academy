@@ -1,0 +1,10 @@
+#!/bin/sh
+id="$1"
+shift
+condition="$*"
+if [ -z "$id" ] || [ -z "$condition" ]; then
+  echo "usage: dc-submit LAB_ID finding condition" >&2
+  exit 2
+fi
+payload="$(jq -nc --arg id "$id" --arg condition "$condition" '{id:$id,condition:$condition}')"
+curl -sS -H 'Content-Type: application/json' --data "$payload" http://web-target:8080/submit

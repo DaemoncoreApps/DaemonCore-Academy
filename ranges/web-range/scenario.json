@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "web-range",
+  "title": "Web Forge",
+  "engine": "docker",
+  "operatorContainer": "dc-web-operator",
+  "targetContainer": "dc-web-target",
+  "network": "dc-web-range",
+  "networkPolicy": "internal-only",
+  "objectives": [
+    { "id": "contract", "label": "Read the selected scenario contract" },
+    { "id": "baseline", "label": "Establish the positive control" },
+    { "id": "comparison", "label": "Run the designated security comparison" },
+    { "id": "submit", "label": "Submit the evidence-backed condition" }
+  ]
+}
