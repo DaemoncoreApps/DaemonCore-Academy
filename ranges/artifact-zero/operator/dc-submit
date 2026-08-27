@@ -1,0 +1,10 @@
+#!/bin/sh
+case "$(printf '%s' "$*" | tr '[:upper:]' '[:lower:]')" in
+  *release*digest*lacks*trusted*attestation*)
+    printf 'FINDING ACCEPTED\nCategory: unverified release provenance\nEvidence threshold: SATISFIED\nScope adherence: VERIFIED\n'
+    ;;
+  *)
+    printf 'FINDING REJECTED\nName the deployed subject and missing trusted attestation.\n' >&2
+    exit 1
+    ;;
+esac

@@ -69,3 +69,7 @@ small {
   color: #ff626a;
   box-shadow: inset 0 -2px var(--red);
 }
+
+.track-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:16px}.track-strip>div{min-height:68px;border:1px solid #24272d;background:#0c0e11;padding:14px 15px}.track-strip span,.track-strip strong{display:block;font:600 8px var(--mono);letter-spacing:1px}.track-strip span{color:#777c85}.track-strip strong{color:#e4e4e7;margin-top:8px}.track-strip i{display:block;height:2px;background:#25282e;margin-top:10px}.track-strip em{display:block;height:100%;background:var(--red);box-shadow:0 0 8px rgba(240,44,53,.7)}
+@media(max-width:1250px){.track-strip{grid-template-columns:repeat(3,1fr)}}
+.mission-card .phase-live,.mission-card .phase-cleared{position:static;margin-top:9px}

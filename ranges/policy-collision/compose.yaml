@@ -1,0 +1,48 @@
+name: daemoncore-policy-collision
+
+services:
+  operator:
+    build:
+      context: ./operator
+    container_name: dc-policy-operator
+    command: ["sleep", "infinity"]
+    networks: [range]
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,noexec,nosuid,nodev
+      - /workspace:size=32m,nosuid,nodev
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 128
+    mem_limit: 384m
+    cpus: 0.75
+    restart: "no"
+
+  object-target:
+    build:
+      context: ./target
+    container_name: dc-policy-target
+    networks:
+      range:
+        aliases: [object-target]
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,noexec,nosuid,nodev
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 64
+    mem_limit: 192m
+    cpus: 0.50
+    restart: "no"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8082/health"]
+      interval: 2s
+      timeout: 1s
+      retries: 20
+      start_period: 2s
+
+networks:
+  range:
+    name: dc-policy-range
+    driver: bridge
+    internal: true

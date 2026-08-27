@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "artifact-zero",
+  "title": "Artifact Zero",
+  "engine": "docker",
+  "operatorContainer": "dc-artifact-operator",
+  "targetContainer": "dc-artifact-target",
+  "network": "dc-artifact-range",
+  "networkPolicy": "internal-only",
+  "objectives": [
+    { "id": "integrity", "label": "Verify the evidence manifest" },
+    { "id": "identity", "label": "Inspect the release and SBOM identity" },
+    { "id": "attestation", "label": "Compare the deployed digest with attestations" },
+    { "id": "submit", "label": "Submit the provenance gap" }
+  ]
+}

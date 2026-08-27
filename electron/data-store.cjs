@@ -139,7 +139,7 @@ class DataStore {
     this.addXp(earned)
     this.unlock('first-signal')
     if ((Number(event.hints) || 0) === 0) this.unlock('evidence-led')
-    if (this.state.profile.completedMissions.length >= 3) this.unlock('range-veteran')
+    if (this.state.profile.completedMissions.length >= 6) this.unlock('range-veteran')
     this.addActivity('mission', event.title || event.id, earned, `${score} operation score`)
   }
 

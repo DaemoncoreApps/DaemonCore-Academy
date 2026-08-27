@@ -1,0 +1,10 @@
+#!/bin/sh
+case "$(printf '%s' "$*" | tr '[:upper:]' '[:lower:]')" in
+  *analytics*wildcard*cross-project*read*)
+    printf 'FINDING ACCEPTED\nCategory: excessive cloud IAM scope\nEffective path: VERIFIED\nScope adherence: VERIFIED\n'
+    ;;
+  *)
+    printf 'FINDING REJECTED\nName the principal, wildcard scope, and cross-project action.\n' >&2
+    exit 1
+    ;;
+esac

@@ -12,6 +12,7 @@ import { course, drillSets, intelArticles } from './content.js'
 import { ArticleReader, LicenseGate, LoadingScreen, Onboarding, SettingsPage } from './production.jsx'
 import { FieldOpsPage } from './fieldops.jsx'
 import { RangeChaosLab } from './RangeChaosLab.jsx'
+import { missionCatalog } from './mission-catalog.js'
 
 const nav = [
   { id: 'command', label: 'Command', icon: Grid2X2 },
@@ -23,11 +24,8 @@ const nav = [
   { id: 'operator', label: 'Operator', icon: UserRound },
 ]
 
-const missions = [
-  { id: 'ghost-port', difficulty: 'FOUNDATIONAL', title: 'The Ghost Port', brief: 'A routine service audit found an undocumented listener inside the approved training subnet. Profile it and document the exposure.', time: '25 min', xp: 450, icon: Network, tags: ['Enumeration', 'Traffic analysis'], objectives: ['Review the supplied host inventory', 'Compare documented and observed services', 'Identify the anomalous listener', 'Submit a concise evidence note'] },
-  { id: 'broken-trust', difficulty: 'INTERMEDIATE', title: 'Broken Trust', brief: 'A live synthetic portal crosses a tenant boundary it should not. Interrogate the API and prove the missing object authorization decision.', time: '40 min', xp: 780, icon: KeyRound, tags: ['Live Docker', 'API authorization'], objectives: ['Map the authentication and export flow', 'Request the operator-owned synthetic account', 'Test one approved cross-tenant object', 'Submit the broken authorization condition'] },
-  { id: 'night-shift', difficulty: 'ADVANCED', title: 'Night Shift', brief: 'A sealed forensic workstation contains a verified endpoint evidence pack. Query the raw artifacts and reconstruct the suspicious sequence.', time: '60 min', xp: 1250, icon: Activity, tags: ['Live Docker', 'Forensics'], objectives: ['Validate the supplied evidence manifest', 'Build a chronological process timeline', 'Isolate the high-confidence sequence', 'Submit an evidence-backed hypothesis'] },
-]
+const missionIcons={network:Network,key:KeyRound,activity:Activity,shield:Shield,layers:Layers3,box:Box}
+const missions=missionCatalog.map(mission=>({...mission,icon:missionIcons[mission.icon]}))
 
 const emptyData = { schemaVersion:1, profile:{handle:null,createdAt:null,xp:0,level:1,streak:0,bestStreak:0,lastActiveDate:null,weekKey:null,weeklyMinutes:0,weeklyGoalMinutes:180,completedMissions:[],completedLessons:[],lessonAttempts:[],missionAttempts:[],drillAttempts:[],achievements:[],activity:[]},settings:{reduceMotion:false,compactMode:false,uiScale:1.25} }
 const weekKey=()=>{const date=new Date(),day=(date.getUTCDay()+6)%7;date.setUTCDate(date.getUTCDate()-day);return date.toISOString().slice(0,10)}
@@ -46,7 +44,7 @@ function useAppData() {
     if(p.lastActiveDate!==today){const gap=p.lastActiveDate?Math.round((Date.parse(today)-Date.parse(p.lastActiveDate))/86400000):null;p.streak=gap===1?p.streak+1:1;p.bestStreak=Math.max(p.bestStreak,p.streak);p.lastActiveDate=today}
     const firstMission=event.type==='mission'&&!p.completedMissions.includes(event.id),firstLesson=event.type==='lesson'&&!p.completedLessons.includes(event.id)
     let earned=0
-    if(event.type==='mission'){earned=firstMission?event.score:Math.round(event.score*.2);if(firstMission)p.completedMissions=[...p.completedMissions,event.id];p.missionAttempts=[{id:crypto.randomUUID(),missionId:event.id,score:event.score,hints:event.hints,seconds:event.seconds,at:now.toISOString()},...(p.missionAttempts||[])].slice(0,100);awards.add('first-signal');if(!event.hints)awards.add('evidence-led');if(p.completedMissions.length>=3)awards.add('range-veteran')}
+    if(event.type==='mission'){earned=firstMission?event.score:Math.round(event.score*.2);if(firstMission)p.completedMissions=[...p.completedMissions,event.id];p.missionAttempts=[{id:crypto.randomUUID(),missionId:event.id,score:event.score,hints:event.hints,seconds:event.seconds,at:now.toISOString()},...(p.missionAttempts||[])].slice(0,100);awards.add('first-signal');if(!event.hints)awards.add('evidence-led');if(p.completedMissions.length>=missions.length)awards.add('range-veteran')}
     if(event.type==='lesson'){earned=firstLesson?180:0;if(firstLesson){p.completedLessons=[...p.completedLessons,event.id];p.weeklyMinutes+=(event.minutes||0)}p.lessonAttempts=[{id:crypto.randomUUID(),lessonId:event.id,practicalScore:event.practicalScore||0,passed:(event.practicalScore||0)>=67,at:now.toISOString()},...(p.lessonAttempts||[])].slice(0,100);awards.add('scholar')}
     if(event.type==='drill'){earned=Math.min(event.correct,event.total)*120;p.drillAttempts=[{id:crypto.randomUUID(),drillId:event.id,correct:event.correct,total:event.total,xp:earned,at:now.toISOString()},...(p.drillAttempts||[])].slice(0,100);if(event.correct===event.total)awards.add('clean-sweep')}
     if(p.streak>=14)awards.add('night-operator')
@@ -159,7 +157,7 @@ function CommandPage({ setPage, profile }) {
 function AcademyPage({ selectModule, profile }) {
   const progress=Math.round(profile.completedLessons.length/course.lessons.length*100)
   return <div className="page academy-page">
-    <div className="page-intro"><div><span className="section-code">FULL-SPECTRUM ACADEMY // VERSIONED CONTENT</span><h2>Learn the system.<br/><em>Test the evidence.</em></h2></div><p>Twenty practical lessons, sixteen hours of guided workshops, twenty validation checks, eight drills, and a real sealed range. Every progress number below comes from your operator record.</p></div>
+    <div className="page-intro"><div><span className="section-code">FULL-SPECTRUM ACADEMY // VERSIONED CONTENT</span><h2>Learn the system.<br/><em>Test the evidence.</em></h2></div><p>Twenty practical lessons, sixteen hours of guided workshops, twenty validation checks, eight drills, and six live sealed ranges. Every progress number below comes from your operator record.</p></div>
     <div className="academy-summary"><div><ShieldCheck size={25}/><div><span>CURRENT COURSE</span><strong>{course.title}</strong></div></div><div className="summary-progress"><span>COURSE PROGRESS</span><div><i style={{width:`${progress}%`}}/></div><strong>{progress}%</strong></div><div className="cert-meta"><span>CONTENT LENGTH</span><strong>{Math.round(course.estimatedMinutes/60)}H {course.estimatedMinutes%60}M</strong></div></div>
     <div className="filter-row"><span>AVAILABLE NOW // NO PLACEHOLDERS</span></div>
     <div className="module-list"><button className="module-card active" onClick={() => selectModule({...course,icon:Radar,progress})}>
@@ -170,12 +168,14 @@ function AcademyPage({ selectModule, profile }) {
 }
 
 function LabsPage({ launchMission, completedMissions = [] }) {
+  const tracks=[...new Set(missions.map(mission=>mission.track))]
   return <div className="page labs-page">
-    <div className="range-banner"><div className="range-radar"><Radar size={38}/><i/><i/><i/></div><div><span className="section-code"><i/> PHASE 3 RANGE ENGINE</span><h2>Lab Range</h2><p>Disposable targets. Root operator shell. Hard containment.</p></div><div className="range-details"><div><span>LIVE SCENARIOS</span><strong>01 / 03</strong></div><div><span>ENGINE</span><strong>DOCKER + SIM</strong></div><div><span>BOUNDARY</span><strong>SEALED</strong></div></div></div>
+    <div className="range-banner"><div className="range-radar"><Radar size={38}/><i/><i/><i/></div><div><span className="section-code"><i/> PHASE 10 RANGE ENGINE</span><h2>Lab Range</h2><p>Disposable targets. Root operator shell. Hard containment.</p></div><div className="range-details"><div><span>LIVE SCENARIOS</span><strong>06 / 06</strong></div><div><span>TRACKS</span><strong>{String(tracks.length).padStart(2,'0')} ACTIVE</strong></div><div><span>BOUNDARY</span><strong>SEALED</strong></div></div></div>
     <RangeEngineCard/>
     <RangeChaosLab/>
-    <div className="section-title"><div><span>CURATED OPERATIONS // 1 LIVE RANGE + 2 GUIDED SIMULATIONS</span><h3>Available missions</h3></div></div>
-    <div className="mission-grid">{missions.map((m,i)=>{ const Icon=m.icon, cleared=completedMissions.includes(m.id); return <article className={`mission-card mission-${i} ${cleared?'cleared':''}`} key={m.id}><div className="mission-top"><span>{m.difficulty}</span><div><Icon size={28}/></div></div><div className="mission-code">MISSION // 00{i+7}</div><PhaseBadge complete={cleared} live={i===0}/><h3>{m.title}</h3><p>{m.brief}</p><div className="mission-tags">{m.tags.map(t=><span key={t}>{t}</span>)}</div><div className="mission-bottom"><div><span><Clock3 size={14}/>{m.time}</span><span><Zap size={14}/>{m.xp} XP</span></div><button onClick={()=>launchMission(m)}>{cleared?'Replay mission':'View brief'} <ArrowRight size={15}/></button></div></article>})}</div>
+    <div className="track-strip">{tracks.map(track=>{const trackMissions=missions.filter(mission=>mission.track===track),complete=trackMissions.filter(mission=>completedMissions.includes(mission.id)).length;return <div key={track}><span>{track}</span><strong>{complete} / {trackMissions.length}</strong><i><em style={{width:`${complete/trackMissions.length*100}%`}}/></i></div>})}</div>
+    <div className="section-title"><div><span>CURATED OPERATIONS // SIX LIVE SEALED RANGES</span><h3>Available missions</h3></div></div>
+    <div className="mission-grid">{missions.map((m,i)=>{ const Icon=m.icon, cleared=completedMissions.includes(m.id); return <article className={`mission-card mission-${i%3} ${cleared?'cleared':''}`} key={m.id}><div className="mission-top"><span>{m.difficulty}</span><div><Icon size={28}/></div></div><div className="mission-code">{m.track} // MISSION {String(i+1).padStart(2,'0')}</div><PhaseBadge complete={cleared} live/><h3>{m.title}</h3><p>{m.brief}</p><div className="mission-tags">{m.tags.map(t=><span key={t}>{t}</span>)}</div><div className="mission-bottom"><div><span><Clock3 size={14}/>{m.time}</span><span><Zap size={14}/>{m.xp} XP</span></div><button onClick={()=>launchMission(m)}>{cleared?'Replay mission':'View brief'} <ArrowRight size={15}/></button></div></article>})}</div>
     <div className="range-protocol"><Shield size={25}/><div><strong>Range protocol is enforced.</strong><p>All exercises use synthetic evidence and intentionally vulnerable training systems. Activity outside the declared lab boundary is never part of an Academy mission.</p></div><span>ROE // ACTIVE</span></div>
   </div>
 }
@@ -255,5 +255,5 @@ export default function App() {
   else if(page==='intel')current=<IntelPage onOpen={setArticle}/>
   else if(page==='operator')current=<OperatorPage profile={operator}/>
   else current=<SettingsPage data={store.data} {...licenseProps} onUpdate={store.updateSettings} onExport={store.exportData} onReset={store.reset}/>
-  return <div className="app-shell"><Sidebar page={page} setPage={p=>{setPage(p);setModule(null)}} collapsed={navigationCollapsed} setCollapsed={setCollapsed} profile={operator}/><main><Topbar title={title} profile={operator}/>{current}<footer className="app-footer"><span>DAEMONCORE ACADEMY // PHASE 9</span><span><i/> LICENSED LOCAL-FIRST PLATFORM</span><span>{licensing.license.tierLabel?.toUpperCase()||'COMMERCIAL CORE READY'}</span></footer></main>{mission&&<MissionModal mission={mission} onClose={()=>setMission(null)} onLaunch={()=>{setActiveMission(mission);setMission(null)}}/>}{quiz&&<QuizModal drill={quiz} onClose={()=>setQuiz(null)} onComplete={completeQuiz}/>} {toast&&<Toast message={toast}/>}</div>
+  return <div className="app-shell"><Sidebar page={page} setPage={p=>{setPage(p);setModule(null)}} collapsed={navigationCollapsed} setCollapsed={setCollapsed} profile={operator}/><main><Topbar title={title} profile={operator}/>{current}<footer className="app-footer"><span>DAEMONCORE ACADEMY // PHASE 10</span><span><i/> LICENSED LOCAL-FIRST PLATFORM</span><span>{licensing.license.tierLabel?.toUpperCase()||'COMMERCIAL CORE READY'}</span></footer></main>{mission&&<MissionModal mission={mission} onClose={()=>setMission(null)} onLaunch={()=>{setActiveMission(mission);setMission(null)}}/>}{quiz&&<QuizModal drill={quiz} onClose={()=>setQuiz(null)} onComplete={completeQuiz}/>} {toast&&<Toast message={toast}/>}</div>
 }

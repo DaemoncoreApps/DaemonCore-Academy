@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "policy-collision",
+  "title": "Policy Collision",
+  "engine": "docker",
+  "operatorContainer": "dc-policy-operator",
+  "targetContainer": "dc-policy-target",
+  "network": "dc-policy-range",
+  "networkPolicy": "internal-only",
+  "objectives": [
+    { "id": "policy", "label": "Inspect the effective access policy" },
+    { "id": "owned", "label": "Read the role-owned analytics object" },
+    { "id": "foreign", "label": "Test the designated finance object" },
+    { "id": "submit", "label": "Submit the excessive access path" }
+  ]
+}

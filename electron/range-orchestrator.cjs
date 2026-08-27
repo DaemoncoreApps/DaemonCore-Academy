@@ -3,7 +3,7 @@ const { readFile } = require('fs/promises')
 const path = require('path')
 
 const CHAOS_WORKER = 'dc-ghost-chaos'
-const ALLOWED_SCENARIOS = new Set(['ghost-port', 'broken-trust', 'night-shift'])
+const ALLOWED_SCENARIOS = new Set(['ghost-port', 'broken-trust', 'night-shift', 'token-afterlife', 'policy-collision', 'artifact-zero'])
 
 function runDocker(args, options = {}) {
   return new Promise((resolve, reject) => {

@@ -1,0 +1,10 @@
+#!/bin/sh
+case "$(printf '%s' "$*" | tr '[:upper:]' '[:lower:]')" in
+  *session*survive*password*reset*)
+    printf 'FINDING ACCEPTED\nCategory: session invalidation failure\nEvidence threshold: SATISFIED\nScope adherence: VERIFIED\n'
+    ;;
+  *)
+    printf 'FINDING REJECTED\nName the pre-reset session that remains authorized.\n' >&2
+    exit 1
+    ;;
+esac

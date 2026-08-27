@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "token-afterlife",
+  "title": "Token Afterlife",
+  "engine": "docker",
+  "operatorContainer": "dc-token-operator",
+  "targetContainer": "dc-token-target",
+  "network": "dc-token-range",
+  "networkPolicy": "internal-only",
+  "objectives": [
+    { "id": "before", "label": "Establish the old session state" },
+    { "id": "reset", "label": "Trigger the approved password recovery event" },
+    { "id": "after", "label": "Retest the original session token" },
+    { "id": "submit", "label": "Submit the invalidation failure" }
+  ]
+}

@@ -8,8 +8,9 @@ import {
 } from 'lucide-react'
 import { course } from './content.js'
 import { InteractiveWorkbench } from './InteractiveWorkbench.jsx'
+import { additionalMissionScenarios } from './mission-catalog.js'
 
-const scenarioData = {
+const legacyScenarioData = {
   'ghost-port': {
     target: '10.40.7.23', subnet: '10.40.7.0/24', classification: 'DC-LAB // CONTROLLED',
     intro: 'You are attached to a scheduled internal service audit. The approved host inventory and a synthetic observation console are available. Find the undocumented exposure and report only what the evidence supports.',
@@ -45,6 +46,8 @@ const scenarioData = {
   },
 }
 
+const scenarioData = { ...legacyScenarioData, ...additionalMissionScenarios }
+
 const achievements = [
   { id: 'first-signal', title: 'First Signal', desc: 'Complete a controlled field mission.', icon: Radar },
   { id: 'evidence-led', title: 'Evidence Led', desc: 'Complete a mission without using a hint.', icon: Search },
@@ -63,7 +66,7 @@ export function LabSimulation({ mission, onExit, onComplete }) {
   const scenario = scenarioData[mission.id]
   const rangeApi = window.daemoncore?.range
   const [history, setHistory] = useState([
-    { type: 'system', lines: ['DAEMONCORE RANGE CONSOLE // PHASE 3', scenario.classification, '', scenario.intro, '', 'Type help to inspect the mission interface.'] },
+    { type: 'system', lines: ['DAEMONCORE RANGE CONSOLE // PHASE 10', scenario.classification, '', scenario.intro, '', 'Type help to inspect the mission interface.'] },
   ])
   const [input, setInput] = useState('')
   const [done, setDone] = useState([])
@@ -79,7 +82,7 @@ export function LabSimulation({ mission, onExit, onComplete }) {
   const startRef = useRef(false)
 
   useEffect(() => {
-    if (startRef.current || !rangeApi || !['ghost-port', 'broken-trust', 'night-shift'].includes(mission.id)) return
+    if (startRef.current || !rangeApi || !scenario) return
     startRef.current = true
     rangeApi.availability().then(availability => {
       if (!availability.available) {
@@ -93,12 +96,12 @@ export function LabSimulation({ mission, onExit, onComplete }) {
       if (!result) return
       setContainment(result.containment)
       setEngine('live')
-      setHistory([{ type: 'system', lines: ['DAEMONCORE LIVE RANGE // PHASE 9', 'CONTAINMENT VERIFIED // INTERNAL NETWORK // ZERO HOST MOUNTS // EGRESS DENIED', '', scenario.intro, '', `This is a disposable root shell inside ${result.manifest.operatorContainer}.`, 'Type help for mission commands. Arbitrary in-range shell commands are enabled.'] }])
+      setHistory([{ type: 'system', lines: ['DAEMONCORE LIVE RANGE // PHASE 10', 'CONTAINMENT VERIFIED // INTERNAL NETWORK // ZERO HOST MOUNTS // EGRESS DENIED', '', scenario.intro, '', `This is a disposable root shell inside ${result.manifest.operatorContainer}.`, 'Type help for mission commands. Arbitrary in-range shell commands are enabled.'] }])
     }).catch(error => {
       setEngineError(error.message || 'The range failed to initialize.')
       setEngine('offline')
     })
-  }, [mission.id, rangeApi, scenario.intro])
+  }, [mission.id, rangeApi, scenario])
   useEffect(() => { if (!['live', 'simulation'].includes(engine)) return; const timer = setInterval(() => setSeconds(s => s + 1), 1000); return () => clearInterval(timer) }, [engine])
   useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' }) }, [history])
 
@@ -126,6 +129,10 @@ export function LabSimulation({ mission, onExit, onComplete }) {
       push({ type: 'command', text: raw }, { type: 'system', lines: ['COMMAND NOT AVAILABLE IN THIS SIMULATION.', 'Type help to review authorized actions.'] })
       return
     }
+    if (matched?.objective === mission.objectives.length-1 && done.filter(objective => objective < matched.objective).length < matched.objective) {
+      push({ type: 'command', text: raw }, { type: 'system', lines: ['SUBMISSION BLOCKED // EVIDENCE THRESHOLD NOT MET', 'Complete and preserve every preceding objective before submitting a conclusion.'] })
+      return
+    }
     push({ type: 'command', text: raw })
     let succeeded = true
     if (engine === 'live') {
@@ -147,7 +154,7 @@ export function LabSimulation({ mission, onExit, onComplete }) {
     if (matched && succeeded) {
       if (!done.includes(matched.objective)) setDone(d => [...d, matched.objective])
       if (matched.evidence && !evidence.includes(matched.evidence)) setEvidence(e => [...e, matched.evidence])
-      if (matched.objective === 3) setTimeout(() => setReport(true), 650)
+      if (matched.objective === mission.objectives.length-1) setTimeout(() => setReport(true), 650)
     }
   }
   const score = Math.max(250, mission.xp - hints * 75 - Math.floor(seconds / 60) * 10)
@@ -155,20 +162,20 @@ export function LabSimulation({ mission, onExit, onComplete }) {
   const leaveRange = async () => { if (rangeApi && ['live', 'provisioning'].includes(engine)) await rangeApi.stop().catch(() => {}); onExit() }
   const finishRange = async () => { if (rangeApi && engine === 'live') await rangeApi.stop().catch(() => {}); onComplete({ mission, score, hints, seconds }) }
 
-  if (engine === 'probing' || engine === 'provisioning') return <div className="range-gate"><div className="range-gate-grid"/><div className="range-gate-core"><div className="range-loader"><Hexagon size={78}/><i/></div><span>PHASE 3 // RANGE ORCHESTRATOR</span><h1>{engine === 'probing' ? 'Checking the engine.' : 'Building the sealed range.'}</h1><p>{engine === 'probing' ? 'Locating Docker Desktop and verifying the local runtime.' : 'Pulling the operator image, building the target, and proving containment before shell access is released.'}</p><div className="boot-sequence"><span className="done"><Check/> Scenario manifest</span><span className={engine === 'provisioning' ? 'active' : ''}><Activity/> Container network</span><span><ShieldCheck/> Containment proof</span><span><Terminal/> Root shell</span></div><button onClick={leaveRange}>Cancel launch</button></div></div>
+  if (engine === 'probing' || engine === 'provisioning') return <div className="range-gate"><div className="range-gate-grid"/><div className="range-gate-core"><div className="range-loader"><Hexagon size={78}/><i/></div><span>PHASE 10 // RANGE ORCHESTRATOR</span><h1>{engine === 'probing' ? 'Checking the engine.' : 'Building the sealed range.'}</h1><p>{engine === 'probing' ? 'Locating Docker Desktop and verifying the local runtime.' : 'Pulling the operator image, building the target, and proving containment before shell access is released.'}</p><div className="boot-sequence"><span className="done"><Check/> Scenario manifest</span><span className={engine === 'provisioning' ? 'active' : ''}><Activity/> Container network</span><span><ShieldCheck/> Containment proof</span><span><Terminal/> Root shell</span></div><button onClick={leaveRange}>Cancel launch</button></div></div>
 
   if (engine === 'offline') return <div className="range-gate offline"><div className="range-gate-grid"/><div className="range-gate-core"><div className="offline-mark"><HardDrive size={37}/></div><span>RANGE ENGINE OFFLINE</span><h1>Docker isn’t ready.</h1><p>{engineError} Phase 3 uses Docker Desktop to enforce the sealed network and disposable target boundary.</p><div className="offline-requirements"><div><CheckCircle2/><span>Docker Desktop 4.x+</span></div><div><CheckCircle2/><span>Linux containers</span></div><div><CheckCircle2/><span>2 GB free memory</span></div></div><div className="gate-actions"><button className="sim-primary" onClick={() => window.open('https://www.docker.com/products/docker-desktop/')}>Get Docker Desktop <ArrowRight size={15}/></button><button onClick={() => setEngine('simulation')}>Use simulation fallback</button><button onClick={onExit}>Return to range</button></div></div></div>
 
   if (report) return <div className="simulation-shell completion-screen">
     <div className="completion-grid" />
-    <div className="completion-core"><div className="completion-seal"><ShieldCheck size={46}/></div><span>MISSION COMPLETE // EVIDENCE ACCEPTED</span><h1>{mission.title}</h1><p>You maintained the declared boundary and converted observations into a defensible conclusion.</p><div className="completion-score"><div><small>OPERATION SCORE</small><strong>{score}</strong></div><div><small>OBJECTIVES</small><strong>4 / 4</strong></div><div><small>GUIDANCE USED</small><strong>{hints}</strong></div><div><small>ELAPSED</small><strong>{formatTime(seconds)}</strong></div></div><div className="earned-xp"><Zap size={18}/> +{score} EXPERIENCE LOGGED</div><button className="sim-primary" onClick={finishRange}>Destroy range &amp; return <ArrowRight size={16}/></button></div>
+    <div className="completion-core"><div className="completion-seal"><ShieldCheck size={46}/></div><span>MISSION COMPLETE // EVIDENCE ACCEPTED</span><h1>{mission.title}</h1><p>You maintained the declared boundary and converted observations into a defensible conclusion.</p><div className="completion-score"><div><small>OPERATION SCORE</small><strong>{score}</strong></div><div><small>OBJECTIVES</small><strong>{mission.objectives.length} / {mission.objectives.length}</strong></div><div><small>GUIDANCE USED</small><strong>{hints}</strong></div><div><small>ELAPSED</small><strong>{formatTime(seconds)}</strong></div></div><div className="earned-xp"><Zap size={18}/> +{score} EXPERIENCE LOGGED</div><button className="sim-primary" onClick={finishRange}>Destroy range &amp; return <ArrowRight size={16}/></button></div>
   </div>
 
   return <div className="simulation-shell">
     <header className="simulation-header"><div><button onClick={leaveRange}><ArrowLeft size={16}/></button><div className="sim-brand"><Hexagon size={26}/><i/></div><div><span>DAEMONCORE // {engine === 'live' ? 'UNRESTRICTED SEALED RANGE' : 'SIMULATION FALLBACK'}</span><strong>{mission.title}</strong></div></div><div className="sim-telemetry"><span><i/> {engine === 'live' ? 'CONTAINMENT VERIFIED' : 'ISOLATED'}</span><span><Clock3 size={13}/>{formatTime(seconds)}</span><span>{containment ? `${containment.network} // EGRESS BLOCKED` : `MISSION // ${mission.id.toUpperCase()}`}</span><button onClick={leaveRange}>DESTROY &amp; EXIT</button></div></header>
     <div className="simulation-body">
       <section className="sim-console"><div className="console-toolbar"><div><span/><span/><span/></div><strong>{engine === 'live' ? `ROOT@DC-${mission.id.toUpperCase()}` : 'DC_RANGE_SIMULATOR'}</strong><span>{busy ? 'PROCESS RUNNING…' : engine === 'live' ? 'INTERNAL NETWORK // NO EGRESS' : 'LOCAL FALLBACK'}</span></div><div className="terminal-history" ref={scrollRef}>{history.map((item, i) => <TerminalLine key={i} item={item}/>)}</div><form className="terminal-input" onSubmit={e => { e.preventDefault(); run(input) }}><span>{engine === 'live' ? `root@dc-${mission.id}` : 'operator@dc-range'}</span><em>›</em><input autoFocus disabled={busy} value={input} onChange={e => setInput(e.target.value)} spellCheck="false" autoComplete="off" placeholder={engine === 'live' ? 'run anything inside the sealed range' : 'enter a simulation command'}/><button disabled={busy}>{busy ? 'RUNNING' : 'EXECUTE'}</button></form></section>
-      <aside className="sim-sidebar"><div className="sim-target"><span>TARGET CONTEXT</span><div><Crosshair size={19}/><strong>{scenario.target}</strong></div><small>{scenario.subnet}</small></div><div className="objective-panel"><div className="sim-panel-title"><Flag size={14}/><span>MISSION OBJECTIVES</span><strong>{done.length}/4</strong></div>{mission.objectives.map((objective, i) => <div className={`sim-objective ${done.includes(i) ? 'done' : ''}`} key={objective}><span>{done.includes(i) ? <Check size={12}/> : `0${i + 1}`}</span><p>{objective}</p></div>)}</div><div className="evidence-panel"><div className="sim-panel-title"><FileText size={14}/><span>EVIDENCE LOCKER</span><strong>{evidence.length}</strong></div>{evidence.length ? evidence.map((item, i) => <div className="evidence-item" key={item}><span>E-{String(i + 1).padStart(2, '0')}</span><p>{item}</p></div>) : <div className="empty-evidence"><Database size={20}/><p>No evidence collected</p></div>}</div><button className="hint-button" onClick={() => run('hint')}><Sparkles size={15}/> Request guidance <span>-75 PTS</span></button></aside>
+      <aside className="sim-sidebar"><div className="sim-target"><span>TARGET CONTEXT</span><div><Crosshair size={19}/><strong>{scenario.target}</strong></div><small>{scenario.subnet}</small></div><div className="objective-panel"><div className="sim-panel-title"><Flag size={14}/><span>MISSION OBJECTIVES</span><strong>{done.length}/{mission.objectives.length}</strong></div>{mission.objectives.map((objective, i) => <div className={`sim-objective ${done.includes(i) ? 'done' : ''}`} key={objective}><span>{done.includes(i) ? <Check size={12}/> : `0${i + 1}`}</span><p>{objective}</p></div>)}</div><div className="evidence-panel"><div className="sim-panel-title"><FileText size={14}/><span>EVIDENCE LOCKER</span><strong>{evidence.length}</strong></div>{evidence.length ? evidence.map((item, i) => <div className="evidence-item" key={item}><span>E-{String(i + 1).padStart(2, '0')}</span><p>{item}</p></div>) : <div className="empty-evidence"><Database size={20}/><p>No evidence collected</p></div>}</div><button className="hint-button" onClick={() => run('hint')}><Sparkles size={15}/> Request guidance <span>-75 PTS</span></button></aside>
     </div>
   </div>
 }
@@ -210,7 +217,7 @@ export function OperatorPage({ profile }) {
 
 export function PhaseBadge({ complete, live }) {
   if (complete) return <span className="phase-cleared"><Check size={11}/> CLEARED</span>
-  return <span className="phase-live"><Activity size={11}/> {live ? 'PHASE 3 RANGE' : 'SIMULATION'}</span>
+  return <span className="phase-live"><Activity size={11}/> {live ? 'LIVE SEALED RANGE' : 'SIMULATION'}</span>
 }
 
 export function RangeEngineCard() {
@@ -221,5 +228,5 @@ export function RangeEngineCard() {
     api.status().then(setStatus).catch(error => setStatus({ state: 'offline', reason: error.message }))
   }, [api])
   const ready = ['ready', 'sealed'].includes(status.state)
-  return <div className={`range-engine-card ${ready ? 'ready' : status.state}`}><div className="engine-mark"><Terminal size={19}/><i/></div><div><span>PHASE 3 RANGE ENGINE</span><strong>{status.state === 'checking' ? 'PROBING LOCAL RUNTIME' : ready ? `DOCKER ${status.version || ''} // READY` : status.state === 'preview' ? 'WEB PREVIEW // SIMULATION PATH' : 'DOCKER DESKTOP REQUIRED'}</strong><small>{ready ? 'Containment is verified again before every shell opens.' : status.reason || 'Install and start Docker Desktop to unlock the unrestricted sealed shell.'}</small></div><div className="engine-policies"><span><ShieldCheck/> INTERNAL NETWORK</span><span><HardDrive/> ZERO HOST MOUNTS</span><span><LockKeyhole/> AUTO-TEARDOWN</span></div><em>{ready ? 'READY' : status.state === 'checking' ? 'CHECKING' : 'OFFLINE'}</em></div>
+  return <div className={`range-engine-card ${ready ? 'ready' : status.state}`}><div className="engine-mark"><Terminal size={19}/><i/></div><div><span>PHASE 10 RANGE ENGINE</span><strong>{status.state === 'checking' ? 'PROBING LOCAL RUNTIME' : ready ? `DOCKER ${status.version || ''} // READY` : status.state === 'preview' ? 'WEB PREVIEW // SIMULATION PATH' : 'DOCKER DESKTOP REQUIRED'}</strong><small>{ready ? 'Containment is verified again before every shell opens.' : status.reason || 'Install and start Docker Desktop to unlock the unrestricted sealed shell.'}</small></div><div className="engine-policies"><span><ShieldCheck/> INTERNAL NETWORK</span><span><HardDrive/> ZERO HOST MOUNTS</span><span><LockKeyhole/> AUTO-TEARDOWN</span></div><em>{ready ? 'READY' : status.state === 'checking' ? 'CHECKING' : 'OFFLINE'}</em></div>
 }

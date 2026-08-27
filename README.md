@@ -6,7 +6,7 @@ DaemonCore is the course I wanted instead: learn the mental model, validate it, 
 
 Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 
-## What ships in 1.8
+## What ships in 1.9
 
 - **Full-Spectrum Security Assessment** — twenty practical lessons and sixteen hours of guided work spanning scope, recon, Windows and Linux attack surfaces, web, sessions, authorization, injection, APIs, enterprise identity, cloud, containers, supply chain, secrets, validation, evidence, cleanup, and retesting.
 - **Operator workshops** — every lesson now includes objectives, prerequisites, an annotated three-step workflow, commands or artifacts, expected signal, interpretation, a required deliverable, success criteria, and primary references.
@@ -14,9 +14,13 @@ Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 - **Real mastery gating** — the knowledge validation stays locked until the operator passes the lesson workbench. Practical scores and replay attempts are stored in the local operator record.
 - **Twenty validation checks** — progress is recorded only after the lesson check is answered correctly.
 - **Eight scored drill sets** — protocol recognition, request anatomy, evidence triage, finding quality, authorization, cloud controls, credential safety, and assessment triage.
-- **Three live field missions** — every mission now provisions a disposable Docker environment with an unrestricted in-range shell, an internal-only network, zero host mounts, and verified internet-egress denial.
+- **Six live field missions** — every mission provisions a disposable Docker environment with an unrestricted in-range shell, an internal-only network, zero host mounts, and verified internet-egress denial.
 - **Broken Trust live API range** — interrogate an actual synthetic multi-tenant API, compare an owned record with one authorized foreign record, and submit the missing object-authorization condition.
 - **Night Shift live forensic range** — verify SHA-256 evidence manifests, build a timeline from raw JSON, isolate high-confidence events, and submit an evidence-backed incident hypothesis.
+- **Token Afterlife identity range** — execute a real password-recovery transition, replay the designated pre-reset session, and prove a lifecycle invalidation failure.
+- **Policy Collision cloud range** — inspect effective policy, establish expected access, and prove one designated cross-project object read through excessive wildcard scope.
+- **Artifact Zero supply-chain range** — verify an SBOM and provenance bundle, identify the deployed digest, and prove that trusted attestations cover different subjects.
+- **Five specialist tracks** — Network, Web + API, Detection, Cloud, and Supply Chain progress are calculated directly from completed live missions.
 - **Manifest-driven range catalog** — the orchestrator now discovers scenario-specific operators, targets, networks, and containment policies so additional labs scale without weakening the boundary.
 - **Four field notes** — short references for recon, HTTP evidence, finding writing, and range rules.
 - **A real operator record** — XP, streaks, weekly minutes, attempts, scores, achievements, and activity are calculated from completed work.
