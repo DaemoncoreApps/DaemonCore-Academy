@@ -8,6 +8,20 @@ DaemonCore is the course I wanted instead: learn the mental model, validate it, 
 
 Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 
+## Inside DaemonCore
+
+![DaemonCore command center](docs/screenshots/command-center.png)
+
+| Tactical lesson workspace | Evidence-derived Mastery grid |
+| --- | --- |
+| ![Tactical lesson workspace](docs/screenshots/lesson-workshop.png) | ![Evidence-derived Mastery grid](docs/screenshots/mastery-grid.png) |
+
+| Principal capstone decision room | Disposable sealed range |
+| --- | --- |
+| ![Principal capstone decision room](docs/screenshots/capstone-decision-room.png) | ![Disposable sealed range](docs/screenshots/sealed-range.png) |
+
+![FieldOps Pro license and authorization gate](docs/screenshots/fieldops-pro-gate.png)
+
 ## What ships in 2.1
 
 ### Mastery System // 2.1
