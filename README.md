@@ -22,7 +22,16 @@ Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 
 ![FieldOps Pro license and authorization gate](docs/screenshots/fieldops-pro-gate.png)
 
-## What ships in 3.0
+## What ships in 4.0
+
+### Enterprise Forge // 4.0
+
+- **Six new specialist pathways** — Windows and Active Directory, Cloud Security Engineering, Detection and Incident Analysis, Linux Privilege and Host Security, Containers and Kubernetes, and Software Supply Chain Defense.
+- **Seventy-two complete enterprise lessons** — twelve evidence-led modules per pathway with four instructional stages, four workshops, a three-decision review board, primary references, a required artifact, and a validation check.
+- **Forty-eight sealed enterprise cases** — synthetic identity, cloud, endpoint, host, cluster, and build evidence is interrogated through a real in-range CLI and submission service. Completion requires a live accepted condition; there is no browser simulation credit.
+- **127 lessons // 120h45m** — eight complete Academy pathways now ship in the application alongside 70 specialist conditions, six core ranges, eight drills, and three principal capstones.
+- **Enterprise progression** — case attempts, time, guidance, score, weekly minutes, completion, XP, and the Enterprise Forged achievement persist in the local operator record.
+- **Hard range boundary** — the Enterprise Forge network is internal-only with no published ports, no host mounts, read-only containers, dropped capabilities, resource ceilings, and verified internet-egress denial.
 
 ### Web Forge // 3.0
 
@@ -141,12 +150,16 @@ electron/license-manager.cjs  Lemon Squeezy + protected key storage
 electron/engagement-store.cjs scope enforcement + external diagnostics
 electron/range-orchestrator.cjs
 ranges/web-range/             22-condition Web + API specialist range
+ranges/enterprise-range/      48-case multi-domain enterprise range
 ranges/ghost-port/            live target, operator image, and manifest
 ranges/ghost-port/chaos-worker high-intensity contained load worker
 src/content.js                versioned course, drills, and field notes
 src/web-curriculum.js         27-lesson Web + API specialist path
 src/web-labs.js               live Web Forge contracts and commands
 src/WebRange.jsx              catalog, sealed console, evidence ledger
+src/enterprise-curriculum.js  six 12-lesson enterprise pathways
+src/enterprise-labs.js        48 enterprise evidence contracts
+src/EnterpriseRange.jsx       multi-domain forge catalog
 src/lesson-practicals.js      workshops, commands, output, exercises, references
 src/phase2.jsx                range console, lessons, and operator record UI
 src/ChaosEngine.jsx           experiment composer + live resilience telemetry
@@ -158,6 +171,7 @@ scripts/verify-phase6.mjs     practical lesson depth and artifact contract
 scripts/verify-phase7.mjs     interactive scenario and mastery-gate contract
 scripts/verify-phase8.mjs     Chaos Engine caps, abort, recovery, and audit contract
 scripts/verify-phase13.mjs    Web curriculum + live-range quality contract
+scripts/verify-phase14.mjs    enterprise depth + containment contract
 scripts/verify-range.mjs      range and containment contract
 ```
 

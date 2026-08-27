@@ -59,6 +59,7 @@ const achievements = [
   { id: 'range-veteran', title: 'Range Veteran', desc: 'Complete every available lab mission.', icon: Trophy },
   { id: 'night-operator', title: 'Night Operator', desc: 'Maintain a 14-day training streak.', icon: Flame },
   { id: 'web-forged', title: 'Web Forged', desc: 'Seal every live Web Forge condition.', icon: Code2 },
+  { id: 'enterprise-forged', title: 'Enterprise Forged', desc: 'Seal all 48 multi-domain enterprise cases.', icon: ShieldCheck },
 ]
 
 function TerminalLine({ item }) {

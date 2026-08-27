@@ -1,0 +1,42 @@
+name: daemoncore-enterprise-range
+services:
+  operator:
+    build:
+      context: .
+      dockerfile: operator/Dockerfile
+    container_name: dc-enterprise-operator
+    command: ["sleep", "infinity"]
+    networks: [range]
+    read_only: true
+    tmpfs: [/tmp:size=64m,noexec,nosuid,nodev, /workspace:size=32m,nosuid,nodev]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 128
+    mem_limit: 384m
+    cpus: 0.75
+    restart: "no"
+  target:
+    build:
+      context: .
+      dockerfile: target/Dockerfile
+    container_name: dc-enterprise-target
+    networks: [range]
+    read_only: true
+    tmpfs: [/tmp:size=32m,noexec,nosuid,nodev]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 64
+    mem_limit: 192m
+    cpus: 0.5
+    restart: "no"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/health"]
+      interval: 2s
+      timeout: 1s
+      retries: 20
+      start_period: 2s
+networks:
+  range:
+    name: dc-enterprise-range
+    driver: bridge
+    internal: true

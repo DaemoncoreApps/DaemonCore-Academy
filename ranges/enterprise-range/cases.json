@@ -1,0 +1,1730 @@
+[
+  {
+    "id": "identity-01",
+    "title": "Trust Cartography",
+    "category": "IDENTITY",
+    "difficulty": "FOUNDATION",
+    "brief": "A synthetic identity evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind trust cartography and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "IDENTITY_OPERATOR",
+        "IDENTITY_COMPARISON"
+      ],
+      "objects": [
+        "IDENTITY-01_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "IDENTITY_CONTROL_PLANE",
+      "evidence": "Trust Cartography documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "IDENTITY_CONTROL_PLANE",
+      "evidence": "Trust Cartography comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "identity-02",
+    "title": "LDAP Boundary",
+    "category": "IDENTITY",
+    "difficulty": "FOUNDATION",
+    "brief": "A synthetic identity evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind ldap boundary and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "IDENTITY_OPERATOR",
+        "IDENTITY_COMPARISON"
+      ],
+      "objects": [
+        "IDENTITY-02_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "IDENTITY_CONTROL_PLANE",
+      "evidence": "LDAP Boundary documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "IDENTITY_CONTROL_PLANE",
+      "evidence": "LDAP Boundary comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "identity-03",
+    "title": "Ticket Chain",
+    "category": "IDENTITY",
+    "difficulty": "INTERMEDIATE",
+    "brief": "A synthetic identity evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind ticket chain and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "IDENTITY_OPERATOR",
+        "IDENTITY_COMPARISON"
+      ],
+      "objects": [
+        "IDENTITY-03_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "IDENTITY_CONTROL_PLANE",
+      "evidence": "Ticket Chain documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "IDENTITY_CONTROL_PLANE",
+      "evidence": "Ticket Chain comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "identity-04",
+    "title": "Inherited Control",
+    "category": "IDENTITY",
+    "difficulty": "INTERMEDIATE",
+    "brief": "A synthetic identity evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind inherited control and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "IDENTITY_OPERATOR",
+        "IDENTITY_COMPARISON"
+      ],
+      "objects": [
+        "IDENTITY-04_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "IDENTITY_CONTROL_PLANE",
+      "evidence": "Inherited Control documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "IDENTITY_CONTROL_PLANE",
+      "evidence": "Inherited Control comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "identity-05",
+    "title": "Policy Precedence",
+    "category": "IDENTITY",
+    "difficulty": "INTERMEDIATE",
+    "brief": "A synthetic identity evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind policy precedence and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "IDENTITY_OPERATOR",
+        "IDENTITY_COMPARISON"
+      ],
+      "objects": [
+        "IDENTITY-05_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "IDENTITY_CONTROL_PLANE",
+      "evidence": "Policy Precedence documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "IDENTITY_CONTROL_PLANE",
+      "evidence": "Policy Precedence comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "identity-06",
+    "title": "Delegation Reach",
+    "category": "IDENTITY",
+    "difficulty": "INTERMEDIATE",
+    "brief": "A synthetic identity evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind delegation reach and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "IDENTITY_OPERATOR",
+        "IDENTITY_COMPARISON"
+      ],
+      "objects": [
+        "IDENTITY-06_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "IDENTITY_CONTROL_PLANE",
+      "evidence": "Delegation Reach documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "IDENTITY_CONTROL_PLANE",
+      "evidence": "Delegation Reach comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "identity-07",
+    "title": "Certificate Authority",
+    "category": "IDENTITY",
+    "difficulty": "ADVANCED",
+    "brief": "A synthetic identity evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind certificate authority and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "IDENTITY_OPERATOR",
+        "IDENTITY_COMPARISON"
+      ],
+      "objects": [
+        "IDENTITY-07_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "IDENTITY_CONTROL_PLANE",
+      "evidence": "Certificate Authority documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "IDENTITY_CONTROL_PLANE",
+      "evidence": "Certificate Authority comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "identity-08",
+    "title": "Tier Crossing",
+    "category": "IDENTITY",
+    "difficulty": "ADVANCED",
+    "brief": "A synthetic identity evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind tier crossing and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "IDENTITY_OPERATOR",
+        "IDENTITY_COMPARISON"
+      ],
+      "objects": [
+        "IDENTITY-08_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "IDENTITY_CONTROL_PLANE",
+      "evidence": "Tier Crossing documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "IDENTITY_CONTROL_PLANE",
+      "evidence": "Tier Crossing comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "cloud-01",
+    "title": "Account Graph",
+    "category": "CLOUD",
+    "difficulty": "FOUNDATION",
+    "brief": "A synthetic cloud evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind account graph and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "CLOUD_OPERATOR",
+        "CLOUD_COMPARISON"
+      ],
+      "objects": [
+        "CLOUD-01_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "CLOUD_CONTROL_PLANE",
+      "evidence": "Account Graph documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "CLOUD_CONTROL_PLANE",
+      "evidence": "Account Graph comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "cloud-02",
+    "title": "Effective IAM",
+    "category": "CLOUD",
+    "difficulty": "FOUNDATION",
+    "brief": "A synthetic cloud evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind effective iam and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "CLOUD_OPERATOR",
+        "CLOUD_COMPARISON"
+      ],
+      "objects": [
+        "CLOUD-02_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "CLOUD_CONTROL_PLANE",
+      "evidence": "Effective IAM documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "CLOUD_CONTROL_PLANE",
+      "evidence": "Effective IAM comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "cloud-03",
+    "title": "Workload Trust",
+    "category": "CLOUD",
+    "difficulty": "INTERMEDIATE",
+    "brief": "A synthetic cloud evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind workload trust and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "CLOUD_OPERATOR",
+        "CLOUD_COMPARISON"
+      ],
+      "objects": [
+        "CLOUD-03_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "CLOUD_CONTROL_PLANE",
+      "evidence": "Workload Trust documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "CLOUD_CONTROL_PLANE",
+      "evidence": "Workload Trust comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "cloud-04",
+    "title": "Storage Boundary",
+    "category": "CLOUD",
+    "difficulty": "INTERMEDIATE",
+    "brief": "A synthetic cloud evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind storage boundary and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "CLOUD_OPERATOR",
+        "CLOUD_COMPARISON"
+      ],
+      "objects": [
+        "CLOUD-04_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "CLOUD_CONTROL_PLANE",
+      "evidence": "Storage Boundary documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "CLOUD_CONTROL_PLANE",
+      "evidence": "Storage Boundary comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "cloud-05",
+    "title": "Network Path",
+    "category": "CLOUD",
+    "difficulty": "INTERMEDIATE",
+    "brief": "A synthetic cloud evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind network path and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "CLOUD_OPERATOR",
+        "CLOUD_COMPARISON"
+      ],
+      "objects": [
+        "CLOUD-05_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "CLOUD_CONTROL_PLANE",
+      "evidence": "Network Path documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "CLOUD_CONTROL_PLANE",
+      "evidence": "Network Path comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "cloud-06",
+    "title": "Key Authority",
+    "category": "CLOUD",
+    "difficulty": "INTERMEDIATE",
+    "brief": "A synthetic cloud evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind key authority and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "CLOUD_OPERATOR",
+        "CLOUD_COMPARISON"
+      ],
+      "objects": [
+        "CLOUD-06_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "CLOUD_CONTROL_PLANE",
+      "evidence": "Key Authority documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "CLOUD_CONTROL_PLANE",
+      "evidence": "Key Authority comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "cloud-07",
+    "title": "Audit Coverage",
+    "category": "CLOUD",
+    "difficulty": "ADVANCED",
+    "brief": "A synthetic cloud evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind audit coverage and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "CLOUD_OPERATOR",
+        "CLOUD_COMPARISON"
+      ],
+      "objects": [
+        "CLOUD-07_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "CLOUD_CONTROL_PLANE",
+      "evidence": "Audit Coverage documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "CLOUD_CONTROL_PLANE",
+      "evidence": "Audit Coverage comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "cloud-08",
+    "title": "Guardrail Drift",
+    "category": "CLOUD",
+    "difficulty": "ADVANCED",
+    "brief": "A synthetic cloud evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind guardrail drift and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "CLOUD_OPERATOR",
+        "CLOUD_COMPARISON"
+      ],
+      "objects": [
+        "CLOUD-08_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "CLOUD_CONTROL_PLANE",
+      "evidence": "Guardrail Drift documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "CLOUD_CONTROL_PLANE",
+      "evidence": "Guardrail Drift comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "detection-01",
+    "title": "Source Contract",
+    "category": "DETECTION",
+    "difficulty": "FOUNDATION",
+    "brief": "A synthetic detection evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind source contract and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "DETECTION_OPERATOR",
+        "DETECTION_COMPARISON"
+      ],
+      "objects": [
+        "DETECTION-01_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "DETECTION_CONTROL_PLANE",
+      "evidence": "Source Contract documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "DETECTION_CONTROL_PLANE",
+      "evidence": "Source Contract comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "detection-02",
+    "title": "Process Lineage",
+    "category": "DETECTION",
+    "difficulty": "FOUNDATION",
+    "brief": "A synthetic detection evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind process lineage and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "DETECTION_OPERATOR",
+        "DETECTION_COMPARISON"
+      ],
+      "objects": [
+        "DETECTION-02_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "DETECTION_CONTROL_PLANE",
+      "evidence": "Process Lineage documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "DETECTION_CONTROL_PLANE",
+      "evidence": "Process Lineage comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "detection-03",
+    "title": "Connection Join",
+    "category": "DETECTION",
+    "difficulty": "INTERMEDIATE",
+    "brief": "A synthetic detection evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind connection join and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "DETECTION_OPERATOR",
+        "DETECTION_COMPARISON"
+      ],
+      "objects": [
+        "DETECTION-03_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "DETECTION_CONTROL_PLANE",
+      "evidence": "Connection Join documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "DETECTION_CONTROL_PLANE",
+      "evidence": "Connection Join comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "detection-04",
+    "title": "Identity Sequence",
+    "category": "DETECTION",
+    "difficulty": "INTERMEDIATE",
+    "brief": "A synthetic detection evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind identity sequence and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "DETECTION_OPERATOR",
+        "DETECTION_COMPARISON"
+      ],
+      "objects": [
+        "DETECTION-04_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "DETECTION_CONTROL_PLANE",
+      "evidence": "Identity Sequence documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "DETECTION_CONTROL_PLANE",
+      "evidence": "Identity Sequence comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "detection-05",
+    "title": "Analytic Logic",
+    "category": "DETECTION",
+    "difficulty": "INTERMEDIATE",
+    "brief": "A synthetic detection evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind analytic logic and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "DETECTION_OPERATOR",
+        "DETECTION_COMPARISON"
+      ],
+      "objects": [
+        "DETECTION-05_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "DETECTION_CONTROL_PLANE",
+      "evidence": "Analytic Logic documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "DETECTION_CONTROL_PLANE",
+      "evidence": "Analytic Logic comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "detection-06",
+    "title": "Threshold Study",
+    "category": "DETECTION",
+    "difficulty": "INTERMEDIATE",
+    "brief": "A synthetic detection evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind threshold study and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "DETECTION_OPERATOR",
+        "DETECTION_COMPARISON"
+      ],
+      "objects": [
+        "DETECTION-06_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "DETECTION_CONTROL_PLANE",
+      "evidence": "Threshold Study documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "DETECTION_CONTROL_PLANE",
+      "evidence": "Threshold Study comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "detection-07",
+    "title": "Triage Ledger",
+    "category": "DETECTION",
+    "difficulty": "ADVANCED",
+    "brief": "A synthetic detection evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind triage ledger and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "DETECTION_OPERATOR",
+        "DETECTION_COMPARISON"
+      ],
+      "objects": [
+        "DETECTION-07_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "DETECTION_CONTROL_PLANE",
+      "evidence": "Triage Ledger documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "DETECTION_CONTROL_PLANE",
+      "evidence": "Triage Ledger comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "detection-08",
+    "title": "Incident Timeline",
+    "category": "DETECTION",
+    "difficulty": "ADVANCED",
+    "brief": "A synthetic detection evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind incident timeline and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "DETECTION_OPERATOR",
+        "DETECTION_COMPARISON"
+      ],
+      "objects": [
+        "DETECTION-08_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "DETECTION_CONTROL_PLANE",
+      "evidence": "Incident Timeline documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "DETECTION_CONTROL_PLANE",
+      "evidence": "Incident Timeline comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "host-01",
+    "title": "Host State",
+    "category": "HOST",
+    "difficulty": "FOUNDATION",
+    "brief": "A synthetic host evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind host state and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "HOST_OPERATOR",
+        "HOST_COMPARISON"
+      ],
+      "objects": [
+        "HOST-01_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "HOST_CONTROL_PLANE",
+      "evidence": "Host State documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "HOST_CONTROL_PLANE",
+      "evidence": "Host State comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "host-02",
+    "title": "Sudo Decision",
+    "category": "HOST",
+    "difficulty": "FOUNDATION",
+    "brief": "A synthetic host evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind sudo decision and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "HOST_OPERATOR",
+        "HOST_COMPARISON"
+      ],
+      "objects": [
+        "HOST-02_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "HOST_CONTROL_PLANE",
+      "evidence": "Sudo Decision documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "HOST_CONTROL_PLANE",
+      "evidence": "Sudo Decision comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "host-03",
+    "title": "Capability Edge",
+    "category": "HOST",
+    "difficulty": "INTERMEDIATE",
+    "brief": "A synthetic host evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind capability edge and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "HOST_OPERATOR",
+        "HOST_COMPARISON"
+      ],
+      "objects": [
+        "HOST-03_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "HOST_CONTROL_PLANE",
+      "evidence": "Capability Edge documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "HOST_CONTROL_PLANE",
+      "evidence": "Capability Edge comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "host-04",
+    "title": "Unit Trust",
+    "category": "HOST",
+    "difficulty": "INTERMEDIATE",
+    "brief": "A synthetic host evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind unit trust and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "HOST_OPERATOR",
+        "HOST_COMPARISON"
+      ],
+      "objects": [
+        "HOST-04_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "HOST_CONTROL_PLANE",
+      "evidence": "Unit Trust documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "HOST_CONTROL_PLANE",
+      "evidence": "Unit Trust comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "host-05",
+    "title": "Scheduled Path",
+    "category": "HOST",
+    "difficulty": "INTERMEDIATE",
+    "brief": "A synthetic host evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind scheduled path and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "HOST_OPERATOR",
+        "HOST_COMPARISON"
+      ],
+      "objects": [
+        "HOST-05_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "HOST_CONTROL_PLANE",
+      "evidence": "Scheduled Path documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "HOST_CONTROL_PLANE",
+      "evidence": "Scheduled Path comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "host-06",
+    "title": "Secret Boundary",
+    "category": "HOST",
+    "difficulty": "INTERMEDIATE",
+    "brief": "A synthetic host evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind secret boundary and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "HOST_OPERATOR",
+        "HOST_COMPARISON"
+      ],
+      "objects": [
+        "HOST-06_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "HOST_CONTROL_PLANE",
+      "evidence": "Secret Boundary documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "HOST_CONTROL_PLANE",
+      "evidence": "Secret Boundary comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "host-07",
+    "title": "Service Exposure",
+    "category": "HOST",
+    "difficulty": "ADVANCED",
+    "brief": "A synthetic host evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind service exposure and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "HOST_OPERATOR",
+        "HOST_COMPARISON"
+      ],
+      "objects": [
+        "HOST-07_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "HOST_CONTROL_PLANE",
+      "evidence": "Service Exposure documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "HOST_CONTROL_PLANE",
+      "evidence": "Service Exposure comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "host-08",
+    "title": "Policy Enforcement",
+    "category": "HOST",
+    "difficulty": "ADVANCED",
+    "brief": "A synthetic host evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind policy enforcement and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "HOST_OPERATOR",
+        "HOST_COMPARISON"
+      ],
+      "objects": [
+        "HOST-08_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "HOST_CONTROL_PLANE",
+      "evidence": "Policy Enforcement documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "HOST_CONTROL_PLANE",
+      "evidence": "Policy Enforcement comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "container-01",
+    "title": "Image Chain",
+    "category": "CONTAINER",
+    "difficulty": "FOUNDATION",
+    "brief": "A synthetic container evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind image chain and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "CONTAINER_OPERATOR",
+        "CONTAINER_COMPARISON"
+      ],
+      "objects": [
+        "CONTAINER-01_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "CONTAINER_CONTROL_PLANE",
+      "evidence": "Image Chain documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "CONTAINER_CONTROL_PLANE",
+      "evidence": "Image Chain comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "container-02",
+    "title": "Pod Boundary",
+    "category": "CONTAINER",
+    "difficulty": "FOUNDATION",
+    "brief": "A synthetic container evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind pod boundary and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "CONTAINER_OPERATOR",
+        "CONTAINER_COMPARISON"
+      ],
+      "objects": [
+        "CONTAINER-02_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "CONTAINER_CONTROL_PLANE",
+      "evidence": "Pod Boundary documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "CONTAINER_CONTROL_PLANE",
+      "evidence": "Pod Boundary comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "container-03",
+    "title": "RBAC Graph",
+    "category": "CONTAINER",
+    "difficulty": "INTERMEDIATE",
+    "brief": "A synthetic container evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind rbac graph and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "CONTAINER_OPERATOR",
+        "CONTAINER_COMPARISON"
+      ],
+      "objects": [
+        "CONTAINER-03_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "CONTAINER_CONTROL_PLANE",
+      "evidence": "RBAC Graph documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "CONTAINER_CONTROL_PLANE",
+      "evidence": "RBAC Graph comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "container-04",
+    "title": "Workload Identity",
+    "category": "CONTAINER",
+    "difficulty": "INTERMEDIATE",
+    "brief": "A synthetic container evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind workload identity and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "CONTAINER_OPERATOR",
+        "CONTAINER_COMPARISON"
+      ],
+      "objects": [
+        "CONTAINER-04_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "CONTAINER_CONTROL_PLANE",
+      "evidence": "Workload Identity documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "CONTAINER_CONTROL_PLANE",
+      "evidence": "Workload Identity comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "container-05",
+    "title": "Network Matrix",
+    "category": "CONTAINER",
+    "difficulty": "INTERMEDIATE",
+    "brief": "A synthetic container evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind network matrix and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "CONTAINER_OPERATOR",
+        "CONTAINER_COMPARISON"
+      ],
+      "objects": [
+        "CONTAINER-05_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "CONTAINER_CONTROL_PLANE",
+      "evidence": "Network Matrix documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "CONTAINER_CONTROL_PLANE",
+      "evidence": "Network Matrix comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "container-06",
+    "title": "Admission Order",
+    "category": "CONTAINER",
+    "difficulty": "INTERMEDIATE",
+    "brief": "A synthetic container evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind admission order and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "CONTAINER_OPERATOR",
+        "CONTAINER_COMPARISON"
+      ],
+      "objects": [
+        "CONTAINER-06_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "CONTAINER_CONTROL_PLANE",
+      "evidence": "Admission Order documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "CONTAINER_CONTROL_PLANE",
+      "evidence": "Admission Order comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "container-07",
+    "title": "Node Trust",
+    "category": "CONTAINER",
+    "difficulty": "ADVANCED",
+    "brief": "A synthetic container evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind node trust and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "CONTAINER_OPERATOR",
+        "CONTAINER_COMPARISON"
+      ],
+      "objects": [
+        "CONTAINER-07_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "CONTAINER_CONTROL_PLANE",
+      "evidence": "Node Trust documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "CONTAINER_CONTROL_PLANE",
+      "evidence": "Node Trust comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "container-08",
+    "title": "Tenant Isolation",
+    "category": "CONTAINER",
+    "difficulty": "ADVANCED",
+    "brief": "A synthetic container evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind tenant isolation and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "CONTAINER_OPERATOR",
+        "CONTAINER_COMPARISON"
+      ],
+      "objects": [
+        "CONTAINER-08_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "CONTAINER_CONTROL_PLANE",
+      "evidence": "Tenant Isolation documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "CONTAINER_CONTROL_PLANE",
+      "evidence": "Tenant Isolation comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "supply-01",
+    "title": "Source Trust",
+    "category": "SUPPLY",
+    "difficulty": "FOUNDATION",
+    "brief": "A synthetic supply evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind source trust and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "SUPPLY_OPERATOR",
+        "SUPPLY_COMPARISON"
+      ],
+      "objects": [
+        "SUPPLY-01_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "SUPPLY_CONTROL_PLANE",
+      "evidence": "Source Trust documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "SUPPLY_CONTROL_PLANE",
+      "evidence": "Source Trust comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "supply-02",
+    "title": "Dependency Graph",
+    "category": "SUPPLY",
+    "difficulty": "FOUNDATION",
+    "brief": "A synthetic supply evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind dependency graph and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "SUPPLY_OPERATOR",
+        "SUPPLY_COMPARISON"
+      ],
+      "objects": [
+        "SUPPLY-02_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "SUPPLY_CONTROL_PLANE",
+      "evidence": "Dependency Graph documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "SUPPLY_CONTROL_PLANE",
+      "evidence": "Dependency Graph comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "supply-03",
+    "title": "SBOM Quality",
+    "category": "SUPPLY",
+    "difficulty": "INTERMEDIATE",
+    "brief": "A synthetic supply evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind sbom quality and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "SUPPLY_OPERATOR",
+        "SUPPLY_COMPARISON"
+      ],
+      "objects": [
+        "SUPPLY-03_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "SUPPLY_CONTROL_PLANE",
+      "evidence": "SBOM Quality documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "SUPPLY_CONTROL_PLANE",
+      "evidence": "SBOM Quality comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "supply-04",
+    "title": "Build Boundary",
+    "category": "SUPPLY",
+    "difficulty": "INTERMEDIATE",
+    "brief": "A synthetic supply evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind build boundary and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "SUPPLY_OPERATOR",
+        "SUPPLY_COMPARISON"
+      ],
+      "objects": [
+        "SUPPLY-04_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "SUPPLY_CONTROL_PLANE",
+      "evidence": "Build Boundary documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "SUPPLY_CONTROL_PLANE",
+      "evidence": "Build Boundary comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "supply-05",
+    "title": "Provenance Subject",
+    "category": "SUPPLY",
+    "difficulty": "INTERMEDIATE",
+    "brief": "A synthetic supply evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind provenance subject and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "SUPPLY_OPERATOR",
+        "SUPPLY_COMPARISON"
+      ],
+      "objects": [
+        "SUPPLY-05_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "SUPPLY_CONTROL_PLANE",
+      "evidence": "Provenance Subject documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "SUPPLY_CONTROL_PLANE",
+      "evidence": "Provenance Subject comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "supply-06",
+    "title": "Signer Authority",
+    "category": "SUPPLY",
+    "difficulty": "INTERMEDIATE",
+    "brief": "A synthetic supply evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind signer authority and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "SUPPLY_OPERATOR",
+        "SUPPLY_COMPARISON"
+      ],
+      "objects": [
+        "SUPPLY-06_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "SUPPLY_CONTROL_PLANE",
+      "evidence": "Signer Authority documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "SUPPLY_CONTROL_PLANE",
+      "evidence": "Signer Authority comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "supply-07",
+    "title": "Registry Control",
+    "category": "SUPPLY",
+    "difficulty": "ADVANCED",
+    "brief": "A synthetic supply evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind registry control and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "SUPPLY_OPERATOR",
+        "SUPPLY_COMPARISON"
+      ],
+      "objects": [
+        "SUPPLY-07_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "SUPPLY_CONTROL_PLANE",
+      "evidence": "Registry Control documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "SUPPLY_CONTROL_PLANE",
+      "evidence": "Registry Control comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  },
+  {
+    "id": "supply-08",
+    "title": "Release Custody",
+    "category": "SUPPLY",
+    "difficulty": "ADVANCED",
+    "brief": "A synthetic supply evidence pack contains one documented control path and one designated comparison. Calculate the effective decision behind release custody and stop after the bounded difference is proven.",
+    "submission": "effective control differs from documented boundary",
+    "scope": {
+      "classification": "SYNTHETIC ENTERPRISE EVIDENCE",
+      "principals": [
+        "SUPPLY_OPERATOR",
+        "SUPPLY_COMPARISON"
+      ],
+      "objects": [
+        "SUPPLY-08_RESOURCE"
+      ],
+      "stopCondition": "one effective-control difference"
+    },
+    "baseline": {
+      "decision": "EXPECTED_ALLOW",
+      "source": "SUPPLY_CONTROL_PLANE",
+      "evidence": "Release Custody documented path matches the approved principal and object",
+      "confidence": "DIRECT"
+    },
+    "compare": {
+      "decision": "BOUNDARY_DIFFERENCE",
+      "source": "SUPPLY_CONTROL_PLANE",
+      "evidence": "Release Custody comparison changes one principal, object, policy, or state variable",
+      "confidence": "DIRECT",
+      "untested": [
+        "production impact",
+        "unlisted principals",
+        "unlisted objects"
+      ]
+    }
+  }
+]

@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eu
+case_id="${1:-}"
+condition="${2:-}"
+curl -fsS -H 'Content-Type: application/json' -d "$(jq -cn --arg id "$case_id" --arg condition "$condition" '{id:$id,condition:$condition}')" http://dc-enterprise-target:8080/submit | jq

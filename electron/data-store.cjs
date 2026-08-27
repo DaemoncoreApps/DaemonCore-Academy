@@ -3,7 +3,7 @@ const { randomUUID } = require('crypto')
 const path = require('path')
 
 const cleanState = () => ({
-  schemaVersion: 3,
+  schemaVersion: 4,
   profile: {
     handle: null,
     xp: 0,
@@ -17,9 +17,11 @@ const cleanState = () => ({
     completedMissions: [],
     completedLessons: [],
     completedWebLabs: [],
+    completedEnterpriseLabs: [],
     lessonAttempts: [],
     missionAttempts: [],
     webLabAttempts: [],
+    enterpriseLabAttempts: [],
     drillAttempts: [],
     capstoneAttempts: [],
     achievements: [],
@@ -68,7 +70,7 @@ class DataStore {
     if (!input || typeof input !== 'object') return base
     return {
       ...base,
-      schemaVersion: 3,
+      schemaVersion: 4,
       profile: { ...base.profile, ...(input.profile || {}) },
       settings: { ...base.settings, ...(input.settings || {}) },
     }
@@ -122,11 +124,12 @@ class DataStore {
 
   async record(event) {
     if (!this.state.profile.handle) throw new Error('Complete onboarding first')
-    if (!event || !['mission', 'lesson', 'webLab', 'drill', 'capstone'].includes(event.type)) throw new Error('Unknown progress event')
+    if (!event || !['mission', 'lesson', 'webLab', 'enterpriseLab', 'drill', 'capstone'].includes(event.type)) throw new Error('Unknown progress event')
     this.touchActivity()
     if (event.type === 'mission') this.recordMission(event)
     if (event.type === 'lesson') this.recordLesson(event)
     if (event.type === 'webLab') this.recordWebLab(event)
+    if (event.type === 'enterpriseLab') this.recordEnterpriseLab(event)
     if (event.type === 'drill') this.recordDrill(event)
     if (event.type === 'capstone') this.recordCapstone(event)
     await this.persist()
@@ -177,6 +180,22 @@ class DataStore {
     this.addXp(earned)
     if (this.state.profile.completedWebLabs.length >= 22) this.unlock('web-forged')
     this.addActivity('webLab', event.title || event.id, earned, `${score} live range score // evidence accepted`)
+  }
+
+  recordEnterpriseLab(event) {
+    if (!/^[a-z]+-[0-9]{2}$/.test(event.id || '')) throw new Error('Invalid Enterprise Forge case id')
+    const score = Math.max(0, Math.min(2000, Math.round(Number(event.score) || 0)))
+    const first = !this.state.profile.completedEnterpriseLabs.includes(event.id)
+    const earned = first ? score : Math.round(score * 0.2)
+    if (first) {
+      this.state.profile.completedEnterpriseLabs.push(event.id)
+      this.state.profile.weeklyMinutes += Math.max(1, Math.min(120, Number(event.minutes) || 40))
+    }
+    this.state.profile.enterpriseLabAttempts.unshift({ id: randomUUID(), labId: event.id, score, hints: Math.max(0, Number(event.hints) || 0), seconds: Math.max(0, Number(event.seconds) || 0), at: new Date().toISOString() })
+    this.state.profile.enterpriseLabAttempts = this.state.profile.enterpriseLabAttempts.slice(0, 150)
+    this.addXp(earned)
+    if (this.state.profile.completedEnterpriseLabs.length >= 48) this.unlock('enterprise-forged')
+    this.addActivity('enterpriseLab', event.title || event.id, earned, `${score} enterprise case score // evidence accepted`)
   }
 
   recordDrill(event) {
