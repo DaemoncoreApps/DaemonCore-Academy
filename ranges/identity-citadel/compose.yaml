@@ -1,0 +1,59 @@
+name: daemoncore-identity-citadel
+services:
+  operator:
+    build:
+      context: ./operator
+    container_name: dc-citadel-operator
+    command: ["sleep", "infinity"]
+    hostname: operator
+    dns: [10.77.0.10]
+    networks:
+      range:
+        ipv4_address: 10.77.0.20
+    read_only: true
+    tmpfs: [/tmp:size=64m,noexec,nosuid,nodev, /workspace:size=32m,nosuid,nodev]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 128
+    mem_limit: 512m
+    cpus: 1.0
+    restart: "no"
+    depends_on:
+      domain-controller:
+        condition: service_healthy
+  domain-controller:
+    build:
+      context: ./domain-controller
+    container_name: dc-citadel-dc
+    hostname: dc01
+    domainname: daemoncore.lab
+    networks:
+      range:
+        ipv4_address: 10.77.0.10
+        aliases: [dc01.daemoncore.lab, directory-target]
+    read_only: true
+    tmpfs:
+      - /state:size=384m,nosuid,nodev
+      - /run:size=32m,nosuid,nodev
+      - /tmp:size=32m,noexec,nosuid,nodev
+      - /var/log/samba:size=64m,nosuid,nodev
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE, SETUID, SETGID, CHOWN, DAC_OVERRIDE]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 256
+    mem_limit: 1024m
+    cpus: 1.5
+    restart: "no"
+    healthcheck:
+      test: ["CMD-SHELL", "smbclient -L //127.0.0.1 -U 'Administrator%Citadel-Lab-42!' >/dev/null 2>&1"]
+      interval: 4s
+      timeout: 3s
+      retries: 30
+      start_period: 15s
+networks:
+  range:
+    name: dc-citadel-range
+    driver: bridge
+    internal: true
+    ipam:
+      config: [{subnet: 10.77.0.0/24}]

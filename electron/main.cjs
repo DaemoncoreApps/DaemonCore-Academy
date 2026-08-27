@@ -36,6 +36,8 @@ function rangeHandler(handler) {
 ipcMain.handle('range:availability', rangeHandler(() => range.availability()))
 ipcMain.handle('range:status', rangeHandler(() => range.status()))
 ipcMain.handle('range:manifest', rangeHandler(id => range.manifest(id)))
+ipcMain.handle('range:pack-index', rangeHandler(() => range.packIndex()))
+ipcMain.handle('range:verify-pack', rangeHandler(id => range.verifyPack(id)))
 ipcMain.handle('range:start', rangeHandler(id => range.start(id)))
 ipcMain.handle('range:execute', rangeHandler((id, command) => range.execute(id, command)))
 ipcMain.handle('range:chaos-status', rangeHandler(() => range.chaosStatus()))

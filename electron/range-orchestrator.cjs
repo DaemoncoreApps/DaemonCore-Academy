@@ -1,9 +1,10 @@
 const { execFile } = require('child_process')
+const { createHash } = require('crypto')
 const { readFile } = require('fs/promises')
 const path = require('path')
 
 const CHAOS_WORKER = 'dc-ghost-chaos'
-const ALLOWED_SCENARIOS = new Set(['ghost-port', 'broken-trust', 'night-shift', 'token-afterlife', 'policy-collision', 'artifact-zero', 'web-range', 'enterprise-range'])
+const ALLOWED_SCENARIOS = new Set(['ghost-port', 'broken-trust', 'night-shift', 'token-afterlife', 'policy-collision', 'artifact-zero', 'identity-citadel', 'web-range', 'enterprise-range'])
 
 function runDocker(args, options = {}) {
   return new Promise((resolve, reject) => {
@@ -46,7 +47,7 @@ class RangeOrchestrator {
   }
 
   containers(manifest) {
-    return [manifest.operatorContainer, manifest.targetContainer, manifest.chaosWorkerContainer].filter(Boolean)
+    return [...new Set([...(manifest.containers || []), manifest.operatorContainer, manifest.targetContainer, manifest.chaosWorkerContainer].filter(Boolean))]
   }
 
   async availability() {
@@ -65,6 +66,23 @@ class RangeOrchestrator {
 
   async manifest(id) {
     return JSON.parse(await readFile(path.join(this.scenarioPath(id), 'scenario.json'), 'utf8'))
+  }
+
+  async packIndex() {
+    const index = JSON.parse(await readFile(path.join(this.rangeRoot, 'index.json'), 'utf8'))
+    return { ...index, packs: index.packs.filter(pack => ALLOWED_SCENARIOS.has(pack.id)) }
+  }
+
+  async verifyPack(id) {
+    this.scenarioPath(id)
+    const index = await this.packIndex()
+    const entry = index.packs.find(pack => pack.id === id)
+    if (!entry) throw new Error('Range pack is not present in the integrity index')
+    const scenario = await readFile(path.join(this.scenarioPath(id), 'scenario.json'))
+    const compose = await readFile(path.join(this.scenarioPath(id), 'compose.yaml'))
+    const digest = createHash('sha256').update(scenario).update('\0').update(compose).digest('hex')
+    if (digest !== entry.digest) throw new Error('Range pack integrity verification failed')
+    return { verified: true, algorithm: index.algorithm, digest, pack: entry }
   }
 
   async status() {
@@ -120,6 +138,7 @@ class RangeOrchestrator {
     return this.serialize(async () => {
       const availability = await this.availability()
       if (!availability.available) throw new Error(availability.reason)
+      const integrity = await this.verifyPack(id)
       await this.stopInternal()
       const cwd = this.scenarioPath(id)
       const manifest = await this.manifest(id)
@@ -128,7 +147,7 @@ class RangeOrchestrator {
         await this.waitForHealthy(manifest)
         const containment = await this.verifyContainment(manifest)
         this.activeScenario = id
-        return { state: 'sealed', scenario: id, containment, manifest }
+        return { state: 'sealed', scenario: id, containment, integrity, manifest }
       } catch (error) {
         await this.stopInternal(id).catch(() => {})
         throw new Error(error.stderr?.trim() || error.message || 'Range startup failed')

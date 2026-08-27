@@ -22,14 +22,25 @@ Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 
 ![FieldOps Pro license and authorization gate](docs/screenshots/fieldops-pro-gate.png)
 
-## What ships in 4.0
+## What ships in 5.0
+
+### Range Fabric // 5.0
+
+- **Identity Citadel** — the first protocol-native enterprise range provisions a disposable Samba Active Directory realm with live DNS, Kerberos, LDAP, and SMB instead of replaying canned results.
+- **A real evidence chain** — operators discover the realm, acquire a Kerberos ticket, query the designated directory edge, and submit a tightly bounded identity finding from the sealed console.
+- **Content-addressed packs** — all nine bundled environments have SHA-256 identities. The desktop verifies each pack and refuses a launch if its scenario contract or Compose definition has changed.
+- **Pack registry UI** — Lab Range exposes pack status, fingerprints, protocol coverage, and the exact containment sequence enforced before a shell opens.
+- **Seven field missions across six tracks** — Network, Web + API, Detection, Cloud, Supply Chain, and Enterprise Identity now progress from live evidence.
+- **Regression-proven tamper rejection** — the Phase 15 contract copies a pack, mutates it, and confirms that Range Fabric fails closed.
+
+Remote pack delivery is the next infrastructure layer. It will require a distribution endpoint and an offline-held signing key; neither is simulated or embedded in this repository.
 
 ### Enterprise Forge // 4.0
 
 - **Six new specialist pathways** — Windows and Active Directory, Cloud Security Engineering, Detection and Incident Analysis, Linux Privilege and Host Security, Containers and Kubernetes, and Software Supply Chain Defense.
 - **Seventy-two complete enterprise lessons** — twelve evidence-led modules per pathway with four instructional stages, four workshops, a three-decision review board, primary references, a required artifact, and a validation check.
 - **Forty-eight sealed enterprise cases** — synthetic identity, cloud, endpoint, host, cluster, and build evidence is interrogated through a real in-range CLI and submission service. Completion requires a live accepted condition; there is no browser simulation credit.
-- **127 lessons // 120h45m** — eight complete Academy pathways now ship in the application alongside 70 specialist conditions, six core ranges, eight drills, and three principal capstones.
+- **127 lessons // 120h45m** — eight complete Academy pathways now ship in the application alongside 70 specialist conditions, seven core ranges, eight drills, and three principal capstones.
 - **Enterprise progression** — case attempts, time, guidance, score, weekly minutes, completion, XP, and the Enterprise Forged achievement persist in the local operator record.
 - **Hard range boundary** — the Enterprise Forge network is internal-only with no published ports, no host mounts, read-only containers, dropped capabilities, resource ceilings, and verified internet-egress denial.
 
@@ -56,13 +67,13 @@ Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 - **Real mastery gating** — the knowledge validation stays locked until the operator passes the lesson workbench. Practical scores and replay attempts are stored in the local operator record.
 - **Twenty-eight validation checks** — progress is recorded only after the lesson check is answered correctly.
 - **Eight scored drill sets** — protocol recognition, request anatomy, evidence triage, finding quality, authorization, cloud controls, credential safety, and assessment triage.
-- **Six live field missions** — every mission provisions a disposable Docker environment with an unrestricted in-range shell, an internal-only network, zero host mounts, and verified internet-egress denial.
+- **Seven live field missions** — every mission provisions a disposable Docker environment with an unrestricted in-range shell, an internal-only network, zero host mounts, and verified internet-egress denial.
 - **Broken Trust live API range** — interrogate an actual synthetic multi-tenant API, compare an owned record with one authorized foreign record, and submit the missing object-authorization condition.
 - **Night Shift live forensic range** — verify SHA-256 evidence manifests, build a timeline from raw JSON, isolate high-confidence events, and submit an evidence-backed incident hypothesis.
 - **Token Afterlife identity range** — execute a real password-recovery transition, replay the designated pre-reset session, and prove a lifecycle invalidation failure.
 - **Policy Collision cloud range** — inspect effective policy, establish expected access, and prove one designated cross-project object read through excessive wildcard scope.
 - **Artifact Zero supply-chain range** — verify an SBOM and provenance bundle, identify the deployed digest, and prove that trusted attestations cover different subjects.
-- **Five specialist tracks** — Network, Web + API, Detection, Cloud, and Supply Chain progress are calculated directly from completed live missions.
+- **Six specialist tracks** — Network, Web + API, Detection, Cloud, Supply Chain, and Enterprise Identity progress are calculated directly from completed live missions.
 - **Manifest-driven range catalog** — the orchestrator now discovers scenario-specific operators, targets, networks, and containment policies so additional labs scale without weakening the boundary.
 - **Four field notes** — short references for recon, HTTP evidence, finding writing, and range rules.
 - **A real operator record** — XP, streaks, weekly minutes, attempts, scores, achievements, and activity are calculated from completed work.
@@ -151,6 +162,8 @@ electron/engagement-store.cjs scope enforcement + external diagnostics
 electron/range-orchestrator.cjs
 ranges/web-range/             22-condition Web + API specialist range
 ranges/enterprise-range/      48-case multi-domain enterprise range
+ranges/identity-citadel/      protocol-native Samba Active Directory range
+ranges/index.json             content-addressed pack registry
 ranges/ghost-port/            live target, operator image, and manifest
 ranges/ghost-port/chaos-worker high-intensity contained load worker
 src/content.js                versioned course, drills, and field notes
@@ -172,6 +185,7 @@ scripts/verify-phase7.mjs     interactive scenario and mastery-gate contract
 scripts/verify-phase8.mjs     Chaos Engine caps, abort, recovery, and audit contract
 scripts/verify-phase13.mjs    Web curriculum + live-range quality contract
 scripts/verify-phase14.mjs    enterprise depth + containment contract
+scripts/verify-phase15.mjs    identity range + pack tamper-rejection contract
 scripts/verify-range.mjs      range and containment contract
 ```
 

@@ -8,7 +8,7 @@ import { missionCatalog, additionalMissionScenarios } from '../src/mission-catal
 const require = createRequire(import.meta.url)
 const { RangeOrchestrator } = require('../electron/range-orchestrator.cjs')
 const rangeRoot = path.join(process.cwd(), 'ranges')
-const scenarioIds = ['ghost-port', 'broken-trust', 'night-shift', 'token-afterlife', 'policy-collision', 'artifact-zero']
+const scenarioIds = ['ghost-port', 'broken-trust', 'night-shift', 'token-afterlife', 'policy-collision', 'artifact-zero', 'identity-citadel']
 const manifests = new Map()
 
 for (const id of scenarioIds) {
@@ -44,7 +44,7 @@ assert.equal(missionCatalog.length, scenarioIds.length)
 assert.deepEqual(missionCatalog.map(mission => mission.id), scenarioIds)
 assert.equal(new Set(missionCatalog.map(mission => mission.id)).size, scenarioIds.length)
 assert.ok(missionCatalog.every(mission => mission.objectives.length === 4 && mission.track && mission.tags.includes('Live Docker')))
-assert.deepEqual(Object.keys(additionalMissionScenarios), ['token-afterlife', 'policy-collision', 'artifact-zero'])
+assert.deepEqual(Object.keys(additionalMissionScenarios), ['identity-citadel', 'token-afterlife', 'policy-collision', 'artifact-zero'])
 for (const scenario of Object.values(additionalMissionScenarios)) {
   assert.equal(scenario.commands.length, 4)
   assert.deepEqual(scenario.commands.map(command => command.objective), [0, 1, 2, 3])
@@ -78,4 +78,4 @@ const maximum = orchestrator.normalizeChaosPlan({ profile: 'spike', durationSeco
 assert.deepEqual(maximum, { profile: 'spike', durationSeconds: 60, requestsPerSecond: 500, concurrency: 100, p95LimitMs: 10000, errorRateLimit: 80 })
 assert.throws(() => orchestrator.normalizeChaosPlan({ profile: 'flood' }), /Unsupported sealed-range/)
 
-console.log(`Range catalog verified // 6 sealed scenarios // 5 specialist tracks // docker ${availability.available ? availability.version : 'offline'}`)
+console.log(`Range catalog verified // 7 sealed scenarios // 6 specialist tracks // docker ${availability.available ? availability.version : 'offline'}`)

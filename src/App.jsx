@@ -18,6 +18,7 @@ import { webCourse } from './web-curriculum.js'
 import { WebForgePage, WebLabRunner } from './WebRange.jsx'
 import { enterpriseCourses } from './enterprise-curriculum.js'
 import { EnterpriseForgePage } from './EnterpriseRange.jsx'
+import { RangeFabric } from './RangeFabric.jsx'
 
 const nav = [
   { id: 'command', label: 'Command', icon: Grid2X2 },
@@ -179,11 +180,12 @@ function AcademyPage({ selectModule, profile }) {
 function LabsPage({ launchMission, completedMissions = [] }) {
   const tracks=[...new Set(missions.map(mission=>mission.track))]
   return <div className="page labs-page">
-    <div className="range-banner"><div className="range-radar"><Radar size={38}/><i/><i/><i/></div><div><span className="section-code"><i/> PHASE 10 RANGE ENGINE</span><h2>Lab Range</h2><p>Disposable targets. Root operator shell. Hard containment.</p></div><div className="range-details"><div><span>LIVE SCENARIOS</span><strong>06 / 06</strong></div><div><span>TRACKS</span><strong>{String(tracks.length).padStart(2,'0')} ACTIVE</strong></div><div><span>BOUNDARY</span><strong>SEALED</strong></div></div></div>
+    <div className="range-banner"><div className="range-radar"><Radar size={38}/><i/><i/><i/></div><div><span className="section-code"><i/> PHASE 15 RANGE FABRIC</span><h2>Lab Range</h2><p>Disposable targets. Root operator shell. Hard containment.</p></div><div className="range-details"><div><span>LIVE SCENARIOS</span><strong>07 / 07</strong></div><div><span>TRACKS</span><strong>{String(tracks.length).padStart(2,'0')} ACTIVE</strong></div><div><span>BOUNDARY</span><strong>SEALED</strong></div></div></div>
     <RangeEngineCard/>
+    <RangeFabric/>
     <RangeChaosLab/>
     <div className="track-strip">{tracks.map(track=>{const trackMissions=missions.filter(mission=>mission.track===track),complete=trackMissions.filter(mission=>completedMissions.includes(mission.id)).length;return <div key={track}><span>{track}</span><strong>{complete} / {trackMissions.length}</strong><i><em style={{width:`${complete/trackMissions.length*100}%`}}/></i></div>})}</div>
-    <div className="section-title"><div><span>CURATED OPERATIONS // SIX LIVE SEALED RANGES</span><h3>Available missions</h3></div></div>
+    <div className="section-title"><div><span>CURATED OPERATIONS // SEVEN LIVE SEALED RANGES</span><h3>Available missions</h3></div></div>
     <div className="mission-grid">{missions.map((m,i)=>{ const Icon=m.icon, cleared=completedMissions.includes(m.id); return <article className={`mission-card mission-${i%3} ${cleared?'cleared':''}`} key={m.id}><div className="mission-top"><span>{m.difficulty}</span><div><Icon size={28}/></div></div><div className="mission-code">{m.track} // MISSION {String(i+1).padStart(2,'0')}</div><PhaseBadge complete={cleared} live/><h3>{m.title}</h3><p>{m.brief}</p><div className="mission-tags">{m.tags.map(t=><span key={t}>{t}</span>)}</div><div className="mission-bottom"><div><span><Clock3 size={14}/>{m.time}</span><span><Zap size={14}/>{m.xp} XP</span></div><button onClick={()=>launchMission(m)}>{cleared?'Replay mission':'View brief'} <ArrowRight size={15}/></button></div></article>})}</div>
     <div className="range-protocol"><Shield size={25}/><div><strong>Range protocol is enforced.</strong><p>All exercises use synthetic evidence and intentionally vulnerable training systems. Activity outside the declared lab boundary is never part of an Academy mission.</p></div><span>ROE // ACTIVE</span></div>
   </div>

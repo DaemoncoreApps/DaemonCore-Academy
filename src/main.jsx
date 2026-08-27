@@ -16,6 +16,7 @@ import './range-chaos-lab.css'
 import './readability.css'
 import './web-range.css'
 import './enterprise.css'
+import './range-fabric.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

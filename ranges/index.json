@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "algorithm": "sha256",
+  "generatedAt": "2026-08-27T02:32:46.865Z",
+  "packs": [
+    {
+      "id": "artifact-zero",
+      "title": "Artifact Zero",
+      "engine": "docker",
+      "digest": "1bcc4263d76a60dac3d54dd48cbb4519bbb1b112374dd6f5e74f6a7279de8e4e",
+      "scenarioBytes": 575,
+      "composeBytes": 1055
+    },
+    {
+      "id": "broken-trust",
+      "title": "Broken Trust",
+      "engine": "docker",
+      "digest": "6f147825ca8bd241e782cf7b05a11770d6347aed18f59052ebeeaa53f78db20e",
+      "scenarioBytes": 577,
+      "composeBytes": 1050
+    },
+    {
+      "id": "enterprise-range",
+      "title": "Enterprise Forge",
+      "engine": "docker",
+      "digest": "123b80685159bb012b70e93070d2e414c176a4da53b68d33008a6a37a40c717f",
+      "scenarioBytes": 546,
+      "composeBytes": 1047
+    },
+    {
+      "id": "ghost-port",
+      "title": "The Ghost Port",
+      "engine": "docker",
+      "digest": "85c5c462614724815c03aaa628a77c8f922481c05e611d7eb2da75a5344903d9",
+      "scenarioBytes": 822,
+      "composeBytes": 1447
+    },
+    {
+      "id": "identity-citadel",
+      "title": "Identity Citadel",
+      "engine": "docker",
+      "digest": "738c7b8a6e096dd96ad16d218c8e97ac5f49c472dfe2acb0ee157475eac81e8a",
+      "scenarioBytes": 581,
+      "composeBytes": 1583
+    },
+    {
+      "id": "night-shift",
+      "title": "Night Shift",
+      "engine": "docker",
+      "digest": "73e123bca105032f63c6edd706a9fa1431d4161901510083bbf9401dcce929c5",
+      "scenarioBytes": 571,
+      "composeBytes": 1052
+    },
+    {
+      "id": "policy-collision",
+      "title": "Policy Collision",
+      "engine": "docker",
+      "digest": "1aff241d6459d10184b959bb88fca19e2ce0fbae741aac3fb03300326d509d6d",
+      "scenarioBytes": 567,
+      "composeBytes": 1045
+    },
+    {
+      "id": "token-afterlife",
+      "title": "Token Afterlife",
+      "engine": "docker",
+      "digest": "4e2054a6c02f5de5ac4f353a53343926c122849dab19e91f86da8f60e42ab755",
+      "scenarioBytes": 562,
+      "composeBytes": 1043
+    },
+    {
+      "id": "web-range",
+      "title": "Web Forge",
+      "engine": "docker",
+      "digest": "75dafff9e5b7a059ab7b3a5f3f701cbb5cd599d9c7aadf57f53af26405dca58a",
+      "scenarioBytes": 554,
+      "composeBytes": 1094
+    }
+  ]
+}
