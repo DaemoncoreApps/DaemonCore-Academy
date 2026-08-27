@@ -1,0 +1,55 @@
+name: Range runtime certification
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'ranges/**'
+      - 'electron/range-*.cjs'
+      - 'scripts/certify-identity-range.mjs'
+      - '.github/workflows/range-certification.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: range-certification-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  identity-citadel:
+    name: Certify Identity Citadel
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Check out the sealed range
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Verify static contracts
+        run: npm run check:phase15
+
+      - name: Build, contain, and exercise the live realm
+        run: node scripts/certify-identity-range.mjs
+
+      - name: Tear down every range resource
+        if: always()
+        run: docker compose --project-name daemoncore-identity-citadel --file ranges/identity-citadel/compose.yaml down --volumes --remove-orphans || true
+
+      - name: Publish runtime evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: identity-citadel-runtime-evidence
+          path: artifacts/
+          if-no-files-found: warn
+          retention-days: 30

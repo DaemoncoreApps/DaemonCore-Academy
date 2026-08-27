@@ -177,8 +177,14 @@ class RangeOrchestrator {
         this.activeReceipt = receipt
         return { state: 'sealed', scenario: id, containment, integrity, receipt, manifest }
       } catch (error) {
+        let targetLogs = ''
+        try {
+          const { stdout, stderr } = await runDocker(['logs', '--tail', '120', manifest.targetContainer], { timeout: 8_000 })
+          targetLogs = `${stdout}${stderr}`.trim()
+        } catch {}
         await this.stopInternal(id).catch(() => {})
-        throw new Error(error.stderr?.trim() || error.message || 'Range startup failed')
+        const cause = error.stderr?.trim() || error.message || 'Range startup failed'
+        throw new Error(targetLogs ? `${cause}\n\nTARGET STARTUP LOG\n${targetLogs}` : cause)
       }
     })
   }
