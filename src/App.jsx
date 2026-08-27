@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import {
-  Activity, ArrowLeft, ArrowRight, Award, BarChart3, Bell, BookOpen,
+  Activity, ArrowLeft, ArrowRight, Award, BarChart3, Bell, BookOpen, BrainCircuit,
   Box, Braces, Check, ChevronRight, Circle, Clock3, Command, Crosshair,
   Database, Flame, Gauge, GraduationCap, Grid2X2, HardDrive, Hexagon,
   KeyRound, Layers3, LockKeyhole, Menu, Network, Play, Radar, Search,
@@ -13,10 +13,12 @@ import { ArticleReader, LicenseGate, LoadingScreen, Onboarding, SettingsPage } f
 import { FieldOpsPage } from './fieldops.jsx'
 import { RangeChaosLab } from './RangeChaosLab.jsx'
 import { missionCatalog } from './mission-catalog.js'
+import { CapstoneRunner, MasteryPage } from './Mastery.jsx'
 
 const nav = [
   { id: 'command', label: 'Command', icon: Grid2X2 },
   { id: 'academy', label: 'Academy', icon: GraduationCap },
+  { id: 'mastery', label: 'Mastery', icon: BrainCircuit },
   { id: 'labs', label: 'Lab Range', icon: Terminal },
   { id: 'fieldops', label: 'FieldOps', icon: ShieldCheck },
   { id: 'drills', label: 'Drills', icon: Crosshair },
@@ -27,7 +29,7 @@ const nav = [
 const missionIcons={network:Network,key:KeyRound,activity:Activity,shield:Shield,layers:Layers3,box:Box}
 const missions=missionCatalog.map(mission=>({...mission,icon:missionIcons[mission.icon]}))
 
-const emptyData = { schemaVersion:1, profile:{handle:null,createdAt:null,xp:0,level:1,streak:0,bestStreak:0,lastActiveDate:null,weekKey:null,weeklyMinutes:0,weeklyGoalMinutes:180,completedMissions:[],completedLessons:[],lessonAttempts:[],missionAttempts:[],drillAttempts:[],achievements:[],activity:[]},settings:{reduceMotion:false,compactMode:false,uiScale:1.25} }
+const emptyData = { schemaVersion:2, profile:{handle:null,createdAt:null,xp:0,level:1,streak:0,bestStreak:0,lastActiveDate:null,weekKey:null,weeklyMinutes:0,weeklyGoalMinutes:180,completedMissions:[],completedLessons:[],lessonAttempts:[],missionAttempts:[],drillAttempts:[],capstoneAttempts:[],achievements:[],activity:[]},settings:{reduceMotion:false,compactMode:false,uiScale:1.25} }
 const weekKey=()=>{const date=new Date(),day=(date.getUTCDay()+6)%7;date.setUTCDate(date.getUTCDate()-day);return date.toISOString().slice(0,10)}
 const previewLicense={configured:false,requireAcademyLicense:false,checkoutUrl:null,licensed:false,fieldOps:false,status:'unlicensed',tier:null,tierLabel:null}
 
@@ -47,6 +49,7 @@ function useAppData() {
     if(event.type==='mission'){earned=firstMission?event.score:Math.round(event.score*.2);if(firstMission)p.completedMissions=[...p.completedMissions,event.id];p.missionAttempts=[{id:crypto.randomUUID(),missionId:event.id,score:event.score,hints:event.hints,seconds:event.seconds,at:now.toISOString()},...(p.missionAttempts||[])].slice(0,100);awards.add('first-signal');if(!event.hints)awards.add('evidence-led');if(p.completedMissions.length>=missions.length)awards.add('range-veteran')}
     if(event.type==='lesson'){earned=firstLesson?180:0;if(firstLesson){p.completedLessons=[...p.completedLessons,event.id];p.weeklyMinutes+=(event.minutes||0)}p.lessonAttempts=[{id:crypto.randomUUID(),lessonId:event.id,practicalScore:event.practicalScore||0,passed:(event.practicalScore||0)>=67,at:now.toISOString()},...(p.lessonAttempts||[])].slice(0,100);awards.add('scholar')}
     if(event.type==='drill'){earned=Math.min(event.correct,event.total)*120;p.drillAttempts=[{id:crypto.randomUUID(),drillId:event.id,correct:event.correct,total:event.total,xp:earned,at:now.toISOString()},...(p.drillAttempts||[])].slice(0,100);if(event.correct===event.total)awards.add('clean-sweep')}
+    if(event.type==='capstone'){earned=event.score>=80?750:0;p.capstoneAttempts=[{id:crypto.randomUUID(),capstoneId:event.id,score:event.score,passed:event.score>=80,domainScores:event.domainScores||{},decisions:event.decisions||[],at:now.toISOString()},...(p.capstoneAttempts||[])].slice(0,100);if(event.score>=80)awards.add('decision-forged')}
     if(p.streak>=14)awards.add('night-operator')
     p.achievements=[...awards];p.xp+=earned;p.level=Math.floor(p.xp/1000)+1;p.activity=[{id:crypto.randomUUID(),type:event.type,title:event.title,xp:earned,at:now.toISOString()},...p.activity].slice(0,100)
     return saveFallback({...data,profile:p})
@@ -227,7 +230,7 @@ export default function App() {
   const store=useAppData()
   const licensing=useLicense()
   const fieldOps=useFieldOps()
-  const [page,setPage]=useState('command'), [collapsed,setCollapsed]=useState(null), [module,setModule]=useState(null), [mission,setMission]=useState(null), [activeMission,setActiveMission]=useState(null), [lesson,setLesson]=useState(null), [quiz,setQuiz]=useState(null), [article,setArticle]=useState(null), [toast,setToast]=useState('')
+  const [page,setPage]=useState('command'), [collapsed,setCollapsed]=useState(null), [module,setModule]=useState(null), [mission,setMission]=useState(null), [activeMission,setActiveMission]=useState(null), [activeCapstone,setActiveCapstone]=useState(null), [lesson,setLesson]=useState(null), [quiz,setQuiz]=useState(null), [article,setArticle]=useState(null), [toast,setToast]=useState('')
   useEffect(()=>{if(!toast)return;const t=setTimeout(()=>setToast(''),2600);return()=>clearTimeout(t)},[toast])
   useEffect(()=>{document.body.classList.toggle('reduce-motion',Boolean(store.data?.settings?.reduceMotion))},[store.data?.settings?.reduceMotion])
   useEffect(()=>{const scale=Math.max(1,Math.min(1.4,Number(store.data?.settings?.uiScale)||1.25));if(window.daemoncore?.display)window.daemoncore.display.setZoom(scale);else document.body.style.zoom=String(scale)},[store.data?.settings?.uiScale])
@@ -242,18 +245,21 @@ export default function App() {
   const completeQuiz=async event=>{await store.record(event);setToast(`Drill logged // +${event.correct*120} XP`)}
   const completeMission=async({mission:cleared,score,hints,seconds})=>{await store.record({type:'mission',id:cleared.id,title:cleared.title,score,hints,seconds});setActiveMission(null);setPage('labs');setToast('Mission recorded // operator record updated')}
   const completeLesson=async completedLesson=>{await store.record({type:'lesson',id:completedLesson.id,title:completedLesson.title,minutes:completedLesson.minutes,practicalScore:completedLesson.practicalScore});setLesson(null);setToast(`Lesson mastered // practical ${completedLesson.practicalScore}% recorded`)}
+  const completeCapstone=async event=>{await store.record(event);setActiveCapstone(null);setPage('mastery');setToast(event.score>=80?`Capstone sealed // ${event.score}% verified mastery`:`Attempt logged // ${event.score}% // adaptive path updated`)}
   if(activeMission)return <LabSimulation mission={activeMission} onExit={()=>setActiveMission(null)} onComplete={completeMission}/>
+  if(activeCapstone)return <CapstoneRunner capstone={activeCapstone} onExit={()=>setActiveCapstone(null)} onComplete={completeCapstone}/>
   if(lesson)return <LessonPlayer lesson={lesson} onExit={()=>setLesson(null)} onComplete={completeLesson}/>
   if(article)return <ArticleReader article={article} onClose={()=>setArticle(null)}/>
   let current
   if(module)current=<ModuleDetail module={module} onBack={()=>setModule(null)} startLesson={setLesson} profile={operator}/>
   else if(page==='command')current=<CommandPage setPage={setPage} profile={operator}/>
   else if(page==='academy')current=<AcademyPage selectModule={setModule} profile={operator}/>
+  else if(page==='mastery')current=<MasteryPage profile={operator} onStart={setActiveCapstone} onOpenLesson={setLesson}/>
   else if(page==='labs')current=<LabsPage launchMission={setMission} completedMissions={operator.completedMissions}/>
   else if(page==='fieldops')current=<FieldOpsPage license={licensing.license} data={fieldOps.data} onCreate={fieldOps.create} onRun={fieldOps.run} onChaosStart={fieldOps.startChaos} onChaosAbort={fieldOps.abortChaos} onRefresh={fieldOps.refresh} onClose={fieldOps.close} onExport={fieldOps.exportEvidence} onSettings={()=>setPage('settings')}/>
   else if(page==='drills')current=<DrillsPage startQuiz={setQuiz} profile={operator}/>
   else if(page==='intel')current=<IntelPage onOpen={setArticle}/>
   else if(page==='operator')current=<OperatorPage profile={operator}/>
   else current=<SettingsPage data={store.data} {...licenseProps} onUpdate={store.updateSettings} onExport={store.exportData} onReset={store.reset}/>
-  return <div className="app-shell"><Sidebar page={page} setPage={p=>{setPage(p);setModule(null)}} collapsed={navigationCollapsed} setCollapsed={setCollapsed} profile={operator}/><main><Topbar title={title} profile={operator}/>{current}<footer className="app-footer"><span>DAEMONCORE ACADEMY // PHASE 10</span><span><i/> LICENSED LOCAL-FIRST PLATFORM</span><span>{licensing.license.tierLabel?.toUpperCase()||'COMMERCIAL CORE READY'}</span></footer></main>{mission&&<MissionModal mission={mission} onClose={()=>setMission(null)} onLaunch={()=>{setActiveMission(mission);setMission(null)}}/>}{quiz&&<QuizModal drill={quiz} onClose={()=>setQuiz(null)} onComplete={completeQuiz}/>} {toast&&<Toast message={toast}/>}</div>
+  return <div className="app-shell"><Sidebar page={page} setPage={p=>{setPage(p);setModule(null)}} collapsed={navigationCollapsed} setCollapsed={setCollapsed} profile={operator}/><main><Topbar title={title} profile={operator}/>{current}<footer className="app-footer"><span>DAEMONCORE ACADEMY // MASTERY SYSTEM</span><span><i/> LICENSED LOCAL-FIRST PLATFORM</span><span>{licensing.license.tierLabel?.toUpperCase()||'COMMERCIAL CORE READY'}</span></footer></main>{mission&&<MissionModal mission={mission} onClose={()=>setMission(null)} onLaunch={()=>{setActiveMission(mission);setMission(null)}}/>}{quiz&&<QuizModal drill={quiz} onClose={()=>setQuiz(null)} onComplete={completeQuiz}/>} {toast&&<Toast message={toast}/>}</div>
 }

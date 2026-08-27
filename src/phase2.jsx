@@ -53,6 +53,7 @@ const achievements = [
   { id: 'evidence-led', title: 'Evidence Led', desc: 'Complete a mission without using a hint.', icon: Search },
   { id: 'clean-sweep', title: 'Clean Sweep', desc: 'Earn full accuracy on a knowledge drill.', icon: Target },
   { id: 'scholar', title: 'Field Scholar', desc: 'Complete your first tactical lesson.', icon: BookOpen },
+  { id: 'decision-forged', title: 'Decision Forged', desc: 'Pass a principal practicum capstone.', icon: Award },
   { id: 'range-veteran', title: 'Range Veteran', desc: 'Complete every available lab mission.', icon: Trophy },
   { id: 'night-operator', title: 'Night Operator', desc: 'Maintain a 14-day training streak.', icon: Flame },
 ]

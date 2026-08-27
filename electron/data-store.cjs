@@ -3,7 +3,7 @@ const { randomUUID } = require('crypto')
 const path = require('path')
 
 const cleanState = () => ({
-  schemaVersion: 1,
+  schemaVersion: 2,
   profile: {
     handle: null,
     xp: 0,
@@ -19,6 +19,7 @@ const cleanState = () => ({
     lessonAttempts: [],
     missionAttempts: [],
     drillAttempts: [],
+    capstoneAttempts: [],
     achievements: [],
     activity: [],
     createdAt: null,
@@ -65,7 +66,7 @@ class DataStore {
     if (!input || typeof input !== 'object') return base
     return {
       ...base,
-      schemaVersion: 1,
+      schemaVersion: 2,
       profile: { ...base.profile, ...(input.profile || {}) },
       settings: { ...base.settings, ...(input.settings || {}) },
     }
@@ -119,11 +120,12 @@ class DataStore {
 
   async record(event) {
     if (!this.state.profile.handle) throw new Error('Complete onboarding first')
-    if (!event || !['mission', 'lesson', 'drill'].includes(event.type)) throw new Error('Unknown progress event')
+    if (!event || !['mission', 'lesson', 'drill', 'capstone'].includes(event.type)) throw new Error('Unknown progress event')
     this.touchActivity()
     if (event.type === 'mission') this.recordMission(event)
     if (event.type === 'lesson') this.recordLesson(event)
     if (event.type === 'drill') this.recordDrill(event)
+    if (event.type === 'capstone') this.recordCapstone(event)
     await this.persist()
     return this.snapshot()
   }
@@ -167,6 +169,20 @@ class DataStore {
     this.addXp(earned)
     if (correct === total) this.unlock('clean-sweep')
     this.addActivity('drill', event.title || 'Daily gauntlet', earned, `${correct}/${total} correct`)
+  }
+
+  recordCapstone(event) {
+    if (!/^[a-z0-9-]{2,40}$/.test(event.id || '')) throw new Error('Invalid capstone id')
+    const score = Math.max(0, Math.min(100, Math.round(Number(event.score) || 0)))
+    const passed = score >= 80
+    const domainScores = Object.fromEntries(Object.entries(event.domainScores || {}).filter(([id, value]) => /^[a-z-]{2,30}$/.test(id) && Number.isFinite(Number(value))).map(([id, value]) => [id, Math.max(0, Math.min(100, Math.round(Number(value))))]))
+    const decisions = Array.isArray(event.decisions) ? event.decisions.slice(0, 12).map(value => Math.max(0, Math.min(8, Math.round(Number(value) || 0)))) : []
+    this.state.profile.capstoneAttempts.unshift({ id: randomUUID(), capstoneId: event.id, score, passed, domainScores, decisions, at: new Date().toISOString() })
+    this.state.profile.capstoneAttempts = this.state.profile.capstoneAttempts.slice(0, 100)
+    const earned = passed ? 750 : 0
+    this.addXp(earned)
+    if (passed) this.unlock('decision-forged')
+    this.addActivity('capstone', event.title || event.id, earned, `${score}% verified mastery // ${passed ? 'standard met' : 'remediation assigned'}`)
   }
 
   async updateSettings(next) {

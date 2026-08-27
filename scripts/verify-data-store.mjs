@@ -31,9 +31,15 @@ try {
   assert.ok(state.profile.achievements.includes('clean-sweep'))
   assert.ok(state.profile.achievements.includes('evidence-led'))
 
+  state = await store.record({ type: 'capstone', id: 'night-glass', title: 'Night Glass', score: 80, domainScores: { identity: 100, evidence: 80 }, decisions: [1, 2, 1, 0, 2] })
+  assert.equal(state.profile.xp, 1720)
+  assert.equal(state.profile.capstoneAttempts[0].passed, true)
+  assert.equal(state.profile.capstoneAttempts[0].domainScores.identity, 100)
+  assert.ok(state.profile.achievements.includes('decision-forged'))
+
   const reloaded = new DataStore(directory)
   state = await reloaded.initialize()
-  assert.equal(state.profile.xp, 970)
+  assert.equal(state.profile.xp, 1720)
   assert.equal(state.profile.drillAttempts.length, 1)
   assert.equal(state.profile.missionAttempts.length, 1)
 
@@ -45,10 +51,10 @@ try {
   const recovered = new DataStore(directory)
   state = await recovered.initialize()
   assert.equal(state.profile.handle, 'NIGHT_SHIFT')
-  assert.equal(state.profile.xp, 970)
+  assert.equal(state.profile.xp, 1720)
 
   const persisted = JSON.parse(await readFile(recovered.file, 'utf8'))
-  assert.equal(persisted.schemaVersion, 1)
+  assert.equal(persisted.schemaVersion, 2)
   console.log('Operator record verified // atomic write, reload, and backup recovery')
 } finally {
   await rm(directory, { recursive: true, force: true })

@@ -6,7 +6,14 @@ DaemonCore is the course I wanted instead: learn the mental model, validate it, 
 
 Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 
-## What ships in 2.0
+## What ships in 2.1
+
+### Mastery System // 2.1
+
+- **Three principal capstones** — Night Glass, Broken Orbit, and Red Ledger turn synthetic enterprise, cloud, application, identity, host, and reporting evidence into fifteen scored professional decisions.
+- **Evidence-derived mastery grid** — six domain scores combine practical lesson work and capstone decisions without invented rankings or cohort data.
+- **Adaptive remediation** — the local operator record identifies the weakest measured domains and routes the operator directly to the most relevant lesson.
+- **Persistent decision ledger** — passed and failed capstone attempts retain domain scores and decision trails for honest progress history.
 
 - **Full-Spectrum Security Assessment** — twenty-eight practical lessons and twenty-four hours of guided work spanning scope, recon, Windows and Linux attack surfaces, web, sessions, authorization, injection, APIs, enterprise identity, cloud, containers, supply chain, secrets, validation, evidence, cleanup, and retesting.
 - **Advanced operator sequence** — eight hour-long deep dives covering Linux privilege graphs, Windows service control, Active Directory paths, Kerberos trust, segmentation and pivot analysis, SSRF, OAuth/OIDC, and CI/CD provenance.
