@@ -7,6 +7,7 @@ const net = require('net')
 const path = require('path')
 const tls = require('tls')
 const { createHash, randomUUID } = require('crypto')
+const { ToolBridge } = require('./tool-bridge.cjs')
 
 const cleanState = () => ({ schemaVersion: 4, engagements: [], chaosRuns: [], captures: [], findings: [], audit: [] })
 const clone = value => JSON.parse(JSON.stringify(value))
@@ -59,6 +60,7 @@ class EngagementStore {
     this.lookup=options.lookup||lookup
     this.dns=options.dns||dnsPromises
     this.pause=options.pause||pause
+    this.toolBridge=options.toolBridge||new ToolBridge()
     this.lastRunAt=0
     this.running=false
     this.chaosAbort=new Set()
@@ -127,10 +129,10 @@ class EngagementStore {
     try{
       engagement=this.getActive(input?.engagementId);target=normalizeTarget(input?.target);type=String(input?.type||'')
       if(!engagement.targets.includes(target))throw new Error('Target is outside the signed engagement allowlist')
-      const targetOnly=['dns','dns-profile','ports','surface'].includes(type)
+      const targetOnly=['dns','dns-profile','ports','surface','deep-inventory'].includes(type)
       port=targetOnly?null:Number(input?.port||({http:80,'http-posture':443,baseline:443,tls:443,'service-profile':443,'web-map':443}[type]))
       if(!targetOnly&&!engagement.ports.includes(port))throw new Error('Port is outside the engagement allowlist')
-      if(!['dns','dns-profile','tcp','ports','surface','http','http-posture','baseline','tls','service-profile','web-map'].includes(type))throw new Error('Unsupported diagnostic')
+      if(!['dns','dns-profile','tcp','ports','surface','deep-inventory','http','http-posture','baseline','tls','service-profile','web-map'].includes(type))throw new Error('Unsupported diagnostic')
       requestPath=['http','http-posture','baseline','web-map'].includes(type)?normalizeHttpPath(input?.path):null
       if(type==='surface'){
         previousSurface=this.state.captures.find(item=>item.engagementId===engagement.id&&item.target===target&&item.type==='surface')
@@ -143,6 +145,7 @@ class EngagementStore {
       if(type==='tcp')result=await this.tcp(addresses[0].address,port)
       if(type==='ports')result=await this.portSurvey(addresses[0].address,engagement.ports)
       if(type==='surface')result=await this.surfaceBaseline(target,addresses[0].address,engagement,addresses)
+      if(type==='deep-inventory')result=await this.deepInventory(target,addresses[0].address,engagement)
       if(type==='http')result=await this.head(target,addresses[0].address,port,Boolean(input?.tls),requestPath)
       if(type==='http-posture')result=await this.httpPosture(target,addresses[0].address,port,Boolean(input?.tls),requestPath)
       if(type==='baseline')result=await this.baseline(target,addresses[0].address,port,Boolean(input?.tls),requestPath)
@@ -189,6 +192,14 @@ class EngagementStore {
   }
 
   async portSurvey(address,ports){const observations=[];for(let index=0;index<ports.length;index+=4){const batch=ports.slice(index,index+4),results=await Promise.all(batch.map(async port=>{const started=Date.now();try{const result=await this.tcp(address,port,1500);return{port,state:'open',latencyMs:result.latencyMs}}catch(error){return{port,state:error.message.includes('timed out')?'filtered-or-unresponsive':'closed-or-rejected',latencyMs:Date.now()-started}}}));observations.push(...results);if(index+4<ports.length)await this.pause(100)}return{tested:observations.length,hardCap:128,concurrency:4,observations}}
+
+  async deepInventory(target,address,engagement){
+    try{return await this.toolBridge.inventory({target,address,ports:engagement.ports})}catch(toolError){
+      const survey=await this.portSurvey(address,engagement.ports),open=survey.observations.filter(item=>item.state==='open'),services=[]
+      for(let index=0;index<open.length;index+=4){const batch=open.slice(index,index+4),profiles=await Promise.all(batch.map(async item=>{const secure=[443,465,636,993,995,2376,8443,9443].includes(item.port);try{return{port:item.port,state:item.state,...await this.serviceProfile(target,address,item.port,secure)}}catch(error){return{port:item.port,state:item.state,error:error.message}}}));services.push(...profiles)}
+      return{engine:'daemoncore-native',engineVersion:'built-in passive profiler',profile:'authorized-service-inventory',adapterNotice:toolError.message,host:{address,state:open.length?'up':'no-open-services-observed'},portSurvey:survey,ports:services,summary:{tested:survey.tested,open:open.length,profiled:services.length},hardCaps:{ports:128,portConcurrency:4,profileConcurrency:4,bannerBytesPerService:2048,redirects:0}}
+    }
+  }
 
   async optionalDns(method,...args){try{return await this.dns[method](...args)}catch(error){if(['ENODATA','ENOTFOUND','ESERVFAIL','EREFUSED','ETIMEOUT'].includes(error.code))return[];throw error}}
 

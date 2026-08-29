@@ -28,6 +28,7 @@ Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 
 ### FieldOps Workbench // next
 
+- **Deep Service Inventory** — sends the pinned authorized address and declared TCP allowlist through a shell-free Nmap bridge for full service/version, confidence, product, CPE, state, and reason evidence. It prefers a local Nmap install, can use Docker Desktop with a pinned image, and falls back to the built-in passive profiler.
 - **Surface Intelligence** — one authorized target baseline combines pinned boundary-aware resolution, bounded DNS records, the declared port allowlist, and posture evidence from up to eight observed web services.
 - **Change Intelligence** — repeat baselines compare resolved addresses, exposed ports, DNS control-plane records, HTTP posture, response behavior, server disclosure, and TLS certificate identity against the prior sealed capture.
 - **Service Profile** — one authorized port can be resolved into passive server-first banner evidence, protocol identity, HTTP posture, and TLS certificate context without sending credentials or protocol commands.
@@ -118,6 +119,8 @@ There are no locked “coming soon” course cards pretending to be content. Fie
 A paid license unlocks the tool. It does not authorize a target.
 
 Before a diagnostic or Chaos Engine experiment can run, the operator must create an engagement with a client, authorization reference, external or internal network mode, exact targets, exact TCP ports, a testing window, and an explicit authorization attestation. FieldOps resolves and pins the destination, rejects addresses outside the selected boundary, blocks loopback, link-local, multicast, reserved, and mixed-boundary results, refuses redirects, and writes every completed or blocked action to the evidence ledger. Port surveys are limited to the declared allowlist, 128 ports, and four concurrent connection attempts. Basic resilience sampling remains fixed at ten HEAD requests, concurrency one, with at least 500 milliseconds between requests.
+
+Deep Service Inventory never passes hostnames, free-form flags, or shell text to its external engine. Nmap receives one already-resolved IP address and the engagement's normalized port list through a direct process invocation. The Docker adapter uses the pinned `instrumentisto/nmap:7.98-r2` image; Docker may download that image on the first run. Nmap XML is normalized into the same digest-sealed capture format as native FieldOps evidence.
 
 Completed diagnostics are retained as digest-sealed captures in the engagement evidence vault. An operator can promote a capture into a reviewed finding, record severity, impact and remediation, change its disposition, and attach a later capture as a formal retest. A closure verdict never overwrites the original evidence. The JSON case file preserves the complete machine-readable record, while the standalone HTML report gives the client a clean finding register that can be printed to PDF.
 

@@ -11,7 +11,8 @@ const current=new Date('2026-08-29T15:00:00Z')
 
 try{
   const dns={resolveMx:async()=>[{priority:10,exchange:'mail.example.com'}],resolveNs:async()=>['ns1.example.com'],resolveTxt:async()=>[['v=spf1 ','-all']],resolveCaa:async()=>[{critical:0,issue:'ca.example'}],resolveSoa:async()=>({nsname:'ns1.example.com',hostmaster:'hostmaster.example.com',serial:42})}
-  const store=new EngagementStore(directory,{entitlement:()=>({fieldOps:true}),now:()=>current,lookup:async()=>[{address:'93.184.216.34',family:4}],dns})
+  const toolBridge={inventory:async({address,ports})=>({engine:'native-nmap',host:{address,state:'up'},ports:[{port:22,state:'open',service:'ssh',product:'OpenSSH',version:'9.8',confidence:10,cpe:['cpe:/a:openbsd:openssh:9.8']}],summary:{tested:ports.length,open:1}})}
+  const store=new EngagementStore(directory,{entitlement:()=>({fieldOps:true}),now:()=>current,lookup:async()=>[{address:'93.184.216.34',family:4}],dns,toolBridge})
   await store.initialize()
   let state=await store.create({name:'External assurance review',client:'Example Corp',authorizationReference:'SOW-2026-88',targets:'example.com',ports:'22,443',validFrom:'2026-08-29T14:00:00Z',validUntil:'2026-08-30T14:00:00Z',attested:true})
   const engagementId=state.engagements[0].id
@@ -65,6 +66,18 @@ try{
   assert.equal(mapped.result.observations[0].present,true)
   assert.deepEqual(mapped.result.hardCaps,{requests:8,concurrency:1,minimumIntervalMs:250,redirects:0,responseBodyBytes:0})
   store.lastRunAt=0
+  const inventory=await store.run({engagementId,type:'deep-inventory',target:'example.com'})
+  assert.equal(inventory.result.engine,'native-nmap')
+  assert.equal(inventory.result.ports[0].product,'OpenSSH')
+  assert.deepEqual(inventory.addresses,['93.184.216.34'])
+  const fallbackStore=new EngagementStore(directory,{toolBridge:{inventory:async()=>{throw new Error('engine unavailable')}},pause:async()=>{}})
+  fallbackStore.portSurvey=async()=>({tested:2,hardCap:128,concurrency:4,observations:[{port:22,state:'open'},{port:443,state:'closed-or-rejected'}]})
+  fallbackStore.serviceProfile=async()=>({identity:{service:'ssh',confidence:'observed'},transport:{banner:'SSH-2.0-Test'}})
+  const fallback=await fallbackStore.deepInventory('example.com','93.184.216.34',{ports:[22,443]})
+  assert.equal(fallback.engine,'daemoncore-native')
+  assert.equal(fallback.summary.profiled,1)
+  assert.match(fallback.adapterNotice,/engine unavailable/)
+  store.lastRunAt=0
   await assert.rejects(()=>store.run({engagementId,type:'service-profile',target:'example.com',port:444,tls:true}),/Port is outside the engagement allowlist/)
   state=await store.createFinding({engagementId,captureId:first.id,title:'Public DNS resolves to an unexpected provider',severity:'medium',description:'The authorized hostname resolved to an address outside the owner-approved hosting inventory.',impact:'Traffic may terminate in an environment that is not covered by the expected control set.',remediation:'Confirm ownership, correct the record, and repeat the same DNS capture.'})
   const finding=state.findings[0]
@@ -87,6 +100,6 @@ try{
   await assert.rejects(()=>tampered.createFinding({engagementId,captureId:second.id,title:'Tampered capture must not promote',severity:'high',description:'This altered capture must fail integrity verification before promotion.'}),/integrity verification failed/)
   const persisted=JSON.parse(await readFile(path.join(directory,'fieldops-engagements.json'),'utf8'))
   assert.equal(persisted.findings.length,1)
-  assert.equal(persisted.captures.length,6)
-  console.log('FieldOps workspace verified // service profiles, web maps, drift detection, sealed captures, findings, retests, and persistence')
+  assert.equal(persisted.captures.length,7)
+  console.log('FieldOps workspace verified // deep service inventory, web maps, drift detection, sealed captures, findings, retests, and persistence')
 }finally{await rm(directory,{recursive:true,force:true})}
