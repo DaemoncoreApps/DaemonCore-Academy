@@ -1,0 +1,36 @@
+.diagnostic-result > .diagnostic-evidence {
+  min-width: 0;
+  padding: 0;
+  border-right: 0;
+}
+
+.diagnostic-overview {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-bottom: 1px solid #292c31;
+}
+
+.diagnostic-overview > div {
+  padding: 10px 12px;
+  border-right: 1px solid #292c31;
+}
+
+.diagnostic-overview > div:last-child {
+  border-right: 0;
+}
+
+.diagnostic-overview span,
+.diagnostic-overview strong {
+  display: block;
+  font: 600 6px var(--mono);
+}
+
+.diagnostic-overview span {
+  color: #5d626b;
+}
+
+.diagnostic-overview strong {
+  margin-top: 5px;
+  color: #e6e8eb;
+  font-size: 10px;
+}

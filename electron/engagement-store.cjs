@@ -40,6 +40,8 @@ function normalizeHttpPath(value) {
 const pause=milliseconds=>new Promise(resolve=>setTimeout(resolve,milliseconds))
 const stableValues=values=>[...new Set((values||[]).map(value=>String(value)))].sort()
 const delta=(before,after)=>({added:after.filter(value=>!before.includes(value)),removed:before.filter(value=>!after.includes(value))})
+const webPorts=new Set([80,443,3000,5000,8000,8080,8081,8443,8888,9443])
+const serviceByPort={21:'ftp',22:'ssh',25:'smtp',53:'dns',80:'http',110:'pop3',143:'imap',389:'ldap',443:'https',445:'smb',465:'smtps',587:'smtp-submission',636:'ldaps',993:'imaps',995:'pop3s',1433:'mssql',1521:'oracle',2049:'nfs',2375:'docker',2376:'docker-tls',3000:'http-alt',3306:'mysql',3389:'rdp',5000:'http-alt',5432:'postgresql',5672:'amqp',6379:'redis',8000:'http-alt',8080:'http-alt',8081:'http-alt',8443:'https-alt',8888:'http-alt',9200:'elasticsearch',9443:'https-alt',27017:'mongodb'}
 
 class EngagementStore {
   constructor(directory, options={}) {
@@ -110,10 +112,10 @@ class EngagementStore {
       engagement=this.getActive(input?.engagementId);target=normalizeTarget(input?.target);type=String(input?.type||'')
       if(!engagement.targets.includes(target))throw new Error('Target is outside the signed engagement allowlist')
       const targetOnly=['dns','dns-profile','ports','surface'].includes(type)
-      port=targetOnly?null:Number(input?.port||({http:80,'http-posture':443,baseline:443,tls:443}[type]))
+      port=targetOnly?null:Number(input?.port||({http:80,'http-posture':443,baseline:443,tls:443,'service-profile':443,'web-map':443}[type]))
       if(!targetOnly&&!engagement.ports.includes(port))throw new Error('Port is outside the engagement allowlist')
-      if(!['dns','dns-profile','tcp','ports','surface','http','http-posture','baseline','tls'].includes(type))throw new Error('Unsupported diagnostic')
-      requestPath=['http','http-posture','baseline'].includes(type)?normalizeHttpPath(input?.path):null
+      if(!['dns','dns-profile','tcp','ports','surface','http','http-posture','baseline','tls','service-profile','web-map'].includes(type))throw new Error('Unsupported diagnostic')
+      requestPath=['http','http-posture','baseline','web-map'].includes(type)?normalizeHttpPath(input?.path):null
       if(type==='surface'){
         previousSurface=this.state.captures.find(item=>item.engagementId===engagement.id&&item.target===target&&item.type==='surface')
         if(previousSurface&&previousSurface.digest!==captureDigest(previousSurface))throw new Error('Previous surface baseline failed integrity verification')
@@ -129,6 +131,8 @@ class EngagementStore {
       if(type==='http-posture')result=await this.httpPosture(target,addresses[0].address,port,Boolean(input?.tls),requestPath)
       if(type==='baseline')result=await this.baseline(target,addresses[0].address,port,Boolean(input?.tls),requestPath)
       if(type==='tls')result=await this.certificate(target,addresses[0].address,port)
+      if(type==='service-profile')result=await this.serviceProfile(target,addresses[0].address,port,Boolean(input?.tls))
+      if(type==='web-map')result=await this.webMap(target,addresses[0].address,port,Boolean(input?.tls),requestPath)
       const output={id:randomUUID(),engagementId:engagement.id,type,target,port:targetOnly?null:port,path:requestPath,addresses:addresses.map(item=>item.address),durationMs:Date.now()-started,result,at:this.now().toISOString()}
       if(type==='surface')output.result.comparison=this.compareSurface(previousSurface,output)
       output.digest=captureDigest(output)
@@ -138,6 +142,35 @@ class EngagementStore {
   }
 
   tcp(address,port,timeoutMs=5000){return new Promise((resolve,reject)=>{const started=Date.now(),socket=net.createConnection({host:address,port});socket.setTimeout(timeoutMs);socket.once('connect',()=>{const latencyMs=Date.now()-started;socket.destroy();resolve({connected:true,latencyMs})});socket.once('timeout',()=>{socket.destroy();reject(new Error('TCP connection timed out'))});socket.once('error',error=>reject(new Error(`TCP connection failed: ${error.code||error.message}`)))})}
+
+  readBanner(address,port,timeoutMs=1500,maxBytes=2048){return new Promise((resolve,reject)=>{const started=Date.now(),chunks=[];let connected=false,connectLatencyMs=null,bytes=0,settled=false,deadline;const socket=net.createConnection({host:address,port}),finish=()=>{if(settled)return;settled=true;clearTimeout(deadline);socket.destroy();const banner=Buffer.concat(chunks).toString('utf8').replace(/[^\x20-\x7e\r\n\t]/g,'.').slice(0,maxBytes);resolve({connected:true,connectLatencyMs,banner,bannerBytes:Buffer.byteLength(banner),receivedBytes:bytes,truncated:bytes>maxBytes})},fail=error=>{if(settled)return;settled=true;clearTimeout(deadline);socket.destroy();reject(error)};socket.once('connect',()=>{connected=true;connectLatencyMs=Date.now()-started});socket.on('data',chunk=>{const remaining=maxBytes-chunks.reduce((sum,item)=>sum+item.length,0);if(remaining>0)chunks.push(chunk.subarray(0,remaining));bytes+=chunk.length;if(bytes>=maxBytes)finish()});socket.once('end',finish);socket.once('close',()=>{if(connected)finish()});socket.once('error',error=>connected?finish():fail(new Error(`TCP connection failed: ${error.code||error.message}`)));deadline=setTimeout(()=>connected?finish():fail(new Error('TCP connection timed out')),timeoutMs)})}
+
+  identifyService(port,banner,httpEvidence,tlsEvidence){
+    let service=serviceByPort[port]||'unknown',signal='port convention'
+    if(/^SSH-/i.test(banner)){service='ssh';signal='server banner'}
+    else if(/^220[ -].*\b(?:smtp|esmtp)\b/im.test(banner)){service='smtp';signal='server banner'}
+    else if(/^220[ -].*\bftp\b/im.test(banner)){service='ftp';signal='server banner'}
+    else if(/^\+OK/im.test(banner)){service='pop3';signal='server banner'}
+    else if(/^\*\s+OK/im.test(banner)){service='imap';signal='server banner'}
+    if(httpEvidence){service=tlsEvidence?'https':'http';signal='HTTP response'}
+    else if(tlsEvidence){service=service==='unknown'?'tls':service;signal='TLS handshake'}
+    return{service,confidence:signal==='port convention'?'inferred':'observed',signal}
+  }
+
+  async serviceProfile(target,address,port,secure){
+    const transport=await this.readBanner(address,port),profile={transport,http:null,tls:null}
+    if(webPorts.has(port)){try{profile.http=await this.httpPosture(target,address,port,secure,'/')}catch(error){profile.http={error:error.message}}}
+    if(secure){try{profile.tls=await this.certificate(target,address,port)}catch(error){profile.tls={error:error.message}}}
+    profile.identity=this.identifyService(port,transport.banner,profile.http&&!profile.http.error,profile.tls&&!profile.tls.error)
+    profile.hardCaps={connections:1+(webPorts.has(port)?1:0)+(secure?1:0),bannerBytes:2048,httpRequests:webPorts.has(port)?1:0,tlsHandshakes:secure?1:0,redirects:0}
+    return profile
+  }
+
+  async webMap(target,address,port,secure,basePath='/'){
+    const candidates=[basePath,'/.well-known/security.txt','/robots.txt','/sitemap.xml','/health','/status','/api','/openapi.json'].map(normalizeHttpPath),paths=[...new Set(candidates)].slice(0,8),observations=[]
+    for(const requestPath of paths){const started=Date.now();try{const response=await this.head(target,address,port,secure,requestPath);observations.push({path:requestPath,statusCode:response.statusCode,durationMs:Date.now()-started,present:response.statusCode!==404&&response.statusCode<500,contentType:response.headers['content-type']||null,contentLength:response.headers['content-length']||null})}catch(error){observations.push({path:requestPath,error:error.message,durationMs:Date.now()-started,present:false})}if(requestPath!==paths.at(-1))await this.pause(250)}
+    return{mode:'bounded-head-map',requestCount:observations.length,present:observations.filter(item=>item.present).length,observations,hardCaps:{requests:8,concurrency:1,minimumIntervalMs:250,redirects:0,responseBodyBytes:0}}
+  }
 
   async portSurvey(address,ports){const observations=[];for(const port of ports){const started=Date.now();try{const result=await this.tcp(address,port,1500);observations.push({port,state:'open',latencyMs:result.latencyMs})}catch(error){observations.push({port,state:error.message.includes('timed out')?'filtered-or-unresponsive':'closed-or-rejected',latencyMs:Date.now()-started})}await this.pause(100)}return{tested:observations.length,hardCap:30,observations}}
 

@@ -13,7 +13,7 @@ try{
   const dns={resolveMx:async()=>[{priority:10,exchange:'mail.example.com'}],resolveNs:async()=>['ns1.example.com'],resolveTxt:async()=>[['v=spf1 ','-all']],resolveCaa:async()=>[{critical:0,issue:'ca.example'}],resolveSoa:async()=>({nsname:'ns1.example.com',hostmaster:'hostmaster.example.com',serial:42})}
   const store=new EngagementStore(directory,{entitlement:()=>({fieldOps:true}),now:()=>current,lookup:async()=>[{address:'93.184.216.34',family:4}],dns})
   await store.initialize()
-  let state=await store.create({name:'External assurance review',client:'Example Corp',authorizationReference:'SOW-2026-88',targets:'example.com',ports:'443',validFrom:'2026-08-29T14:00:00Z',validUntil:'2026-08-30T14:00:00Z',attested:true})
+  let state=await store.create({name:'External assurance review',client:'Example Corp',authorizationReference:'SOW-2026-88',targets:'example.com',ports:'22,443',validFrom:'2026-08-29T14:00:00Z',validUntil:'2026-08-30T14:00:00Z',attested:true})
   const engagementId=state.engagements[0].id
   const first=await store.run({engagementId,type:'dns',target:'example.com'})
   state=store.snapshot()
@@ -50,6 +50,21 @@ try{
   store.lastRunAt=0
   await assert.rejects(()=>store.run({engagementId,type:'surface',target:'example.com'}),/Previous surface baseline failed integrity verification/)
   storedChanged.result.summary.openPorts.pop()
+  store.readBanner=async()=>({connected:true,connectLatencyMs:14,banner:'',bannerBytes:0,receivedBytes:0,truncated:false})
+  store.lastRunAt=0
+  const service=await store.run({engagementId,type:'service-profile',target:'example.com',port:443,tls:true})
+  assert.deepEqual(service.result.identity,{service:'https',confidence:'observed',signal:'HTTP response'})
+  assert.equal(service.result.tls.protocol,'TLSv1.3')
+  assert.deepEqual(store.identifyService(22,'SSH-2.0-OpenSSH_9.8',null,null),{service:'ssh',confidence:'observed',signal:'server banner'})
+  store.head=async(_target,_address,_port,_secure,requestPath)=>({statusCode:requestPath==='/admin'?403:requestPath==='/missing'?404:200,headers:{'content-type':'text/plain','content-length':'12'}})
+  store.lastRunAt=0
+  const mapped=await store.run({engagementId,type:'web-map',target:'example.com',port:443,path:'/admin',tls:true})
+  assert.equal(mapped.result.requestCount,8)
+  assert.equal(mapped.result.observations[0].statusCode,403)
+  assert.equal(mapped.result.observations[0].present,true)
+  assert.deepEqual(mapped.result.hardCaps,{requests:8,concurrency:1,minimumIntervalMs:250,redirects:0,responseBodyBytes:0})
+  store.lastRunAt=0
+  await assert.rejects(()=>store.run({engagementId,type:'service-profile',target:'example.com',port:444,tls:true}),/Port is outside the engagement allowlist/)
   state=await store.createFinding({engagementId,captureId:first.id,title:'Public DNS resolves to an unexpected provider',severity:'medium',description:'The authorized hostname resolved to an address outside the owner-approved hosting inventory.',impact:'Traffic may terminate in an environment that is not covered by the expected control set.',remediation:'Confirm ownership, correct the record, and repeat the same DNS capture.'})
   const finding=state.findings[0]
   assert.equal(finding.status,'open')
@@ -71,6 +86,6 @@ try{
   await assert.rejects(()=>tampered.createFinding({engagementId,captureId:second.id,title:'Tampered capture must not promote',severity:'high',description:'This altered capture must fail integrity verification before promotion.'}),/integrity verification failed/)
   const persisted=JSON.parse(await readFile(path.join(directory,'fieldops-engagements.json'),'utf8'))
   assert.equal(persisted.findings.length,1)
-  assert.equal(persisted.captures.length,4)
-  console.log('FieldOps workspace verified // surface intelligence, drift detection, sealed captures, findings, retests, and persistence')
+  assert.equal(persisted.captures.length,6)
+  console.log('FieldOps workspace verified // service profiles, web maps, drift detection, sealed captures, findings, retests, and persistence')
 }finally{await rm(directory,{recursive:true,force:true})}
