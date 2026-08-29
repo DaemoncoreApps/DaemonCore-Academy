@@ -148,7 +148,7 @@ Requirements:
 - Docker Desktop with Linux containers for the live range
 
 ```powershell
-git clone https://github.com/gtited-jpg/DaemonCore-Academy.git
+git clone https://github.com/DaemoncoreApps/DaemonCore-Academy.git
 cd DaemonCore-Academy
 npm install
 npm run dev
@@ -172,6 +172,8 @@ npm run package:win
 ```
 
 The installer lands in `release/`.
+
+The Windows installer uses one stable application identity and one installation path. When DaemonCore is already installed, setup asks before removing the previous program files and applying the update. Operator records, course progress, FieldOps case files, and license data are retained through the upgrade. Old installer files already sitting in Downloads are not deleted automatically.
 
 ## Project map
 

@@ -29,9 +29,10 @@
     "check:phase14": "node scripts/verify-phase14.mjs",
     "check:phase15": "node scripts/verify-phase15.mjs",
     "check:fieldops": "node scripts/verify-fieldops-workspace.mjs",
+    "check:installer": "node scripts/verify-installer.mjs",
     "certify:identity": "node scripts/certify-identity-range.mjs",
     "check:range": "node scripts/verify-range.mjs",
-    "test": "npm run check && npm run check:data && npm run check:phase4 && npm run check:phase5 && npm run check:phase6 && npm run check:phase7 && npm run check:phase8 && npm run check:phase11 && npm run check:phase12 && npm run check:phase13 && npm run check:phase14 && npm run check:phase15 && npm run check:fieldops && npm run check:range && npm run build"
+    "test": "npm run check && npm run check:data && npm run check:phase4 && npm run check:phase5 && npm run check:phase6 && npm run check:phase7 && npm run check:phase8 && npm run check:phase11 && npm run check:phase12 && npm run check:phase13 && npm run check:phase14 && npm run check:phase15 && npm run check:fieldops && npm run check:installer && npm run check:range && npm run build"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
@@ -79,8 +80,10 @@
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": true,
+      "uninstallDisplayName": "DaemonCore Academy",
+      "include": "build/installer.nsh"
     }
   }
 }
