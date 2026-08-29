@@ -9,7 +9,7 @@ const tls = require('tls')
 const { createHash, randomUUID } = require('crypto')
 const { ToolBridge } = require('./tool-bridge.cjs')
 
-const cleanState = () => ({ schemaVersion: 4, engagements: [], chaosRuns: [], captures: [], findings: [], audit: [] })
+const cleanState = () => ({ schemaVersion: 5, engagements: [], campaigns: [], chaosRuns: [], captures: [], findings: [], audit: [] })
 const clone = value => JSON.parse(JSON.stringify(value))
 const captureDigest = capture => { const { digest: _digest, ...unsigned }=capture;return createHash('sha256').update(JSON.stringify(unsigned)).digest('hex') }
 const hostnamePattern = /^(?=.{1,253}$)(?!-)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)*[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/
@@ -49,6 +49,8 @@ const stableValues=values=>[...new Set((values||[]).map(value=>String(value)))].
 const delta=(before,after)=>({added:after.filter(value=>!before.includes(value)),removed:before.filter(value=>!after.includes(value))})
 const webPorts=new Set([80,443,3000,5000,8000,8080,8081,8443,8888,9443])
 const serviceByPort={21:'ftp',22:'ssh',25:'smtp',53:'dns',80:'http',110:'pop3',143:'imap',389:'ldap',443:'https',445:'smb',465:'smtps',587:'smtp-submission',636:'ldaps',993:'imaps',995:'pop3s',1433:'mssql',1521:'oracle',2049:'nfs',2375:'docker',2376:'docker-tls',3000:'http-alt',3306:'mysql',3389:'rdp',5000:'http-alt',5432:'postgresql',5672:'amqp',6379:'redis',8000:'http-alt',8080:'http-alt',8081:'http-alt',8443:'https-alt',8888:'http-alt',9200:'elasticsearch',9443:'https-alt',27017:'mongodb'}
+const campaignProfiles={inventory:['deep-inventory'],surface:['dns-profile','surface'],complete:['dns-profile','deep-inventory','surface']}
+const activeCampaignStatuses=new Set(['queued','running','pause-requested','paused','cancelling'])
 
 class EngagementStore {
   constructor(directory, options={}) {
@@ -64,10 +66,12 @@ class EngagementStore {
     this.lastRunAt=0
     this.running=false
     this.chaosAbort=new Set()
+    this.campaignAbort=new Set()
+    this.campaignPause=new Set()
     this.writeQueue=Promise.resolve()
   }
 
-  async initialize(){await mkdir(this.directory,{recursive:true});try{this.state={...cleanState(),...JSON.parse(await readFile(this.file,'utf8')),schemaVersion:4};this.state.chaosRuns||=[];this.state.captures||=[];this.state.findings||=[];for(const engagement of this.state.engagements)engagement.networkMode||='external';for(const run of this.state.chaosRuns){if(['queued','running','recovering','aborting'].includes(run.status)){run.status='interrupted';run.finishedAt=this.now().toISOString();run.outcome='The desktop process ended before the experiment completed.'}}}catch{this.state=cleanState()}await this.persist();return this.snapshot()}
+  async initialize(){await mkdir(this.directory,{recursive:true});try{this.state={...cleanState(),...JSON.parse(await readFile(this.file,'utf8')),schemaVersion:5};this.state.campaigns||=[];this.state.chaosRuns||=[];this.state.captures||=[];this.state.findings||=[];for(const engagement of this.state.engagements)engagement.networkMode||='external';for(const campaign of this.state.campaigns){if(activeCampaignStatuses.has(campaign.status)){campaign.status='interrupted';campaign.finishedAt=this.now().toISOString();campaign.outcome='The desktop process ended before the campaign completed. Resume to continue pending work.';for(const task of campaign.tasks||[])if(task.status==='running')task.status='pending'}}for(const run of this.state.chaosRuns){if(['queued','running','recovering','aborting'].includes(run.status)){run.status='interrupted';run.finishedAt=this.now().toISOString();run.outcome='The desktop process ended before the experiment completed.'}}}catch{this.state=cleanState()}await this.persist();return this.snapshot()}
   snapshot(){return {...clone(this.state),auditIntegrity:this.verifyAudit(),captureIntegrity:this.verifyCaptures()}}
   assertEntitled(){if(!this.entitlement().fieldOps)throw new Error('FieldOps Pro entitlement required')}
 
@@ -95,6 +99,7 @@ class EngagementStore {
     const engagement=this.state.engagements.find(item=>item.id===id)
     if(!engagement||engagement.status!=='active')throw new Error('Active engagement not found')
     if(this.state.chaosRuns.some(item=>item.engagementId===id&&['queued','running','recovering','aborting'].includes(item.status)))throw new Error('Stop the active Chaos Engine experiment before closing its authorization boundary')
+    if(this.state.campaigns.some(item=>item.engagementId===id&&activeCampaignStatuses.has(item.status)))throw new Error('Stop the active assessment campaign before closing its authorization boundary')
     engagement.status='closed';engagement.closedAt=this.now().toISOString();this.audit(id,'engagement','closed','Authorization boundary closed by operator');await this.persist();return this.snapshot()
   }
 
@@ -120,10 +125,11 @@ class EngagementStore {
     return addresses
   }
 
-  async run(input){
+  async run(input,context={}){
     if(this.running)throw new Error('Another diagnostic is already running')
     if(this.state.chaosRuns.some(item=>['queued','running','recovering','aborting'].includes(item.status)))throw new Error('A Chaos Engine experiment is active')
-    const wait=750-(Date.now()-this.lastRunAt);if(wait>0)throw new Error('FieldOps rate limit: wait before the next diagnostic')
+    const activeCampaign=this.state.campaigns.find(item=>activeCampaignStatuses.has(item.status));if(activeCampaign&&activeCampaign.id!==context.campaignId)throw new Error('An assessment campaign is active')
+    const wait=750-(Date.now()-this.lastRunAt);if(!context.campaignId&&wait>0)throw new Error('FieldOps rate limit: wait before the next diagnostic')
     this.running=true;this.lastRunAt=Date.now()
     let engagement,target,type,port,requestPath,previousSurface
     try{
@@ -201,6 +207,54 @@ class EngagementStore {
     }
   }
 
+  campaignSummary(campaign){
+    const tasks=campaign.tasks||[],count=status=>tasks.filter(task=>task.status===status).length
+    return{total:tasks.length,pending:count('pending'),running:count('running'),completed:count('completed'),failed:count('failed'),progress:tasks.length?Math.round((count('completed')+count('failed'))/tasks.length*100):0}
+  }
+
+  launchCampaign(id){this.executeCampaign(id).catch(async error=>{const active=this.state.campaigns.find(item=>item.id===id);if(active&&activeCampaignStatuses.has(active.status)){active.status='failed';active.finishedAt=this.now().toISOString();active.outcome=error.message;active.summary=this.campaignSummary(active);this.audit(active.engagementId,'campaign','failed',error.message,{campaignId:active.id});await this.persist().catch(()=>{})}})}
+
+  async startCampaign(input){
+    const engagement=this.getActive(input?.engagementId)
+    if(this.running)throw new Error('Wait for the active diagnostic to finish')
+    if(this.state.chaosRuns.some(item=>['queued','running','recovering','aborting'].includes(item.status)))throw new Error('Stop the active Chaos Engine experiment first')
+    if(this.state.campaigns.some(item=>activeCampaignStatuses.has(item.status)))throw new Error('Another assessment campaign is active')
+    if(input?.attested!==true)throw new Error('Confirm this campaign remains inside the signed engagement')
+    const profile=String(input?.profile||'complete'),modules=campaignProfiles[profile]
+    if(!modules)throw new Error('Choose a supported campaign profile')
+    const requested=Array.isArray(input?.targets)?input.targets:engagement.targets,targets=[...new Set(requested.map(normalizeTarget))]
+    if(!targets.length||targets.length>100||targets.some(target=>!engagement.targets.includes(target)))throw new Error('Campaign targets must be inside the engagement allowlist')
+    const tasks=targets.flatMap(target=>modules.map(module=>({id:randomUUID(),target,module,status:'pending',captureId:null,startedAt:null,finishedAt:null,error:null})))
+    const now=this.now().toISOString(),campaign={id:randomUUID(),engagementId:engagement.id,name:String(input?.name||`${engagement.name} campaign`).trim().slice(0,120),profile,modules:[...modules],targets,status:'queued',tasks,summary:null,createdAt:now,startedAt:null,finishedAt:null,outcome:'Campaign queued inside the signed authorization boundary.'}
+    if(campaign.name.length<3)throw new Error('Add a campaign name')
+    campaign.summary=this.campaignSummary(campaign);this.state.campaigns.unshift(campaign);this.state.campaigns=this.state.campaigns.slice(0,200)
+    this.audit(engagement.id,'campaign','queued',`${campaign.name} // ${targets.length} targets // ${tasks.length} tasks`,{campaignId:campaign.id,profile,modules,targets});await this.persist()
+    this.launchCampaign(campaign.id)
+    return this.snapshot()
+  }
+
+  async executeCampaign(id){
+    const campaign=this.state.campaigns.find(item=>item.id===id)
+    if(!campaign)throw new Error('Assessment campaign not found')
+    campaign.status='running';campaign.startedAt||=this.now().toISOString();campaign.finishedAt=null;campaign.outcome='Assessment modules are running.';await this.persist()
+    for(const task of campaign.tasks){
+      if(!['pending','failed'].includes(task.status))continue
+      if(this.campaignAbort.has(id))break
+      while(this.campaignPause.has(id)&&!this.campaignAbort.has(id)){campaign.status='paused';campaign.outcome='Paused by the operator. Resume to continue the remaining modules.';campaign.summary=this.campaignSummary(campaign);await this.persist();await this.pause(250)}
+      if(this.campaignAbort.has(id))break
+      this.getActive(campaign.engagementId);campaign.status='running';task.status='running';task.startedAt=this.now().toISOString();task.finishedAt=null;task.error=null;campaign.summary=this.campaignSummary(campaign);await this.persist()
+      try{const capture=await this.run({engagementId:campaign.engagementId,type:task.module,target:task.target},{campaignId:id});task.status='completed';task.captureId=capture.id}
+      catch(error){task.status='failed';task.error=error.message.slice(0,500)}
+      task.finishedAt=this.now().toISOString();campaign.summary=this.campaignSummary(campaign);await this.persist()
+    }
+    const cancelled=this.campaignAbort.has(id),summary=this.campaignSummary(campaign);campaign.status=cancelled?'cancelled':summary.failed?'completed-with-errors':'completed';campaign.finishedAt=this.now().toISOString();campaign.summary=summary;campaign.outcome=cancelled?'Cancelled by the operator after the active module settled.':summary.failed?`${summary.completed} tasks completed and ${summary.failed} failed.`:`All ${summary.completed} assessment tasks completed.`
+    this.campaignAbort.delete(id);this.campaignPause.delete(id);this.audit(campaign.engagementId,'campaign',campaign.status,campaign.outcome,{campaignId:id,summary});await this.persist();return this.snapshot()
+  }
+
+  async pauseCampaign(id){const campaign=this.state.campaigns.find(item=>item.id===id);if(!campaign||!['queued','running'].includes(campaign.status))throw new Error('Running assessment campaign not found');this.campaignPause.add(id);campaign.status='pause-requested';campaign.outcome='Pause requested. The active module will finish first.';this.audit(campaign.engagementId,'campaign','pause-requested',campaign.name,{campaignId:id});await this.persist();return this.snapshot()}
+  async resumeCampaign(id){const campaign=this.state.campaigns.find(item=>item.id===id);if(!campaign||!['paused','pause-requested','interrupted','completed-with-errors'].includes(campaign.status))throw new Error('Resumable assessment campaign not found');if(this.state.campaigns.some(item=>item.id!==id&&activeCampaignStatuses.has(item.status)))throw new Error('Another assessment campaign is active');this.getActive(campaign.engagementId);const restart=['interrupted','completed-with-errors'].includes(campaign.status);this.campaignPause.delete(id);if(restart)for(const task of campaign.tasks)if(task.status==='failed')task.status='pending';campaign.status=restart?'queued':'running';campaign.outcome=restart?'Resume queued.':'Campaign resumed by the operator.';this.audit(campaign.engagementId,'campaign','resumed',campaign.name,{campaignId:id});await this.persist();if(restart)this.launchCampaign(id);return this.snapshot()}
+  async cancelCampaign(id){const campaign=this.state.campaigns.find(item=>item.id===id);if(!campaign||!activeCampaignStatuses.has(campaign.status))throw new Error('Active assessment campaign not found');this.campaignAbort.add(id);this.campaignPause.delete(id);campaign.status='cancelling';campaign.outcome='Cancellation requested. The active module will finish before shutdown.';this.audit(campaign.engagementId,'campaign','cancel-requested',campaign.name,{campaignId:id});await this.persist();return this.snapshot()}
+
   async optionalDns(method,...args){try{return await this.dns[method](...args)}catch(error){if(['ENODATA','ENOTFOUND','ESERVFAIL','EREFUSED','ETIMEOUT'].includes(error.code))return[];throw error}}
 
   async dnsProfile(target,addresses){
@@ -272,6 +326,7 @@ class EngagementStore {
     const engagement=this.getActive(input?.engagementId),target=normalizeTarget(input?.target),port=Number(input?.port),requestPath=normalizeHttpPath(input?.path),profile=String(input?.profile||'ramp')
     if(this.running)throw new Error('Wait for the active FieldOps diagnostic to finish')
     if(this.state.chaosRuns.some(item=>['queued','running','recovering','aborting'].includes(item.status)))throw new Error('Another Chaos Engine experiment is already active')
+    if(this.state.campaigns.some(item=>activeCampaignStatuses.has(item.status)))throw new Error('Stop the active assessment campaign first')
     if(!engagement.targets.includes(target))throw new Error('Target is outside the signed engagement allowlist')
     if(!engagement.ports.includes(port))throw new Error('Port is outside the engagement allowlist')
     if(!['baseline','ramp','spike','soak'].includes(profile))throw new Error('Unsupported load profile')

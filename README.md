@@ -28,6 +28,9 @@ Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 
 ### FieldOps Workbench // next
 
+- **Campaign Engine** — run durable multi-target assessment campaigns across the exact systems in a signed engagement. Complete Assessment, Service Inventory, and Change Verification profiles coordinate the existing FieldOps modules in the background.
+- **Campaign control** — live progress, per-target task state, pause, resume, safe cancellation, and desktop-restart recovery turn isolated diagnostics into a repeatable engagement workflow.
+- **Traceable campaign evidence** — every successful campaign task points to its own digest-sealed capture. Campaign status and completion totals travel with the JSON case file and the printable client report.
 - **Deep Service Inventory** — sends the pinned authorized address and declared TCP allowlist through a shell-free Nmap bridge for full service/version, confidence, product, CPE, state, and reason evidence. It prefers a local Nmap install, can use Docker Desktop with a pinned image, and falls back to the built-in passive profiler.
 - **Surface Intelligence** — one authorized target baseline combines pinned boundary-aware resolution, bounded DNS records, the declared port allowlist, and posture evidence from up to eight observed web services.
 - **Change Intelligence** — repeat baselines compare resolved addresses, exposed ports, DNS control-plane records, HTTP posture, response behavior, server disclosure, and TLS certificate identity against the prior sealed capture.
@@ -39,7 +42,7 @@ Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 - **Sealed evidence vault** — diagnostic captures retain their raw result, target, timing, resolved addresses, and an independent SHA-256 digest.
 - **Findings register** — operators can promote evidence into a finding with severity, bounded impact, remediation, and an explicit disposition.
 - **Evidence-backed retesting** — closure requires a new capture from the same engagement. The register preserves whether the condition was verified fixed or remained present.
-- **Professional exports** — the machine-readable case file now includes captures, findings, retests, Chaos runs, and the complete audit chain. A separate printable HTML report is ready for client delivery.
+- **Professional exports** — the machine-readable case file now includes campaigns, captures, findings, retests, Chaos runs, and the complete audit chain. A separate printable HTML report is ready for client delivery.
 - **One engagement workspace** — diagnostics, target history, evidence, findings, reports, and Chaos Engine runs now live behind the same signed authorization boundary.
 
 ### Trust Chain // 5.1
@@ -106,7 +109,7 @@ Remote pack delivery is the next infrastructure layer. It will require a distrib
 - **A real operator record** — XP, streaks, weekly minutes, attempts, scores, achievements, and activity are calculated from completed work.
 - **Local-first data** — atomic writes, backup recovery, JSON export, reset controls, and no account dependency.
 - **Lemon Squeezy licensing** — secure activation, instance validation, device deactivation, tier entitlements, and a fourteen-day offline grace window.
-- **FieldOps Pro** — authorization-bound diagnostics against exact external or internal targets with persistent asset observations, digest-sealed captures, reviewed findings, evidence-backed retests, and professional reports.
+- **FieldOps Pro** — authorization-bound multi-target campaigns and diagnostics against exact external or internal systems, with persistent asset observations, digest-sealed captures, reviewed findings, evidence-backed retests, and professional reports.
 - **Engagement Vault** — append-only scope records, dated testing windows, target and port allowlists, complete case-file export, and a SHA-256 chained activity ledger that exposes tampering.
 - **DaemonCore Chaos Engine** — four real black-box resilience profiles with a non-blocking native worker, live latency and error telemetry, automatic SLO aborts, emergency stop, recovery validation, resilience scoring, durable run history, and evidence export.
 - **Sealed Power Domain** — a dedicated disposable Chaos Worker can drive up to 500 requests per second, 100 concurrent workers, and 30,000 requests against the Academy black box. The worker and target have no published ports, no host mounts, no privileges, and no internet egress.
@@ -119,6 +122,8 @@ There are no locked “coming soon” course cards pretending to be content. Fie
 A paid license unlocks the tool. It does not authorize a target.
 
 Before a diagnostic or Chaos Engine experiment can run, the operator must create an engagement with a client, authorization reference, external or internal network mode, exact targets, exact TCP ports, a testing window, and an explicit authorization attestation. FieldOps resolves and pins the destination, rejects addresses outside the selected boundary, blocks loopback, link-local, multicast, reserved, and mixed-boundary results, refuses redirects, and writes every completed or blocked action to the evidence ledger. Port surveys are limited to the declared allowlist, 128 ports, and four concurrent connection attempts. Basic resilience sampling remains fixed at ten HEAD requests, concurrency one, with at least 500 milliseconds between requests.
+
+Campaign Engine applies that same boundary to the whole engagement. Operators select only allowlisted targets, choose a fixed assessment profile, and attest the campaign before launch. Work continues in the background, survives navigation, pauses between modules, resumes pending or failed tasks, and becomes recoverable after an unexpected desktop restart. Cancellation never abandons a half-written evidence record: the active module settles before the campaign closes.
 
 Deep Service Inventory never passes hostnames, free-form flags, or shell text to its external engine. Nmap receives one already-resolved IP address and the engagement's normalized port list through a direct process invocation. The Docker adapter uses the pinned `instrumentisto/nmap:7.98-r2` image; Docker may download that image on the first run. Nmap XML is normalized into the same digest-sealed capture format as native FieldOps evidence.
 
@@ -210,6 +215,7 @@ src/EnterpriseRange.jsx       multi-domain forge catalog
 src/lesson-practicals.js      workshops, commands, output, exercises, references
 src/phase2.jsx                range console, lessons, and operator record UI
 src/ChaosEngine.jsx           experiment composer + live resilience telemetry
+src/CampaignControl.jsx       durable multi-target campaign control room
 src/RangeChaosLab.jsx         sealed-range breakpoint laboratory
 scripts/verify-data-store.mjs persistence/recovery contract
 scripts/verify-phase4.mjs     licensing and scope-boundary contract
@@ -218,6 +224,7 @@ scripts/verify-phase6.mjs     practical lesson depth and artifact contract
 scripts/verify-phase7.mjs     interactive scenario and mastery-gate contract
 scripts/verify-phase8.mjs     Chaos Engine caps, abort, recovery, and audit contract
 scripts/verify-fieldops-workspace.mjs  captures, findings, retests, and persistence
+scripts/verify-campaign-engine.mjs     campaign scope, lifecycle, and recovery contract
 scripts/verify-phase13.mjs    Web curriculum + live-range quality contract
 scripts/verify-phase14.mjs    enterprise depth + containment contract
 scripts/verify-phase15.mjs    identity range + pack tamper-rejection contract

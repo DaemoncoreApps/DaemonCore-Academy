@@ -2,7 +2,7 @@ const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('daemoncore', {
   platform: process.platform,
-  version: '5.2.0',
+  version: '5.3.0',
   display: Object.freeze({
     setZoom: factor => ipcRenderer.invoke('display:set-zoom', factor),
   }),
@@ -40,6 +40,10 @@ contextBridge.exposeInMainWorld('daemoncore', {
     snapshot: () => ipcRenderer.invoke('fieldops:snapshot'),
     create: input => ipcRenderer.invoke('fieldops:create', input),
     run: input => ipcRenderer.invoke('fieldops:run', input),
+    startCampaign: input => ipcRenderer.invoke('fieldops:campaign-start', input),
+    pauseCampaign: id => ipcRenderer.invoke('fieldops:campaign-pause', id),
+    resumeCampaign: id => ipcRenderer.invoke('fieldops:campaign-resume', id),
+    cancelCampaign: id => ipcRenderer.invoke('fieldops:campaign-cancel', id),
     createFinding: input => ipcRenderer.invoke('fieldops:finding-create', input),
     updateFinding: (id, input) => ipcRenderer.invoke('fieldops:finding-update', { id, input }),
     retestFinding: (id, input) => ipcRenderer.invoke('fieldops:finding-retest', { id, input }),
