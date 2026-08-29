@@ -1,4 +1,5 @@
-const { lookup } = require('dns/promises')
+const dnsPromises = require('dns/promises')
+const { lookup } = dnsPromises
 const { mkdir, readFile, rename, writeFile } = require('fs/promises')
 const http = require('http')
 const https = require('https')
@@ -46,6 +47,7 @@ class EngagementStore {
     this.entitlement=options.entitlement||(()=>({fieldOps:false}))
     this.now=options.now||(()=>new Date())
     this.lookup=options.lookup||lookup
+    this.dns=options.dns||dnsPromises
     this.pause=options.pause||pause
     this.lastRunAt=0
     this.running=false
@@ -105,19 +107,23 @@ class EngagementStore {
     try{
       engagement=this.getActive(input?.engagementId);target=normalizeTarget(input?.target);type=String(input?.type||'')
       if(!engagement.targets.includes(target))throw new Error('Target is outside the signed engagement allowlist')
-      port=type==='ports'?null:Number(input?.port||({dns:53,http:80,baseline:443,tls:443}[type]))
-      if(!['dns','ports'].includes(type)&&!engagement.ports.includes(port))throw new Error('Port is outside the engagement allowlist')
-      if(!['dns','tcp','ports','http','baseline','tls'].includes(type))throw new Error('Unsupported diagnostic')
-      requestPath=['http','baseline'].includes(type)?normalizeHttpPath(input?.path):null
+      const targetOnly=['dns','dns-profile','ports','surface'].includes(type)
+      port=targetOnly?null:Number(input?.port||({http:80,'http-posture':443,baseline:443,tls:443}[type]))
+      if(!targetOnly&&!engagement.ports.includes(port))throw new Error('Port is outside the engagement allowlist')
+      if(!['dns','dns-profile','tcp','ports','surface','http','http-posture','baseline','tls'].includes(type))throw new Error('Unsupported diagnostic')
+      requestPath=['http','http-posture','baseline'].includes(type)?normalizeHttpPath(input?.path):null
       const addresses=await this.resolvePublic(target),started=Date.now()
       let result
       if(type==='dns')result={addresses}
+      if(type==='dns-profile')result=await this.dnsProfile(target,addresses)
       if(type==='tcp')result=await this.tcp(addresses[0].address,port)
       if(type==='ports')result=await this.portSurvey(addresses[0].address,engagement.ports)
+      if(type==='surface')result=await this.surfaceBaseline(target,addresses[0].address,engagement,addresses)
       if(type==='http')result=await this.head(target,addresses[0].address,port,Boolean(input?.tls),requestPath)
+      if(type==='http-posture')result=await this.httpPosture(target,addresses[0].address,port,Boolean(input?.tls),requestPath)
       if(type==='baseline')result=await this.baseline(target,addresses[0].address,port,Boolean(input?.tls),requestPath)
       if(type==='tls')result=await this.certificate(target,addresses[0].address,port)
-      const output={id:randomUUID(),engagementId:engagement.id,type,target,port:['dns','ports'].includes(type)?null:port,path:requestPath,addresses:addresses.map(item=>item.address),durationMs:Date.now()-started,result,at:this.now().toISOString()}
+      const output={id:randomUUID(),engagementId:engagement.id,type,target,port:targetOnly?null:port,path:requestPath,addresses:addresses.map(item=>item.address),durationMs:Date.now()-started,result,at:this.now().toISOString()}
       output.digest=captureDigest(output)
       this.state.captures.unshift(output);this.state.captures=this.state.captures.slice(0,2000)
       this.audit(engagement.id,type,'completed',`${target}${port?`:${port}`:''}${requestPath||''}`,output);await this.persist();return output
@@ -127,6 +133,32 @@ class EngagementStore {
   tcp(address,port,timeoutMs=5000){return new Promise((resolve,reject)=>{const started=Date.now(),socket=net.createConnection({host:address,port});socket.setTimeout(timeoutMs);socket.once('connect',()=>{const latencyMs=Date.now()-started;socket.destroy();resolve({connected:true,latencyMs})});socket.once('timeout',()=>{socket.destroy();reject(new Error('TCP connection timed out'))});socket.once('error',error=>reject(new Error(`TCP connection failed: ${error.code||error.message}`)))})}
 
   async portSurvey(address,ports){const observations=[];for(const port of ports){const started=Date.now();try{const result=await this.tcp(address,port,1500);observations.push({port,state:'open',latencyMs:result.latencyMs})}catch(error){observations.push({port,state:error.message.includes('timed out')?'filtered-or-unresponsive':'closed-or-rejected',latencyMs:Date.now()-started})}await this.pause(100)}return{tested:observations.length,hardCap:30,observations}}
+
+  async optionalDns(method,...args){try{return await this.dns[method](...args)}catch(error){if(['ENODATA','ENOTFOUND','ESERVFAIL','EREFUSED','ETIMEOUT'].includes(error.code))return[];throw error}}
+
+  async dnsProfile(target,addresses){
+    const [mx,nameservers,txt,caa,soa]=await Promise.all([this.optionalDns('resolveMx',target),this.optionalDns('resolveNs',target),this.optionalDns('resolveTxt',target),this.optionalDns('resolveCaa',target),this.optionalDns('resolveSoa',target)])
+    return{addresses:addresses.slice(0,20),mailExchangers:mx.slice(0,20),nameservers:nameservers.slice(0,20),txt:txt.slice(0,25).map(parts=>parts.join('').slice(0,500)),caa:caa.slice(0,20),soa:soa||null,recordCaps:{addresses:20,mailExchangers:20,nameservers:20,txt:25,caa:20}}
+  }
+
+  analyzeHttp(response,secure){
+    const headers=response.headers||{},controls=['content-security-policy','x-content-type-options','referrer-policy','permissions-policy','cross-origin-opener-policy','cross-origin-resource-policy'],required=secure?['strict-transport-security',...controls]:controls,present=required.filter(name=>Boolean(headers[name])),missing=required.filter(name=>!headers[name])
+    const cookieSource=String(headers['set-cookie']||''),cookies=cookieSource?{observed:true,secure:/;\s*secure\b/i.test(cookieSource),httpOnly:/;\s*httponly\b/i.test(cookieSource),sameSite:/;\s*samesite=/i.test(cookieSource)}:{observed:false}
+    const observations=[]
+    if(missing.length)observations.push(`${missing.length} recommended response controls were not observed`)
+    if(cookies.observed&&!cookies.secure&&secure)observations.push('A response cookie did not declare Secure')
+    if(cookies.observed&&!cookies.httpOnly)observations.push('A response cookie did not declare HttpOnly')
+    if(headers.server||headers['x-powered-by'])observations.push('The response exposes server implementation metadata')
+    return{score:Math.round(present.length/required.length*100),present,missing,cookies,disclosure:{server:headers.server||null,poweredBy:headers['x-powered-by']||null},observations}
+  }
+
+  async httpPosture(target,address,port,secure,requestPath){const response=await this.head(target,address,port,secure,requestPath);return{response,posture:this.analyzeHttp(response,secure)}}
+
+  async surfaceBaseline(target,address,engagement,addresses){
+    const dns=await this.dnsProfile(target,addresses),portSurvey=await this.portSurvey(address,engagement.ports),open=portSurvey.observations.filter(item=>item.state==='open'),webPorts=open.filter(item=>[80,443,3000,5000,8000,8080,8081,8443,9443].includes(item.port)).slice(0,4),web=[]
+    for(const item of webPorts){const secure=[443,8443,9443].includes(item.port);try{web.push({port:item.port,secure,...await this.httpPosture(target,address,item.port,secure,'/')})}catch(error){web.push({port:item.port,secure,error:error.message})}}
+    return{dns,portSurvey,web,summary:{authorizedPorts:engagement.ports.length,openPorts:open.map(item=>item.port),webServicesTested:web.length},hardCaps:{ports:30,webServices:4,redirects:0}}
+  }
 
   head(target,address,port,secure,requestPath='/'){return new Promise((resolve,reject)=>{const client=secure?https:http,request=client.request({method:'HEAD',host:address,port,path:requestPath,servername:secure&&!net.isIP(target)?target:undefined,headers:{Host:target,'User-Agent':'DaemonCore-FieldOps/1.1'},timeout:7000,rejectUnauthorized:true},response=>{const headers=Object.fromEntries(Object.entries(response.headers).slice(0,30).map(([key,value])=>[key,String(value).slice(0,500)]));response.resume();resolve({statusCode:response.statusCode,statusMessage:response.statusMessage,headers})});request.once('timeout',()=>request.destroy(new Error('HTTP request timed out')));request.once('error',error=>reject(new Error(`HTTP HEAD failed: ${error.message}`)));request.end()})}
 
@@ -235,7 +267,7 @@ class EngagementStore {
     this.audit(finding.engagementId,'retest','completed',`${finding.title} // ${verdict.toUpperCase()}`,{findingId:finding.id,captureId:capture.id,verdict,note});await this.persist();return this.snapshot()
   }
 
-  certificate(target,address,port){return new Promise((resolve,reject)=>{const socket=tls.connect({host:address,port,servername:net.isIP(target)?undefined:target,rejectUnauthorized:false,timeout:7000},()=>{const cert=socket.getPeerCertificate(),authorized=socket.authorized,authorizationError=socket.authorizationError;socket.end();resolve({authorized,authorizationError:authorizationError||null,subject:cert.subject||null,issuer:cert.issuer||null,validFrom:cert.valid_from||null,validTo:cert.valid_to||null,fingerprint256:cert.fingerprint256||null,serialNumber:cert.serialNumber||null})});socket.once('timeout',()=>{socket.destroy();reject(new Error('TLS handshake timed out'))});socket.once('error',error=>reject(new Error(`TLS handshake failed: ${error.message}`)))})}
+  certificate(target,address,port){return new Promise((resolve,reject)=>{const socket=tls.connect({host:address,port,servername:net.isIP(target)?undefined:target,rejectUnauthorized:false,timeout:7000},()=>{const cert=socket.getPeerCertificate(),authorized=socket.authorized,authorizationError=socket.authorizationError,protocol=socket.getProtocol()||null,cipher=socket.getCipher()||null,alpnProtocol=socket.alpnProtocol||null,validTo=cert.valid_to||null,daysRemaining=validTo?Math.floor((Date.parse(validTo)-this.now().getTime())/86_400_000):null;socket.end();resolve({authorized,authorizationError:authorizationError||null,protocol,cipher,alpnProtocol,subject:cert.subject||null,subjectAlternativeName:cert.subjectaltname||null,issuer:cert.issuer||null,validFrom:cert.valid_from||null,validTo,fingerprint256:cert.fingerprint256||null,serialNumber:cert.serialNumber||null,daysRemaining})});socket.once('timeout',()=>{socket.destroy();reject(new Error('TLS handshake timed out'))});socket.once('error',error=>reject(new Error(`TLS handshake failed: ${error.message}`)))})}
 
   audit(engagementId,operation,status,summary,evidence=null){const previous=this.state.audit.find(item=>item.engagementId===engagementId),entry={id:randomUUID(),engagementId,operation,status,summary,evidence,at:this.now().toISOString(),previousHash:previous?.hash||null};entry.hash=createHash('sha256').update(JSON.stringify(entry)).digest('hex');this.state.audit.unshift(entry);this.state.audit=this.state.audit.slice(0,1000)}
   verifyCaptures(){return this.state.captures.every(capture=>capture.digest===captureDigest(capture))}

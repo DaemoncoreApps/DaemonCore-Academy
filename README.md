@@ -28,6 +28,8 @@ Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 
 ### FieldOps Workbench // next
 
+- **Surface Intelligence** — one authorized target baseline combines pinned public resolution, bounded DNS records, the declared port allowlist, and posture evidence from up to four observed web services.
+- **Deeper protocol evidence** — DNS profiles cover address, mail, nameserver, TXT, CAA, and authority records. HTTP posture evaluates response controls, cookie flags, and implementation disclosure. TLS captures protocol, cipher, certificate identity, lifetime, and validation state.
 - **Asset intelligence** — every successful scoped diagnostic becomes a durable target observation instead of disappearing when the console changes screens.
 - **Sealed evidence vault** — diagnostic captures retain their raw result, target, timing, resolved addresses, and an independent SHA-256 digest.
 - **Findings register** — operators can promote evidence into a finding with severity, bounded impact, remediation, and an explicit disposition.
