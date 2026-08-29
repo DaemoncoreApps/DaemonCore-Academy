@@ -38,6 +38,8 @@ function normalizeHttpPath(value) {
 }
 
 const pause=milliseconds=>new Promise(resolve=>setTimeout(resolve,milliseconds))
+const stableValues=values=>[...new Set((values||[]).map(value=>String(value)))].sort()
+const delta=(before,after)=>({added:after.filter(value=>!before.includes(value)),removed:before.filter(value=>!after.includes(value))})
 
 class EngagementStore {
   constructor(directory, options={}) {
@@ -103,7 +105,7 @@ class EngagementStore {
     if(this.state.chaosRuns.some(item=>['queued','running','recovering','aborting'].includes(item.status)))throw new Error('A Chaos Engine experiment is active')
     const wait=750-(Date.now()-this.lastRunAt);if(wait>0)throw new Error('FieldOps rate limit: wait before the next diagnostic')
     this.running=true;this.lastRunAt=Date.now()
-    let engagement,target,type,port,requestPath
+    let engagement,target,type,port,requestPath,previousSurface
     try{
       engagement=this.getActive(input?.engagementId);target=normalizeTarget(input?.target);type=String(input?.type||'')
       if(!engagement.targets.includes(target))throw new Error('Target is outside the signed engagement allowlist')
@@ -112,6 +114,10 @@ class EngagementStore {
       if(!targetOnly&&!engagement.ports.includes(port))throw new Error('Port is outside the engagement allowlist')
       if(!['dns','dns-profile','tcp','ports','surface','http','http-posture','baseline','tls'].includes(type))throw new Error('Unsupported diagnostic')
       requestPath=['http','http-posture','baseline'].includes(type)?normalizeHttpPath(input?.path):null
+      if(type==='surface'){
+        previousSurface=this.state.captures.find(item=>item.engagementId===engagement.id&&item.target===target&&item.type==='surface')
+        if(previousSurface&&previousSurface.digest!==captureDigest(previousSurface))throw new Error('Previous surface baseline failed integrity verification')
+      }
       const addresses=await this.resolvePublic(target),started=Date.now()
       let result
       if(type==='dns')result={addresses}
@@ -124,6 +130,7 @@ class EngagementStore {
       if(type==='baseline')result=await this.baseline(target,addresses[0].address,port,Boolean(input?.tls),requestPath)
       if(type==='tls')result=await this.certificate(target,addresses[0].address,port)
       const output={id:randomUUID(),engagementId:engagement.id,type,target,port:targetOnly?null:port,path:requestPath,addresses:addresses.map(item=>item.address),durationMs:Date.now()-started,result,at:this.now().toISOString()}
+      if(type==='surface')output.result.comparison=this.compareSurface(previousSurface,output)
       output.digest=captureDigest(output)
       this.state.captures.unshift(output);this.state.captures=this.state.captures.slice(0,2000)
       this.audit(engagement.id,type,'completed',`${target}${port?`:${port}`:''}${requestPath||''}`,output);await this.persist();return output
@@ -156,8 +163,33 @@ class EngagementStore {
 
   async surfaceBaseline(target,address,engagement,addresses){
     const dns=await this.dnsProfile(target,addresses),portSurvey=await this.portSurvey(address,engagement.ports),open=portSurvey.observations.filter(item=>item.state==='open'),webPorts=open.filter(item=>[80,443,3000,5000,8000,8080,8081,8443,9443].includes(item.port)).slice(0,4),web=[]
-    for(const item of webPorts){const secure=[443,8443,9443].includes(item.port);try{web.push({port:item.port,secure,...await this.httpPosture(target,address,item.port,secure,'/')})}catch(error){web.push({port:item.port,secure,error:error.message})}}
-    return{dns,portSurvey,web,summary:{authorizedPorts:engagement.ports.length,openPorts:open.map(item=>item.port),webServicesTested:web.length},hardCaps:{ports:30,webServices:4,redirects:0}}
+    for(const item of webPorts){const secure=[443,8443,9443].includes(item.port);try{const service={port:item.port,secure,...await this.httpPosture(target,address,item.port,secure,'/')};if(secure){try{service.tls=await this.certificate(target,address,item.port)}catch(error){service.tls={error:error.message}}}web.push(service)}catch(error){web.push({port:item.port,secure,error:error.message})}}
+    return{dns,portSurvey,web,summary:{authorizedPorts:engagement.ports.length,openPorts:open.map(item=>item.port),webServicesTested:web.length},hardCaps:{ports:30,webServices:4,tlsHandshakes:4,redirects:0}}
+  }
+
+  compareSurface(previous,current){
+    if(!previous)return{status:'baseline-established',baselineCaptureId:null,baselineAt:null,changeCount:0,highestSeverity:null,changes:[]}
+    const changes=[],record=(kind,severity,title,before,after)=>changes.push({kind,severity,title,before,after})
+    const compareSet=(kind,severity,title,beforeValues,afterValues)=>{const before=stableValues(beforeValues),after=stableValues(afterValues),change=delta(before,after);if(change.added.length||change.removed.length)record(kind,severity,title,before,after)}
+    compareSet('address','medium','Resolved address set changed',previous.addresses,current.addresses)
+    const beforePorts=stableValues(previous.result?.summary?.openPorts),afterPorts=stableValues(current.result?.summary?.openPorts),portDelta=delta(beforePorts,afterPorts)
+    if(portDelta.added.length)record('port','high','New TCP service exposure observed',beforePorts,afterPorts)
+    if(portDelta.removed.length)record('port','informational','Previously observed TCP service is no longer exposed',beforePorts,afterPorts)
+    compareSet('nameserver','low','Authoritative nameserver set changed',previous.result?.dns?.nameservers,current.result?.dns?.nameservers)
+    compareSet('mail','low','Mail exchanger set changed',(previous.result?.dns?.mailExchangers||[]).map(item=>item.exchange),(current.result?.dns?.mailExchangers||[]).map(item=>item.exchange))
+    const beforeWeb=new Map((previous.result?.web||[]).map(item=>[Number(item.port),item])),afterWeb=new Map((current.result?.web||[]).map(item=>[Number(item.port),item]))
+    for(const [port,after] of afterWeb){const before=beforeWeb.get(port);if(!before)continue
+      const beforeScore=before.posture?.score??null,afterScore=after.posture?.score??null
+      if(beforeScore!==afterScore)record('http-posture',afterScore<beforeScore?'medium':'informational',`HTTP posture changed on port ${port}`,beforeScore,afterScore)
+      const beforeStatus=before.response?.statusCode??null,afterStatus=after.response?.statusCode??null
+      if(beforeStatus!==afterStatus)record('http-status','low',`HTTP status changed on port ${port}`,beforeStatus,afterStatus)
+      const beforeServer=before.posture?.disclosure?.server??null,afterServer=after.posture?.disclosure?.server??null
+      if(beforeServer!==afterServer)record('server','low',`Server disclosure changed on port ${port}`,beforeServer,afterServer)
+      const beforeFingerprint=before.tls?.fingerprint256??null,afterFingerprint=after.tls?.fingerprint256??null
+      if(beforeFingerprint!==afterFingerprint)record('certificate','informational',`TLS certificate changed on port ${port}`,beforeFingerprint,afterFingerprint)
+    }
+    const rank={high:3,medium:2,low:1,informational:0},highest=changes.reduce((value,item)=>rank[item.severity]>(rank[value]??-1)?item.severity:value,null)
+    return{status:changes.length?'drift-detected':'no-change',baselineCaptureId:previous.id,baselineAt:previous.at,changeCount:changes.length,highestSeverity:highest,changes}
   }
 
   head(target,address,port,secure,requestPath='/'){return new Promise((resolve,reject)=>{const client=secure?https:http,request=client.request({method:'HEAD',host:address,port,path:requestPath,servername:secure&&!net.isIP(target)?target:undefined,headers:{Host:target,'User-Agent':'DaemonCore-FieldOps/1.1'},timeout:7000,rejectUnauthorized:true},response=>{const headers=Object.fromEntries(Object.entries(response.headers).slice(0,30).map(([key,value])=>[key,String(value).slice(0,500)]));response.resume();resolve({statusCode:response.statusCode,statusMessage:response.statusMessage,headers})});request.once('timeout',()=>request.destroy(new Error('HTTP request timed out')));request.once('error',error=>reject(new Error(`HTTP HEAD failed: ${error.message}`)));request.end()})}
