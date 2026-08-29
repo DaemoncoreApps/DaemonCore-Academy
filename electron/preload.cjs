@@ -40,9 +40,13 @@ contextBridge.exposeInMainWorld('daemoncore', {
     snapshot: () => ipcRenderer.invoke('fieldops:snapshot'),
     create: input => ipcRenderer.invoke('fieldops:create', input),
     run: input => ipcRenderer.invoke('fieldops:run', input),
+    createFinding: input => ipcRenderer.invoke('fieldops:finding-create', input),
+    updateFinding: (id, input) => ipcRenderer.invoke('fieldops:finding-update', { id, input }),
+    retestFinding: (id, input) => ipcRenderer.invoke('fieldops:finding-retest', { id, input }),
     startChaos: input => ipcRenderer.invoke('fieldops:chaos-start', input),
     abortChaos: id => ipcRenderer.invoke('fieldops:chaos-abort', id),
     close: id => ipcRenderer.invoke('fieldops:close', id),
     export: id => ipcRenderer.invoke('fieldops:export', id),
+    report: id => ipcRenderer.invoke('fieldops:report', id),
   }),
 })

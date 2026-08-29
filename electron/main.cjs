@@ -23,6 +23,16 @@ function trustedUrl(url) {
   return String(url || '').split('#')[0] === productionUrl
 }
 
+const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character])
+
+function fieldOpsReport(snapshot, engagement) {
+  const findings=snapshot.findings.filter(item=>item.engagementId===engagement.id),captures=snapshot.captures.filter(item=>item.engagementId===engagement.id)
+  const severityOrder={critical:0,high:1,medium:2,low:3,informational:4},sorted=[...findings].sort((a,b)=>(severityOrder[a.severity]??9)-(severityOrder[b.severity]??9))
+  const counts=Object.fromEntries(['critical','high','medium','low','informational'].map(level=>[level,findings.filter(item=>item.severity===level).length]))
+  const findingRows=sorted.length?sorted.map((finding,index)=>`<article><div class="finding-head"><span>${String(index+1).padStart(2,'0')} / ${escapeHtml(finding.severity.toUpperCase())}</span><b>${escapeHtml(finding.status.toUpperCase())}</b></div><h2>${escapeHtml(finding.title)}</h2><p class="target">${escapeHtml(finding.target)}</p><h3>Observation</h3><p>${escapeHtml(finding.description)}</p><h3>Impact</h3><p>${escapeHtml(finding.impact||'Impact was not recorded.')}</p><h3>Remediation</h3><p>${escapeHtml(finding.remediation||'Remediation was not recorded.')}</p><footer>${finding.evidenceIds.length} evidence capture(s) · ${finding.retests.length} retest(s) · Updated ${escapeHtml(new Date(finding.updatedAt).toLocaleString())}</footer></article>`).join(''):'<div class="empty">No findings were recorded for this engagement.</div>'
+  return `<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(engagement.name)} · DaemonCore FieldOps</title><style>body{margin:0;background:#090a0c;color:#dfe1e5;font:15px/1.65 Arial,sans-serif}main{max-width:980px;margin:auto;padding:60px}.brand{color:#ef3e47;font:bold 13px monospace;letter-spacing:3px}.hero{border-bottom:2px solid #ef3e47;padding:30px 0}.hero h1{font-size:42px;margin:8px 0}.hero p,.target,footer{color:#858b94}.meta,.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:24px 0}.meta div,.metrics div,article,.empty{border:1px solid #292d33;background:#101216;padding:18px}.meta span,.metrics span,h3{display:block;color:#737983;font:11px monospace;letter-spacing:1px}.meta b,.metrics b{font-size:20px}.metrics{grid-template-columns:repeat(5,1fr)}article{margin:18px 0;padding:28px}.finding-head{display:flex;justify-content:space-between;color:#ef5961;font:12px monospace}article h2{margin:10px 0 0}h3{margin:22px 0 5px}footer{border-top:1px solid #292d33;margin-top:25px;padding-top:15px;font:11px monospace}@media print{body{background:white;color:#17191d}main{padding:20px}.meta div,.metrics div,article,.empty{background:white;break-inside:avoid}}</style></head><body><main><div class="brand">DAEMONCORE // FIELDOPS</div><section class="hero"><h1>${escapeHtml(engagement.name)}</h1><p>Professional assessment record for ${escapeHtml(engagement.client)}</p></section><section class="meta"><div><span>AUTHORIZATION</span><b>${escapeHtml(engagement.authorizationReference)}</b></div><div><span>TEST WINDOW</span><b>${escapeHtml(new Date(engagement.validFrom).toLocaleDateString())} — ${escapeHtml(new Date(engagement.validUntil).toLocaleDateString())}</b></div><div><span>EVIDENCE INTEGRITY</span><b>${snapshot.auditIntegrity&&snapshot.captureIntegrity?'VERIFIED':'FAILED'}</b></div></section><section class="metrics">${Object.entries(counts).map(([level,count])=>`<div><span>${level.toUpperCase()}</span><b>${count}</b></div>`).join('')}</section><p>${engagement.targets.length} authorized target(s) · ${captures.length} sealed capture(s) · ${findings.length} finding(s)</p>${findingRows}</main></body></html>`
+}
+
 function trustedSender(event) {
   return event.senderFrame === event.sender.mainFrame && trustedUrl(event.senderFrame?.url)
 }
@@ -88,6 +98,9 @@ ipcMain.handle('license:checkout', rangeHandler(async () => {
 ipcMain.handle('fieldops:snapshot', rangeHandler(() => engagementStore.snapshot()))
 ipcMain.handle('fieldops:create', rangeHandler(input => engagementStore.create(input)))
 ipcMain.handle('fieldops:run', rangeHandler(input => engagementStore.run(input)))
+ipcMain.handle('fieldops:finding-create', rangeHandler(input => engagementStore.createFinding(input)))
+ipcMain.handle('fieldops:finding-update', rangeHandler(({ id, input }) => engagementStore.updateFinding(id, input)))
+ipcMain.handle('fieldops:finding-retest', rangeHandler(({ id, input }) => engagementStore.retestFinding(id, input)))
 ipcMain.handle('fieldops:chaos-start', rangeHandler(input => engagementStore.startChaos(input)))
 ipcMain.handle('fieldops:chaos-abort', rangeHandler(id => engagementStore.abortChaos(id)))
 ipcMain.handle('fieldops:close', rangeHandler(id => engagementStore.close(id)))
@@ -95,11 +108,19 @@ ipcMain.handle('fieldops:export', rangeHandler(async id => {
   const snapshot = engagementStore.snapshot()
   const engagement = snapshot.engagements.find(item => item.id === id)
   if (!engagement) throw new Error('Engagement not found')
-  const bundle = { schemaVersion: 2, exportedAt: new Date().toISOString(), auditIntegrity: snapshot.auditIntegrity, engagement, chaosRuns: snapshot.chaosRuns.filter(item => item.engagementId === id), audit: snapshot.audit.filter(item => item.engagementId === id) }
+  const bundle = { schemaVersion: 3, exportedAt: new Date().toISOString(), auditIntegrity: snapshot.auditIntegrity, captureIntegrity: snapshot.captureIntegrity, engagement, captures: snapshot.captures.filter(item => item.engagementId === id), findings: snapshot.findings.filter(item => item.engagementId === id), chaosRuns: snapshot.chaosRuns.filter(item => item.engagementId === id), audit: snapshot.audit.filter(item => item.engagementId === id) }
   const result = await dialog.showSaveDialog({ title: 'Export FieldOps evidence ledger', defaultPath: `daemoncore-fieldops-${engagement.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}.json`, filters: [{ name: 'JSON evidence bundle', extensions: ['json'] }] })
   if (result.canceled || !result.filePath) return { canceled: true }
   await writeFile(result.filePath, `${JSON.stringify(bundle, null, 2)}\n`, 'utf8')
   return { canceled: false, filePath: result.filePath }
+}))
+ipcMain.handle('fieldops:report', rangeHandler(async id => {
+  const snapshot=engagementStore.snapshot(),engagement=snapshot.engagements.find(item=>item.id===id)
+  if(!engagement)throw new Error('Engagement not found')
+  const result=await dialog.showSaveDialog({title:'Export FieldOps professional report',defaultPath:`daemoncore-report-${engagement.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}.html`,filters:[{name:'Printable HTML report',extensions:['html']}]})
+  if(result.canceled||!result.filePath)return{canceled:true}
+  await writeFile(result.filePath,fieldOpsReport(snapshot,engagement),'utf8')
+  return{canceled:false,filePath:result.filePath}
 }))
 
 function createWindow() {

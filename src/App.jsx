@@ -79,16 +79,20 @@ function useLicense() {
 
 function useFieldOps() {
   const api=window.daemoncore?.fieldops
-  const [data,setData]=useState(api?null:{schemaVersion:2,engagements:[],chaosRuns:[],audit:[]})
+  const [data,setData]=useState(api?null:{schemaVersion:3,engagements:[],chaosRuns:[],captures:[],findings:[],audit:[]})
   useEffect(()=>{if(api)api.snapshot().then(setData)},[api])
   const create=async input=>{if(!api)throw new Error('FieldOps requires the Windows desktop build');const next=await api.create(input);setData(next);return next}
   const run=async input=>{if(!api)throw new Error('FieldOps requires the Windows desktop build');const result=await api.run(input);setData(await api.snapshot());return result}
+  const createFinding=async input=>{if(!api)throw new Error('FieldOps requires the Windows desktop build');const next=await api.createFinding(input);setData(next);return next}
+  const updateFinding=async(id,input)=>{if(!api)throw new Error('FieldOps requires the Windows desktop build');const next=await api.updateFinding(id,input);setData(next);return next}
+  const retestFinding=async(id,input)=>{if(!api)throw new Error('FieldOps requires the Windows desktop build');const next=await api.retestFinding(id,input);setData(next);return next}
   const startChaos=async input=>{if(!api)throw new Error('Chaos Engine requires the Windows desktop build');const next=await api.startChaos(input);setData(next);return next}
   const abortChaos=async id=>{if(!api)throw new Error('Chaos Engine requires the Windows desktop build');const next=await api.abortChaos(id);setData(next);return next}
   const refresh=async()=>{if(!api)return data;const next=await api.snapshot();setData(next);return next}
   const close=async id=>{if(!api)throw new Error('FieldOps requires the Windows desktop build');const next=await api.close(id);setData(next);return next}
   const exportEvidence=id=>api?.export(id)
-  return {data,create,run,startChaos,abortChaos,refresh,close,exportEvidence}
+  const exportReport=id=>api?.report(id)
+  return {data,create,run,createFinding,updateFinding,retestFinding,startChaos,abortChaos,refresh,close,exportEvidence,exportReport}
 }
 
 function Brand({ compact = false }) {
@@ -270,7 +274,7 @@ export default function App() {
   else if(page==='enterprise')current=<EnterpriseForgePage profile={operator} onLaunch={setActiveEnterpriseLab}/>
   else if(page==='mastery')current=<MasteryPage profile={operator} onStart={setActiveCapstone} onOpenLesson={setLesson}/>
   else if(page==='labs')current=<LabsPage launchMission={setMission} completedMissions={operator.completedMissions}/>
-  else if(page==='fieldops')current=<FieldOpsPage license={licensing.license} data={fieldOps.data} onCreate={fieldOps.create} onRun={fieldOps.run} onChaosStart={fieldOps.startChaos} onChaosAbort={fieldOps.abortChaos} onRefresh={fieldOps.refresh} onClose={fieldOps.close} onExport={fieldOps.exportEvidence} onSettings={()=>setPage('settings')}/>
+  else if(page==='fieldops')current=<FieldOpsPage license={licensing.license} data={fieldOps.data} onCreate={fieldOps.create} onRun={fieldOps.run} onCreateFinding={fieldOps.createFinding} onUpdateFinding={fieldOps.updateFinding} onRetestFinding={fieldOps.retestFinding} onChaosStart={fieldOps.startChaos} onChaosAbort={fieldOps.abortChaos} onRefresh={fieldOps.refresh} onClose={fieldOps.close} onExport={fieldOps.exportEvidence} onReport={fieldOps.exportReport} onSettings={()=>setPage('settings')}/>
   else if(page==='drills')current=<DrillsPage startQuiz={setQuiz} profile={operator}/>
   else if(page==='intel')current=<IntelPage onOpen={setArticle}/>
   else if(page==='operator')current=<OperatorPage profile={operator}/>

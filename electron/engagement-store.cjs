@@ -7,8 +7,9 @@ const path = require('path')
 const tls = require('tls')
 const { createHash, randomUUID } = require('crypto')
 
-const cleanState = () => ({ schemaVersion: 2, engagements: [], chaosRuns: [], audit: [] })
+const cleanState = () => ({ schemaVersion: 3, engagements: [], chaosRuns: [], captures: [], findings: [], audit: [] })
 const clone = value => JSON.parse(JSON.stringify(value))
+const captureDigest = capture => { const { digest: _digest, ...unsigned }=capture;return createHash('sha256').update(JSON.stringify(unsigned)).digest('hex') }
 const hostnamePattern = /^(?=.{1,253}$)(?!-)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)*[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/
 
 function isPublicAddress(address) {
@@ -52,8 +53,8 @@ class EngagementStore {
     this.writeQueue=Promise.resolve()
   }
 
-  async initialize(){await mkdir(this.directory,{recursive:true});try{this.state={...cleanState(),...JSON.parse(await readFile(this.file,'utf8'))};this.state.chaosRuns||=[];for(const run of this.state.chaosRuns){if(['queued','running','recovering','aborting'].includes(run.status)){run.status='interrupted';run.finishedAt=this.now().toISOString();run.outcome='The desktop process ended before the experiment completed.'}}}catch{this.state=cleanState()}await this.persist();return this.snapshot()}
-  snapshot(){return {...clone(this.state),auditIntegrity:this.verifyAudit()}}
+  async initialize(){await mkdir(this.directory,{recursive:true});try{this.state={...cleanState(),...JSON.parse(await readFile(this.file,'utf8')),schemaVersion:3};this.state.chaosRuns||=[];this.state.captures||=[];this.state.findings||=[];for(const run of this.state.chaosRuns){if(['queued','running','recovering','aborting'].includes(run.status)){run.status='interrupted';run.finishedAt=this.now().toISOString();run.outcome='The desktop process ended before the experiment completed.'}}}catch{this.state=cleanState()}await this.persist();return this.snapshot()}
+  snapshot(){return {...clone(this.state),auditIntegrity:this.verifyAudit(),captureIntegrity:this.verifyCaptures()}}
   assertEntitled(){if(!this.entitlement().fieldOps)throw new Error('FieldOps Pro entitlement required')}
 
   async create(input){
@@ -117,6 +118,8 @@ class EngagementStore {
       if(type==='baseline')result=await this.baseline(target,addresses[0].address,port,Boolean(input?.tls),requestPath)
       if(type==='tls')result=await this.certificate(target,addresses[0].address,port)
       const output={id:randomUUID(),engagementId:engagement.id,type,target,port:['dns','ports'].includes(type)?null:port,path:requestPath,addresses:addresses.map(item=>item.address),durationMs:Date.now()-started,result,at:this.now().toISOString()}
+      output.digest=captureDigest(output)
+      this.state.captures.unshift(output);this.state.captures=this.state.captures.slice(0,2000)
       this.audit(engagement.id,type,'completed',`${target}${port?`:${port}`:''}${requestPath||''}`,output);await this.persist();return output
     }catch(error){if(engagement)this.audit(engagement.id,type||'diagnostic','blocked',error.message,{target,port});await this.persist().catch(()=>{});throw error}finally{this.running=false}
   }
@@ -189,9 +192,53 @@ class EngagementStore {
     this.chaosAbort.add(id);run.status='aborting';run.outcome='Emergency stop requested. Waiting for the active bounded probe to settle.';this.audit(run.engagementId,'chaos-engine','abort-requested',run.name,{runId:id});await this.persist();return this.snapshot()
   }
 
+  async createFinding(input){
+    this.assertEntitled()
+    const engagement=this.state.engagements.find(item=>item.id===input?.engagementId)
+    if(!engagement)throw new Error('Engagement not found')
+    const capture=this.state.captures.find(item=>item.id===input?.captureId&&item.engagementId===engagement.id)
+    if(!capture)throw new Error('Select evidence captured inside this engagement')
+    if(capture.digest!==captureDigest(capture))throw new Error('Evidence integrity verification failed')
+    const title=String(input?.title||'').trim().slice(0,140),description=String(input?.description||'').trim().slice(0,4000),impact=String(input?.impact||'').trim().slice(0,3000),remediation=String(input?.remediation||'').trim().slice(0,3000)
+    const severity=String(input?.severity||'informational').toLowerCase()
+    if(title.length<5||description.length<20)throw new Error('Add a specific title and evidence-backed description')
+    if(!['informational','low','medium','high','critical'].includes(severity))throw new Error('Invalid finding severity')
+    const now=this.now().toISOString(),finding={id:randomUUID(),engagementId:engagement.id,title,severity,status:'open',target:capture.target,description,impact,remediation,evidenceIds:[capture.id],retests:[],history:[{status:'open',at:now,note:'Finding created from sealed diagnostic evidence'}],createdAt:now,updatedAt:now}
+    this.state.findings.unshift(finding);this.state.findings=this.state.findings.slice(0,1000)
+    this.audit(engagement.id,'finding','created',`${severity.toUpperCase()} // ${title}`,{findingId:finding.id,captureId:capture.id});await this.persist();return this.snapshot()
+  }
+
+  async updateFinding(id,input){
+    this.assertEntitled()
+    const finding=this.state.findings.find(item=>item.id===id)
+    if(!finding)throw new Error('Finding not found')
+    const allowedStatuses=['open','accepted-risk','resolved','false-positive'],nextStatus=String(input?.status||finding.status)
+    if(!allowedStatuses.includes(nextStatus))throw new Error('Invalid finding status')
+    const note=String(input?.note||'').trim().slice(0,500)
+    if(nextStatus!==finding.status){finding.status=nextStatus;finding.history.unshift({status:nextStatus,at:this.now().toISOString(),note:note||'Disposition updated by operator'})}
+    finding.updatedAt=this.now().toISOString();this.audit(finding.engagementId,'finding','updated',`${finding.title} // ${finding.status.toUpperCase()}`,{findingId:finding.id,note});await this.persist();return this.snapshot()
+  }
+
+  async retestFinding(id,input){
+    this.assertEntitled()
+    const finding=this.state.findings.find(item=>item.id===id)
+    if(!finding)throw new Error('Finding not found')
+    const capture=this.state.captures.find(item=>item.id===input?.captureId&&item.engagementId===finding.engagementId)
+    if(!capture)throw new Error('Select a retest capture from this engagement')
+    if(capture.digest!==captureDigest(capture))throw new Error('Evidence integrity verification failed')
+    const verdict=String(input?.verdict||'')
+    if(!['fixed','still-present'].includes(verdict))throw new Error('Choose a supported retest verdict')
+    const at=this.now().toISOString(),note=String(input?.note||'').trim().slice(0,500)
+    finding.retests.unshift({id:randomUUID(),captureId:capture.id,verdict,note,at})
+    finding.evidenceIds=[...new Set([...finding.evidenceIds,capture.id])]
+    finding.status=verdict==='fixed'?'resolved':'open';finding.updatedAt=at;finding.history.unshift({status:finding.status,at,note:note||`Retest verdict: ${verdict}`})
+    this.audit(finding.engagementId,'retest','completed',`${finding.title} // ${verdict.toUpperCase()}`,{findingId:finding.id,captureId:capture.id,verdict,note});await this.persist();return this.snapshot()
+  }
+
   certificate(target,address,port){return new Promise((resolve,reject)=>{const socket=tls.connect({host:address,port,servername:net.isIP(target)?undefined:target,rejectUnauthorized:false,timeout:7000},()=>{const cert=socket.getPeerCertificate(),authorized=socket.authorized,authorizationError=socket.authorizationError;socket.end();resolve({authorized,authorizationError:authorizationError||null,subject:cert.subject||null,issuer:cert.issuer||null,validFrom:cert.valid_from||null,validTo:cert.valid_to||null,fingerprint256:cert.fingerprint256||null,serialNumber:cert.serialNumber||null})});socket.once('timeout',()=>{socket.destroy();reject(new Error('TLS handshake timed out'))});socket.once('error',error=>reject(new Error(`TLS handshake failed: ${error.message}`)))})}
 
   audit(engagementId,operation,status,summary,evidence=null){const previous=this.state.audit.find(item=>item.engagementId===engagementId),entry={id:randomUUID(),engagementId,operation,status,summary,evidence,at:this.now().toISOString(),previousHash:previous?.hash||null};entry.hash=createHash('sha256').update(JSON.stringify(entry)).digest('hex');this.state.audit.unshift(entry);this.state.audit=this.state.audit.slice(0,1000)}
+  verifyCaptures(){return this.state.captures.every(capture=>capture.digest===captureDigest(capture))}
   verifyAudit(){return this.state.audit.every((entry,index)=>{const {hash,...unsigned}=entry;const expected=createHash('sha256').update(JSON.stringify(unsigned)).digest('hex'),next=this.state.audit.slice(index+1).find(item=>item.engagementId===entry.engagementId);return hash===expected&&(!next||entry.previousHash===next.hash)})}
   persist(){const serialized=`${JSON.stringify(this.state,null,2)}\n`;this.writeQueue=this.writeQueue.then(async()=>{const temporary=`${this.file}.tmp`;await writeFile(temporary,serialized,'utf8');await rename(temporary,this.file)});return this.writeQueue}
 }
