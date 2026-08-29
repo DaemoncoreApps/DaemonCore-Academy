@@ -34,3 +34,22 @@
   color: #e6e8eb;
   font-size: 10px;
 }
+
+.engagement-fields select,
+.scope-capacity {
+  display: block;
+  width: 100%;
+  height: 39px;
+  margin-top: 6px;
+  border: 1px solid #30343a;
+  background: #08090b;
+  color: #eee;
+  padding: 0 10px;
+  font: 500 9px var(--mono);
+}
+
+.scope-capacity {
+  display: flex;
+  align-items: center;
+  color: #68cc98;
+}

@@ -25,7 +25,8 @@ store.tcp=async(_address,port)=>{
   throw new Error('TCP connection failed: ECONNREFUSED')
 }
 const survey=await store.portSurvey('93.184.216.34',[80,443])
-assert.equal(survey.hardCap,30)
+assert.equal(survey.hardCap,128)
+assert.equal(survey.concurrency,4)
 assert.deepEqual(survey.observations.map(item=>item.state),['closed-or-rejected','open'])
 
 let calls=0

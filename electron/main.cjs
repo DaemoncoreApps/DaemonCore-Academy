@@ -113,7 +113,7 @@ ipcMain.handle('fieldops:export', rangeHandler(async id => {
   const snapshot = engagementStore.snapshot()
   const engagement = snapshot.engagements.find(item => item.id === id)
   if (!engagement) throw new Error('Engagement not found')
-  const bundle = { schemaVersion: 3, exportedAt: new Date().toISOString(), auditIntegrity: snapshot.auditIntegrity, captureIntegrity: snapshot.captureIntegrity, engagement, captures: snapshot.captures.filter(item => item.engagementId === id), findings: snapshot.findings.filter(item => item.engagementId === id), chaosRuns: snapshot.chaosRuns.filter(item => item.engagementId === id), audit: snapshot.audit.filter(item => item.engagementId === id) }
+  const bundle = { schemaVersion: 4, exportedAt: new Date().toISOString(), auditIntegrity: snapshot.auditIntegrity, captureIntegrity: snapshot.captureIntegrity, engagement, captures: snapshot.captures.filter(item => item.engagementId === id), findings: snapshot.findings.filter(item => item.engagementId === id), chaosRuns: snapshot.chaosRuns.filter(item => item.engagementId === id), audit: snapshot.audit.filter(item => item.engagementId === id) }
   const result = await dialog.showSaveDialog({ title: 'Export FieldOps evidence ledger', defaultPath: `daemoncore-fieldops-${engagement.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}.json`, filters: [{ name: 'JSON evidence bundle', extensions: ['json'] }] })
   if (result.canceled || !result.filePath) return { canceled: true }
   await writeFile(result.filePath, `${JSON.stringify(bundle, null, 2)}\n`, 'utf8')

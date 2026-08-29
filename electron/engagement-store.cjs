@@ -8,7 +8,7 @@ const path = require('path')
 const tls = require('tls')
 const { createHash, randomUUID } = require('crypto')
 
-const cleanState = () => ({ schemaVersion: 3, engagements: [], chaosRuns: [], captures: [], findings: [], audit: [] })
+const cleanState = () => ({ schemaVersion: 4, engagements: [], chaosRuns: [], captures: [], findings: [], audit: [] })
 const clone = value => JSON.parse(JSON.stringify(value))
 const captureDigest = capture => { const { digest: _digest, ...unsigned }=capture;return createHash('sha256').update(JSON.stringify(unsigned)).digest('hex') }
 const hostnamePattern = /^(?=.{1,253}$)(?!-)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)*[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/
@@ -22,6 +22,12 @@ function isPublicAddress(address) {
     const value=address.toLowerCase()
     return !(value==='::'||value==='::1'||value.startsWith('::ffff:')||value.startsWith('fc')||value.startsWith('fd')||value.startsWith('fe8')||value.startsWith('fe9')||value.startsWith('fea')||value.startsWith('feb')||value.startsWith('ff')||value.startsWith('2001:db8'))
   }
+  return false
+}
+
+function isPrivateAddress(address) {
+  if(net.isIPv4(address)){const [a,b]=address.split('.').map(Number);return a===10||(a===172&&b>=16&&b<=31)||(a===192&&b===168)}
+  if(net.isIPv6(address)){const value=address.toLowerCase();return value.startsWith('fc')||value.startsWith('fd')}
   return false
 }
 
@@ -59,7 +65,7 @@ class EngagementStore {
     this.writeQueue=Promise.resolve()
   }
 
-  async initialize(){await mkdir(this.directory,{recursive:true});try{this.state={...cleanState(),...JSON.parse(await readFile(this.file,'utf8')),schemaVersion:3};this.state.chaosRuns||=[];this.state.captures||=[];this.state.findings||=[];for(const run of this.state.chaosRuns){if(['queued','running','recovering','aborting'].includes(run.status)){run.status='interrupted';run.finishedAt=this.now().toISOString();run.outcome='The desktop process ended before the experiment completed.'}}}catch{this.state=cleanState()}await this.persist();return this.snapshot()}
+  async initialize(){await mkdir(this.directory,{recursive:true});try{this.state={...cleanState(),...JSON.parse(await readFile(this.file,'utf8')),schemaVersion:4};this.state.chaosRuns||=[];this.state.captures||=[];this.state.findings||=[];for(const engagement of this.state.engagements)engagement.networkMode||='external';for(const run of this.state.chaosRuns){if(['queued','running','recovering','aborting'].includes(run.status)){run.status='interrupted';run.finishedAt=this.now().toISOString();run.outcome='The desktop process ended before the experiment completed.'}}}catch{this.state=cleanState()}await this.persist();return this.snapshot()}
   snapshot(){return {...clone(this.state),auditIntegrity:this.verifyAudit(),captureIntegrity:this.verifyCaptures()}}
   assertEntitled(){if(!this.entitlement().fieldOps)throw new Error('FieldOps Pro entitlement required')}
 
@@ -69,15 +75,17 @@ class EngagementStore {
     if(name.length<3||client.length<2)throw new Error('Engagement name and client are required')
     if(authorizationReference.length<4)throw new Error('Add the authorization or rules-of-engagement reference')
     if(input?.attested!==true)throw new Error('Explicit authorization attestation is required')
+    const networkMode=String(input?.networkMode||'external').toLowerCase()
+    if(!['external','internal'].includes(networkMode))throw new Error('Choose external or internal network authorization')
     const targets=[...new Set(String(input.targets||'').split(/[\s,]+/).filter(Boolean).map(normalizeTarget))]
     const ports=[...new Set(String(input.ports||'').split(/[\s,]+/).filter(Boolean).map(Number))].sort((a,b)=>a-b)
-    if(!targets.length||targets.length>50)throw new Error('Add between 1 and 50 exact targets')
-    if(!ports.length||ports.length>30||ports.some(port=>!Number.isInteger(port)||port<1||port>65535))throw new Error('Add between 1 and 30 valid TCP ports')
+    if(!targets.length||targets.length>100)throw new Error('Add between 1 and 100 exact targets')
+    if(!ports.length||ports.length>128||ports.some(port=>!Number.isInteger(port)||port<1||port>65535))throw new Error('Add between 1 and 128 valid TCP ports')
     const validFrom=new Date(input.validFrom),validUntil=new Date(input.validUntil),now=this.now()
     if(Number.isNaN(validFrom.getTime())||Number.isNaN(validUntil.getTime())||validUntil<=validFrom)throw new Error('Enter a valid testing window')
     if(validUntil.getTime()-validFrom.getTime()>366*86_400_000)throw new Error('Testing windows cannot exceed one year')
-    const engagement={id:randomUUID(),name,client,authorizationReference,targets,ports,validFrom:validFrom.toISOString(),validUntil:validUntil.toISOString(),attestedAt:now.toISOString(),status:'active',createdAt:now.toISOString()}
-    this.state.engagements.unshift(engagement);this.audit(engagement.id,'engagement','created','Authorization boundary recorded');await this.persist();return this.snapshot()
+    const engagement={id:randomUUID(),name,client,authorizationReference,networkMode,targets,ports,validFrom:validFrom.toISOString(),validUntil:validUntil.toISOString(),attestedAt:now.toISOString(),status:'active',createdAt:now.toISOString()}
+    this.state.engagements.unshift(engagement);this.audit(engagement.id,'engagement','created',`${networkMode.toUpperCase()} authorization boundary recorded`);await this.persist();return this.snapshot()
   }
 
   async close(id){
@@ -102,6 +110,14 @@ class EngagementStore {
     return addresses
   }
 
+  async resolveAuthorized(target,networkMode='external'){
+    if(networkMode==='external')return this.resolvePublic(target)
+    if(networkMode!=='internal')throw new Error('Engagement network authorization is invalid')
+    const addresses=net.isIP(target)?[{address:target,family:net.isIPv4(target)?4:6}]:await this.lookup(target,{all:true,verbatim:true})
+    if(!addresses.length||addresses.some(item=>!isPrivateAddress(item.address)))throw new Error('Target resolution is empty or crosses the authorized internal network boundary')
+    return addresses
+  }
+
   async run(input){
     if(this.running)throw new Error('Another diagnostic is already running')
     if(this.state.chaosRuns.some(item=>['queued','running','recovering','aborting'].includes(item.status)))throw new Error('A Chaos Engine experiment is active')
@@ -120,7 +136,7 @@ class EngagementStore {
         previousSurface=this.state.captures.find(item=>item.engagementId===engagement.id&&item.target===target&&item.type==='surface')
         if(previousSurface&&previousSurface.digest!==captureDigest(previousSurface))throw new Error('Previous surface baseline failed integrity verification')
       }
-      const addresses=await this.resolvePublic(target),started=Date.now()
+      const addresses=await this.resolveAuthorized(target,engagement.networkMode||'external'),started=Date.now()
       let result
       if(type==='dns')result={addresses}
       if(type==='dns-profile')result=await this.dnsProfile(target,addresses)
@@ -133,7 +149,7 @@ class EngagementStore {
       if(type==='tls')result=await this.certificate(target,addresses[0].address,port)
       if(type==='service-profile')result=await this.serviceProfile(target,addresses[0].address,port,Boolean(input?.tls))
       if(type==='web-map')result=await this.webMap(target,addresses[0].address,port,Boolean(input?.tls),requestPath)
-      const output={id:randomUUID(),engagementId:engagement.id,type,target,port:targetOnly?null:port,path:requestPath,addresses:addresses.map(item=>item.address),durationMs:Date.now()-started,result,at:this.now().toISOString()}
+      const output={id:randomUUID(),engagementId:engagement.id,networkMode:engagement.networkMode||'external',type,target,port:targetOnly?null:port,path:requestPath,addresses:addresses.map(item=>item.address),durationMs:Date.now()-started,result,at:this.now().toISOString()}
       if(type==='surface')output.result.comparison=this.compareSurface(previousSurface,output)
       output.digest=captureDigest(output)
       this.state.captures.unshift(output);this.state.captures=this.state.captures.slice(0,2000)
@@ -172,7 +188,7 @@ class EngagementStore {
     return{mode:'bounded-head-map',requestCount:observations.length,present:observations.filter(item=>item.present).length,observations,hardCaps:{requests:8,concurrency:1,minimumIntervalMs:250,redirects:0,responseBodyBytes:0}}
   }
 
-  async portSurvey(address,ports){const observations=[];for(const port of ports){const started=Date.now();try{const result=await this.tcp(address,port,1500);observations.push({port,state:'open',latencyMs:result.latencyMs})}catch(error){observations.push({port,state:error.message.includes('timed out')?'filtered-or-unresponsive':'closed-or-rejected',latencyMs:Date.now()-started})}await this.pause(100)}return{tested:observations.length,hardCap:30,observations}}
+  async portSurvey(address,ports){const observations=[];for(let index=0;index<ports.length;index+=4){const batch=ports.slice(index,index+4),results=await Promise.all(batch.map(async port=>{const started=Date.now();try{const result=await this.tcp(address,port,1500);return{port,state:'open',latencyMs:result.latencyMs}}catch(error){return{port,state:error.message.includes('timed out')?'filtered-or-unresponsive':'closed-or-rejected',latencyMs:Date.now()-started}}}));observations.push(...results);if(index+4<ports.length)await this.pause(100)}return{tested:observations.length,hardCap:128,concurrency:4,observations}}
 
   async optionalDns(method,...args){try{return await this.dns[method](...args)}catch(error){if(['ENODATA','ENOTFOUND','ESERVFAIL','EREFUSED','ETIMEOUT'].includes(error.code))return[];throw error}}
 
@@ -195,9 +211,9 @@ class EngagementStore {
   async httpPosture(target,address,port,secure,requestPath){const response=await this.head(target,address,port,secure,requestPath);return{response,posture:this.analyzeHttp(response,secure)}}
 
   async surfaceBaseline(target,address,engagement,addresses){
-    const dns=await this.dnsProfile(target,addresses),portSurvey=await this.portSurvey(address,engagement.ports),open=portSurvey.observations.filter(item=>item.state==='open'),webPorts=open.filter(item=>[80,443,3000,5000,8000,8080,8081,8443,9443].includes(item.port)).slice(0,4),web=[]
-    for(const item of webPorts){const secure=[443,8443,9443].includes(item.port);try{const service={port:item.port,secure,...await this.httpPosture(target,address,item.port,secure,'/')};if(secure){try{service.tls=await this.certificate(target,address,item.port)}catch(error){service.tls={error:error.message}}}web.push(service)}catch(error){web.push({port:item.port,secure,error:error.message})}}
-    return{dns,portSurvey,web,summary:{authorizedPorts:engagement.ports.length,openPorts:open.map(item=>item.port),webServicesTested:web.length},hardCaps:{ports:30,webServices:4,tlsHandshakes:4,redirects:0}}
+    const dns=await this.dnsProfile(target,addresses),portSurvey=await this.portSurvey(address,engagement.ports),open=portSurvey.observations.filter(item=>item.state==='open'),observedWebPorts=open.filter(item=>webPorts.has(item.port)).slice(0,8),web=[]
+    for(const item of observedWebPorts){const secure=[443,8443,9443].includes(item.port);try{const service={port:item.port,secure,...await this.httpPosture(target,address,item.port,secure,'/')};if(secure){try{service.tls=await this.certificate(target,address,item.port)}catch(error){service.tls={error:error.message}}}web.push(service)}catch(error){web.push({port:item.port,secure,error:error.message})}}
+    return{dns,portSurvey,web,summary:{authorizedPorts:engagement.ports.length,openPorts:open.map(item=>item.port),webServicesTested:web.length},hardCaps:{ports:128,portConcurrency:4,webServices:8,tlsHandshakes:8,redirects:0}}
   }
 
   compareSurface(previous,current){
@@ -251,7 +267,7 @@ class EngagementStore {
     if(input?.attested!==true)throw new Error('Run-specific authorization confirmation is required')
     const durationSeconds=Math.max(10,Math.min(60,Math.round(Number(input?.durationSeconds)||20))),requestsPerSecond=Math.max(1,Math.min(4,Math.round(Number(input?.requestsPerSecond)||2)))
     const p95LimitMs=Math.max(250,Math.min(10_000,Math.round(Number(input?.p95LimitMs)||2000))),errorRateLimit=Math.max(1,Math.min(80,Math.round(Number(input?.errorRateLimit)||20)))
-    const addresses=await this.resolvePublic(target),now=this.now().toISOString()
+    const addresses=await this.resolveAuthorized(target,engagement.networkMode||'external'),now=this.now().toISOString()
     const run={id:randomUUID(),engagementId:engagement.id,name:String(input?.name||`${profile} resilience proof`).trim().slice(0,100),profile,target,port,path:requestPath,secure:Boolean(input?.secure),address:addresses[0].address,durationSeconds,requestsPerSecond,p95LimitMs,errorRateLimit,hardCaps:{maxDurationSeconds:60,maxRequestsPerSecond:4,maxRequests:240,maxConcurrency:4},status:'queued',phase:'preflight',samples:[],recoverySamples:[],metrics:this.chaosMetrics([]),progress:0,startedAt:now,finishedAt:null,abortReason:null,resilienceScore:null,outcome:'Preflight passed. Worker queued.',authorizationReference:engagement.authorizationReference}
     this.state.chaosRuns.unshift(run);this.state.chaosRuns=this.state.chaosRuns.slice(0,100);this.audit(engagement.id,'chaos-engine','started',`${run.name} // ${target}:${port}`,{runId:run.id,profile,durationSeconds,requestsPerSecond,p95LimitMs,errorRateLimit});await this.persist()
     this.executeChaos(run.id).catch(async error=>{const active=this.state.chaosRuns.find(item=>item.id===run.id);if(active&&['queued','running','recovering','aborting'].includes(active.status)){active.status='failed';active.outcome=error.message;active.finishedAt=this.now().toISOString();this.audit(active.engagementId,'chaos-engine','failed',error.message,{runId:active.id});await this.persist().catch(()=>{})}})
@@ -340,4 +356,4 @@ class EngagementStore {
   persist(){const serialized=`${JSON.stringify(this.state,null,2)}\n`;this.writeQueue=this.writeQueue.then(async()=>{const temporary=`${this.file}.tmp`;await writeFile(temporary,serialized,'utf8');await rename(temporary,this.file)});return this.writeQueue}
 }
 
-module.exports={EngagementStore,isPublicAddress,normalizeTarget,normalizeHttpPath}
+module.exports={EngagementStore,isPublicAddress,isPrivateAddress,normalizeTarget,normalizeHttpPath}

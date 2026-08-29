@@ -28,10 +28,11 @@ Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 
 ### FieldOps Workbench // next
 
-- **Surface Intelligence** — one authorized target baseline combines pinned public resolution, bounded DNS records, the declared port allowlist, and posture evidence from up to four observed web services.
+- **Surface Intelligence** — one authorized target baseline combines pinned boundary-aware resolution, bounded DNS records, the declared port allowlist, and posture evidence from up to eight observed web services.
 - **Change Intelligence** — repeat baselines compare resolved addresses, exposed ports, DNS control-plane records, HTTP posture, response behavior, server disclosure, and TLS certificate identity against the prior sealed capture.
 - **Service Profile** — one authorized port can be resolved into passive server-first banner evidence, protocol identity, HTTP posture, and TLS certificate context without sending credentials or protocol commands.
 - **Bounded Web Map** — a fixed eight-path, HEAD-only control-plane survey records security metadata, API descriptions, health endpoints, and disclosure signals without crawling or downloading response bodies.
+- **Professional network boundaries** — engagements can explicitly authorize public external targets or exact RFC1918/IPv6 ULA internal systems, with up to 100 named hosts and 128 declared TCP ports.
 - **Deeper protocol evidence** — DNS profiles cover address, mail, nameserver, TXT, CAA, and authority records. HTTP posture evaluates response controls, cookie flags, and implementation disclosure. TLS captures protocol, cipher, certificate identity, lifetime, and validation state.
 - **Asset intelligence** — every successful scoped diagnostic becomes a durable target observation instead of disappearing when the console changes screens.
 - **Sealed evidence vault** — diagnostic captures retain their raw result, target, timing, resolved addresses, and an independent SHA-256 digest.
@@ -104,7 +105,7 @@ Remote pack delivery is the next infrastructure layer. It will require a distrib
 - **A real operator record** — XP, streaks, weekly minutes, attempts, scores, achievements, and activity are calculated from completed work.
 - **Local-first data** — atomic writes, backup recovery, JSON export, reset controls, and no account dependency.
 - **Lemon Squeezy licensing** — secure activation, instance validation, device deactivation, tier entitlements, and a fourteen-day offline grace window.
-- **FieldOps Pro** — authorization-bound diagnostics against exact public targets with persistent asset observations, digest-sealed captures, reviewed findings, evidence-backed retests, and professional reports.
+- **FieldOps Pro** — authorization-bound diagnostics against exact external or internal targets with persistent asset observations, digest-sealed captures, reviewed findings, evidence-backed retests, and professional reports.
 - **Engagement Vault** — append-only scope records, dated testing windows, target and port allowlists, complete case-file export, and a SHA-256 chained activity ledger that exposes tampering.
 - **DaemonCore Chaos Engine** — four real black-box resilience profiles with a non-blocking native worker, live latency and error telemetry, automatic SLO aborts, emergency stop, recovery validation, resilience scoring, durable run history, and evidence export.
 - **Sealed Power Domain** — a dedicated disposable Chaos Worker can drive up to 500 requests per second, 100 concurrent workers, and 30,000 requests against the Academy black box. The worker and target have no published ports, no host mounts, no privileges, and no internet egress.
@@ -116,7 +117,7 @@ There are no locked “coming soon” course cards pretending to be content. Fie
 
 A paid license unlocks the tool. It does not authorize a target.
 
-Before an external diagnostic or Chaos Engine experiment can run, the operator must create an engagement with a client, authorization reference, exact targets, exact TCP ports, a testing window, and an explicit authorization attestation. FieldOps resolves and pins the destination, blocks private, loopback, link-local, reserved, and mixed public/private results, refuses redirects, and writes every completed or blocked action to the evidence ledger. Port surveys are limited to the declared allowlist and thirty ports. Basic resilience sampling is fixed at ten HEAD requests, concurrency one, with at least 500 milliseconds between requests.
+Before a diagnostic or Chaos Engine experiment can run, the operator must create an engagement with a client, authorization reference, external or internal network mode, exact targets, exact TCP ports, a testing window, and an explicit authorization attestation. FieldOps resolves and pins the destination, rejects addresses outside the selected boundary, blocks loopback, link-local, multicast, reserved, and mixed-boundary results, refuses redirects, and writes every completed or blocked action to the evidence ledger. Port surveys are limited to the declared allowlist, 128 ports, and four concurrent connection attempts. Basic resilience sampling remains fixed at ten HEAD requests, concurrency one, with at least 500 milliseconds between requests.
 
 Completed diagnostics are retained as digest-sealed captures in the engagement evidence vault. An operator can promote a capture into a reviewed finding, record severity, impact and remediation, change its disposition, and attach a later capture as a formal retest. A closure verdict never overwrites the original evidence. The JSON case file preserves the complete machine-readable record, while the standalone HTML report gives the client a clean finding register that can be printed to PDF.
 
