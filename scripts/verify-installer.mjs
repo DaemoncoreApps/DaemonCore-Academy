@@ -5,6 +5,7 @@ const manifest=JSON.parse(await readFile(new URL('../package.json',import.meta.u
 const installer=await readFile(new URL('../build/installer.nsh',import.meta.url),'utf8')
 
 assert.equal(manifest.build.appId,'academy.daemoncore.desktop')
+assert.equal(manifest.build.win.artifactName,'DaemonCore-Academy-Setup.${ext}')
 assert.equal(manifest.build.nsis.oneClick,false)
 assert.equal(manifest.build.nsis.allowToChangeInstallationDirectory,false)
 assert.equal(manifest.build.nsis.uninstallDisplayName,'DaemonCore Academy')

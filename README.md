@@ -8,6 +8,8 @@ DaemonCore is the course I wanted instead: learn the mental model, validate it, 
 
 Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 
+**[Download the latest Windows installer](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/latest/download/DaemonCore-Academy-Setup.exe)** · [Release notes](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/latest)
+
 ## Inside DaemonCore
 
 ![DaemonCore command center](docs/screenshots/command-center.png)
@@ -171,7 +173,7 @@ npm run icon
 npm run package:win
 ```
 
-The installer lands in `release/`.
+The installer lands at `release/DaemonCore-Academy-Setup.exe`. Every GitHub release uses that stable asset name, so the latest-download URL never needs to change.
 
 The Windows installer uses one stable application identity and one installation path. When DaemonCore is already installed, setup asks before removing the previous program files and applying the update. Operator records, course progress, FieldOps case files, and license data are retained through the upgrade. Old installer files already sitting in Downloads are not deleted automatically.
 

@@ -76,7 +76,7 @@
     "win": {
       "target": "nsis",
       "icon": "build/icon.ico",
-      "artifactName": "DaemonCore-Academy-Setup-${version}.${ext}"
+      "artifactName": "DaemonCore-Academy-Setup.${ext}"
     },
     "nsis": {
       "oneClick": false,

@@ -50,7 +50,7 @@ jobs:
         id: signature
         shell: pwsh
         run: |
-          $installer = Get-ChildItem release\DaemonCore-Academy-Setup-*.exe | Select-Object -First 1
+          $installer = Get-Item release\DaemonCore-Academy-Setup.exe
           if (-not $installer) { throw 'Installer not found' }
           $signature = Get-AuthenticodeSignature -LiteralPath $installer.FullName
           if ($signature.Status -ne 'Valid') { throw "Authenticode status is $($signature.Status)" }
@@ -59,7 +59,7 @@ jobs:
           "sha256=$hash" >> $env:GITHUB_OUTPUT
           "SHA-256: $hash" >> $env:GITHUB_STEP_SUMMARY
 
-      - name: Upload signed asset to private release
+      - name: Publish stable installer asset
         env:
           GH_TOKEN: ${{ github.token }}
         shell: pwsh
