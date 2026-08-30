@@ -30,6 +30,7 @@ assert.match(compose,/cap_add:\s*\[CHOWN, DAC_OVERRIDE, NET_BIND_SERVICE, SETGID
 assert.match(dockerfile,/samba-ad-provision/)
 assert.match(entrypoint,/samba-tool domain provision/)
 assert.match(entrypoint,/samba-tool[^\n]*user create/)
+assert.doesNotMatch(entrypoint,/samba-tool\s+-s/,'Samba config options belong to the selected subcommand')
 const orchestrator=new RangeOrchestrator(path.join(root,'ranges'))
 const index=await orchestrator.packIndex()
 assert.equal(index.packs.length,9,'Range Fabric must index all nine bundled packs')
