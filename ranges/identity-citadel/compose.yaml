@@ -38,7 +38,9 @@ services:
       - /tmp:size=32m,noexec,nosuid,nodev
       - /var/log/samba:size=64m,nosuid,nodev
     cap_drop: [ALL]
-    cap_add: [NET_BIND_SERVICE, SETUID, SETGID, CHOWN, DAC_OVERRIDE]
+    # Samba needs SYS_ADMIN for the filesystem metadata behind SYSVOL ACLs.
+    # The DC remains internal-only, read-only, and detached from host storage.
+    cap_add: [CHOWN, DAC_OVERRIDE, NET_BIND_SERVICE, SETGID, SETUID, SYS_ADMIN]
     security_opt: [no-new-privileges:true]
     pids_limit: 256
     mem_limit: 1024m
