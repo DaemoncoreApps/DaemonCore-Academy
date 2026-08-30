@@ -67,8 +67,12 @@ ipcMain.handle('range:export-receipt', rangeHandler(async () => {
   await writeFile(result.filePath, `${JSON.stringify(receipt, null, 2)}\n`, 'utf8')
   return { canceled: false, filePath: result.filePath, digest: receipt.digest }
 }))
-ipcMain.handle('range:start', rangeHandler(id => range.start(id)))
+ipcMain.handle('range:contract', rangeHandler(id => range.contract(id)))
+ipcMain.handle('range:start', rangeHandler((id, options) => range.start(id, options)))
 ipcMain.handle('range:execute', rangeHandler((id, command) => range.execute(id, command)))
+ipcMain.handle('range:validate', rangeHandler((id, objectiveIndex, executionId) => range.validateObjective(id, objectiveIndex, executionId)))
+ipcMain.handle('range:hint', rangeHandler(id => range.requestHint(id)))
+ipcMain.handle('range:complete', rangeHandler(id => range.completeMission(id)))
 ipcMain.handle('range:chaos-status', rangeHandler(() => range.chaosStatus()))
 ipcMain.handle('range:chaos-start', rangeHandler(input => range.startChaos(input)))
 ipcMain.handle('range:chaos-abort', rangeHandler(() => range.abortChaos()))

@@ -69,6 +69,7 @@ function TerminalLine({ item }) {
 
 export function LabSimulation({ mission, onExit, onComplete }) {
   const scenario = scenarioData[mission.id]
+  const mode = mission.mode || 'assisted'
   const rangeApi = window.daemoncore?.range
   const [history, setHistory] = useState([
     { type: 'system', lines: ['DAEMONCORE RANGE CONSOLE // PHASE 10', scenario.classification, '', scenario.intro, '', 'Type help to inspect the mission interface.'] },
@@ -85,6 +86,9 @@ export function LabSimulation({ mission, onExit, onComplete }) {
   const [containment, setContainment] = useState(null)
   const [receipt, setReceipt] = useState(null)
   const [receiptExported, setReceiptExported] = useState(false)
+  const [contract, setContract] = useState(null)
+  const [session, setSession] = useState(null)
+  const [completion, setCompletion] = useState(null)
   const scrollRef = useRef(null)
   const startRef = useRef(false)
 
@@ -98,18 +102,20 @@ export function LabSimulation({ mission, onExit, onComplete }) {
         return null
       }
       setEngine('provisioning')
-      return rangeApi.start(mission.id)
+      return rangeApi.start(mission.id, { mode })
     }).then(result => {
       if (!result) return
       setContainment(result.containment)
       setReceipt(result.receipt)
+      setContract(result.contract)
+      setSession(result.session)
       setEngine('live')
-      setHistory([{ type: 'system', lines: ['DAEMONCORE LIVE RANGE // PHASE 10', 'CONTAINMENT VERIFIED // INTERNAL NETWORK // ZERO HOST MOUNTS // EGRESS DENIED', '', scenario.intro, '', `This is a disposable root shell inside ${result.manifest.operatorContainer}.`, 'Type help for mission commands. Arbitrary in-range shell commands are enabled.'] }])
+      setHistory([{ type: 'system', lines: ['DAEMONCORE ADAPTIVE RANGE // 5.4', `MODE ${mode.toUpperCase()} // RUN ${result.session.seed}`, 'CONTAINMENT VERIFIED // INTERNAL NETWORK // ZERO HOST MOUNTS // EGRESS DENIED', '', scenario.intro, '', `This is a disposable shell inside ${result.manifest.operatorContainer}.`, 'Prove outcomes with evidence. Type help for the interface contract.'] }])
     }).catch(error => {
       setEngineError(error.message || 'The range failed to initialize.')
       setEngine('offline')
     })
-  }, [mission.id, rangeApi, scenario])
+  }, [mission.id, mode, rangeApi, scenario])
   useEffect(() => { if (!['live', 'simulation'].includes(engine)) return; const timer = setInterval(() => setSeconds(s => s + 1), 1000); return () => clearInterval(timer) }, [engine])
   useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' }) }, [history])
 
@@ -120,12 +126,22 @@ export function LabSimulation({ mission, onExit, onComplete }) {
     setInput('')
     if (command === 'clear') { setHistory([]); return }
     if (command === 'help') {
-      push({ type: 'command', text: raw }, { type: 'output', lines: [engine === 'live' ? 'MISSION COMMANDS // ROOT SHELL IS UNRESTRICTED INSIDE THE SEALED RANGE' : 'SIMULATION COMMANDS', ...scenario.commands.map(c => `  ${c.command.padEnd(55)} ${c.label}`), '  hint                                                    Request guided assistance', '  evidence                                                Review collected evidence', '  clear                                                   Clear console output'] })
+      const guidance = engine !== 'live' || mode === 'guided'
+        ? scenario.commands.map(c => `  ${c.command.padEnd(55)} ${c.label}`)
+        : mode === 'assisted'
+          ? (contract?.tools || []).map(tool => `  TOOL MAP // ${tool}`)
+          : ['  OUTCOME MODE // Choose and justify your own investigative path.']
+      push({ type: 'command', text: raw }, { type: 'output', lines: [`MISSION INTERFACE // ${mode.toUpperCase()} // OUTPUT-VALIDATED`, ...guidance, ...(mode === 'professional' ? [] : ['  hint                                                    Request progressive guidance']), '  evidence                                                Review accepted evidence', '  clear                                                   Clear console output'] })
       return
     }
     if (command === 'hint') {
-      setHints(h => h + 1)
-      push({ type: 'command', text: raw }, { type: 'system', lines: [`GUIDANCE // ${scenario.hint}`] })
+      try {
+        const guidance = engine === 'live' ? await rangeApi.hint(mission.id) : { text: scenario.hint, used: hints + 1, remaining: 0 }
+        setHints(guidance.used)
+        push({ type: 'command', text: raw }, { type: 'system', lines: [`PROGRESSIVE GUIDANCE ${guidance.used} // ${guidance.text}`, `${guidance.remaining} HINTS REMAIN // -75 SCORE`] })
+      } catch (error) {
+        push({ type: 'command', text: raw }, { type: 'system', lines: [`GUIDANCE LOCKED // ${error.message}`] })
+      }
       return
     }
     if (command === 'evidence') {
@@ -150,6 +166,21 @@ export function LabSimulation({ mission, onExit, onComplete }) {
         const output = `${result.stdout || ''}${result.stderr || ''}`.trim()
         push({ type: result.exitCode === 0 ? 'output' : 'system', lines: output ? output.split(/\r?\n/) : [`Process exited ${result.exitCode}`] })
         succeeded = result.exitCode === 0
+        if (succeeded && done.length < mission.objectives.length) {
+          const validation = await rangeApi.validate(mission.id, done.length, result.executionId)
+          if (validation.accepted) {
+            setDone(current => [...current, validation.evidence.objectiveIndex])
+            setEvidence(current => [...current, validation.evidence.evidence])
+            push({ type: 'system', lines: [`EVIDENCE ACCEPTED // OBJECTIVE ${validation.progress}/${validation.total}`, validation.evidence.evidence, `EXECUTION DIGEST // ${validation.evidence.executionDigest}`] })
+            if (validation.progress === validation.total) {
+              const completed = await rangeApi.complete(mission.id)
+              setCompletion(completed)
+              setHints(completed.hints)
+              setSeconds(completed.seconds)
+              setTimeout(() => setReport(true), 650)
+            }
+          }
+        }
       } catch (error) {
         succeeded = false
         push({ type: 'system', lines: [`RANGE ERROR // ${error.message || 'command channel failed'}`] })
@@ -159,16 +190,17 @@ export function LabSimulation({ mission, onExit, onComplete }) {
     } else {
       push({ type: 'output', lines: matched.output })
     }
-    if (matched && succeeded) {
+    if (matched && succeeded && engine !== 'live') {
       if (!done.includes(matched.objective)) setDone(d => [...d, matched.objective])
       if (matched.evidence && !evidence.includes(matched.evidence)) setEvidence(e => [...e, matched.evidence])
       if (matched.objective === mission.objectives.length-1) setTimeout(() => setReport(true), 650)
     }
   }
-  const score = Math.max(250, mission.xp - hints * 75 - Math.floor(seconds / 60) * 10)
+  const multipliers={guided:1,assisted:1.15,blind:1.35,professional:1.5}
+  const score = completion?.score || Math.max(250, Math.round((mission.xp - hints * 75 - Math.floor(seconds / 60) * 10) * (multipliers[mode] || 1)))
   const formatTime = s => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
   const leaveRange = async () => { if (rangeApi && ['live', 'provisioning'].includes(engine)) await rangeApi.stop().catch(() => {}); onExit() }
-  const finishRange = async () => { if (rangeApi && engine === 'live') await rangeApi.stop().catch(() => {}); onComplete({ mission, score, hints, seconds, receipt }) }
+  const finishRange = async () => { if (rangeApi && engine === 'live') await rangeApi.stop().catch(() => {}); onComplete({ mission, score, hints:completion?.hints??hints, seconds:completion?.seconds??seconds, mode:completion?.mode||mode, seed:completion?.seed||session?.seed, evidenceDigest:completion?.evidenceDigest, receipt:completion?.receipt||receipt, launchReceipt:receipt }) }
   const exportReceipt = async () => { const result=await rangeApi?.exportReceipt(); if(result&&!result.canceled)setReceiptExported(true) }
 
   if (engine === 'probing' || engine === 'provisioning') return <div className="range-gate"><div className="range-gate-grid"/><div className="range-gate-core"><div className="range-loader"><Hexagon size={78}/><i/></div><span>PHASE 10 // RANGE ORCHESTRATOR</span><h1>{engine === 'probing' ? 'Checking the engine.' : 'Building the sealed range.'}</h1><p>{engine === 'probing' ? 'Locating Docker Desktop and verifying the local runtime.' : 'Pulling the operator image, building the target, and proving containment before shell access is released.'}</p><div className="boot-sequence"><span className="done"><Check/> Scenario manifest</span><span className={engine === 'provisioning' ? 'active' : ''}><Activity/> Container network</span><span><ShieldCheck/> Containment proof</span><span><Terminal/> Root shell</span></div><button onClick={leaveRange}>Cancel launch</button></div></div>

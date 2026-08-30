@@ -26,6 +26,17 @@ Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 
 ## What ships
 
+### Adaptive Range Engine // 5.4
+
+- **Four operator modes** — Guided exposes the full runbook, Assisted provides a tool map and progressive hints, Blind removes prescribed commands, and Professional removes hints entirely while applying the highest score multiplier.
+- **Outcomes instead of magic commands** — mission completion no longer depends on typing one exact command string. The desktop backend records each live execution and accepts alternate investigative paths when the resulting signal proves the current objective.
+- **Ordered evidence gates** — discovery, positive control, boundary proof, and finding submission must be established in sequence. A successful process exit is not enough by itself.
+- **Backend-owned run ledger** — each execution receives a SHA-256 digest. Accepted objective evidence retains that digest, its acceptance time, and the exact outcome it proved.
+- **Progressive guidance** — hints are tied to the current unresolved objective, limited by mode, and carry an explicit score penalty. Professional runs cannot request hints.
+- **Seeded run identity** — every live launch receives a unique run seed alongside its content-addressed range pack and containment receipt.
+- **Sealed completion receipt** — mode, seed, elapsed time, guidance use, score, and the complete evidence chain are bound into a tamper-evident result retained with the operator attempt.
+- **Reliable in-app windows** — close controls now use a 48-pixel hit target, stronger pointer feedback, keyboard focus treatment, and global Escape-to-close behavior.
+
 ### FieldOps Workbench // next
 
 - **DaemonCore Trust Authority** — a protected Ed25519 operator identity signs every new operation permit and audit receipt with the operator’s name, organization, role, device-key fingerprint, and timestamp.

@@ -1,8 +1,9 @@
 const { execFile } = require('child_process')
-const { randomUUID } = require('crypto')
+const { createHash, randomBytes, randomUUID } = require('crypto')
 const { readFile } = require('fs/promises')
 const path = require('path')
 const { fingerprintPack, sealReceipt } = require('./range-integrity.cjs')
+const { contractFor, matchesObjective, normalizeMode, publicContract, MODES } = require('./adaptive-range.cjs')
 
 const CHAOS_WORKER = 'dc-ghost-chaos'
 const ALLOWED_SCENARIOS = new Set(['ghost-port', 'broken-trust', 'night-shift', 'token-afterlife', 'policy-collision', 'artifact-zero', 'identity-citadel', 'web-range', 'enterprise-range'])
@@ -36,6 +37,8 @@ class RangeOrchestrator {
     this.rangeRoot = rangeRoot
     this.activeScenario = null
     this.activeReceipt = null
+    this.activeSession = null
+    this.executions = new Map()
     this.operation = Promise.resolve()
   }
 
@@ -160,8 +163,9 @@ class RangeOrchestrator {
     return { internalNetwork: true, hostMounts: 0, egressBlocked: true, network: manifest.network }
   }
 
-  async start(id) {
+  async start(id, options = {}) {
     return this.serialize(async () => {
+      const mode = normalizeMode(options.mode)
       const availability = await this.availability()
       if (!availability.available) throw new Error(availability.reason)
       const integrity = await this.verifyPack(id)
@@ -173,9 +177,13 @@ class RangeOrchestrator {
         await this.waitForHealthy(manifest)
         const containment = await this.verifyContainment(manifest)
         this.activeScenario = id
-        const receipt = sealReceipt({ schemaVersion: 1, receiptId: randomUUID(), scenario: id, startedAt: new Date().toISOString(), runtime: { engine: availability.engine, version: availability.version }, pack: { algorithm: integrity.algorithm, digest: integrity.digest, fileCount: integrity.fileCount }, containment, operatorContainer: manifest.operatorContainer, targetContainer: manifest.targetContainer })
+        const startedAt = new Date().toISOString()
+        const seed = randomBytes(6).toString('hex').toUpperCase()
+        const receipt = sealReceipt({ schemaVersion: 2, receiptId: randomUUID(), scenario: id, mode, seed, startedAt, runtime: { engine: availability.engine, version: availability.version }, pack: { algorithm: integrity.algorithm, digest: integrity.digest, fileCount: integrity.fileCount }, containment, operatorContainer: manifest.operatorContainer, targetContainer: manifest.targetContainer })
         this.activeReceipt = receipt
-        return { state: 'sealed', scenario: id, containment, integrity, receipt, manifest }
+        this.activeSession = { sessionId: randomUUID(), scenario: id, mode, seed, startedAt, hints: [], evidence: [] }
+        this.executions.clear()
+        return { state: 'sealed', scenario: id, containment, integrity, receipt, manifest, session: this.sessionSnapshot(), contract: publicContract(id) }
       } catch (error) {
         let targetLogs = ''
         try {
@@ -191,19 +199,79 @@ class RangeOrchestrator {
 
   async execute(id, command) {
     if (id !== this.activeScenario) throw new Error('This range is not active')
+    if (this.activeSession?.completed) throw new Error('This adaptive mission is already complete')
     if (typeof command !== 'string' || !command.trim()) return { stdout: '', stderr: '', exitCode: 0 }
     if (command.length > 4_096) throw new Error('Command exceeds the range console limit')
     const manifest = await this.manifest(id)
     try {
       const { stdout, stderr } = await runDocker(['exec', manifest.operatorContainer, 'sh', '-lc', command], { timeout: 45_000 })
-      return { stdout, stderr, exitCode: 0 }
+      return this.recordExecution(command, stdout, stderr, 0)
     } catch (error) {
-      return {
-        stdout: error.stdout || '',
-        stderr: error.stderr || error.message || 'Command failed',
-        exitCode: Number.isInteger(error.code) ? error.code : 1,
-      }
+      return this.recordExecution(command, error.stdout || '', error.stderr || error.message || 'Command failed', Number.isInteger(error.code) ? error.code : 1)
     }
+  }
+
+  recordExecution(command, stdout, stderr, exitCode) {
+    if (!this.activeSession) throw new Error('No adaptive mission session is active')
+    const execution = { executionId: randomUUID(), command, stdout, stderr, exitCode, at: new Date().toISOString() }
+    execution.digest = createHash('sha256').update(JSON.stringify(execution)).digest('hex')
+    this.executions.set(execution.executionId, execution)
+    while (this.executions.size > 200) this.executions.delete(this.executions.keys().next().value)
+    return { ...execution }
+  }
+
+  sessionSnapshot() {
+    if (!this.activeSession) throw new Error('No adaptive mission session is active')
+    return JSON.parse(JSON.stringify(this.activeSession))
+  }
+
+  contract(id) {
+    this.scenarioPath(id)
+    return publicContract(id)
+  }
+
+  validateObjective(id, objectiveIndex, executionId) {
+    if (id !== this.activeScenario || !this.activeSession) throw new Error('This adaptive mission is not active')
+    if (this.activeSession.completed) throw new Error('This adaptive mission is already complete')
+    const index = Number(objectiveIndex)
+    if (!Number.isInteger(index) || index < 0) throw new Error('Invalid mission objective')
+    if (index !== this.activeSession.evidence.length) throw new Error('Mission objectives must be proven in order')
+    const execution = this.executions.get(executionId)
+    if (!execution) throw new Error('Evidence must reference an execution from this active run')
+    if (execution.exitCode !== 0) return { accepted: false, objectiveIndex: index, reason: 'The evidence command did not exit successfully.' }
+    const output = `${execution.stdout}\n${execution.stderr}`
+    if (!matchesObjective(id, index, output)) return { accepted: false, objectiveIndex: index, reason: 'The latest output does not yet prove this objective.' }
+    const definition = contractFor(id).objectives[index]
+    const evidence = { objectiveIndex: index, label: definition.label, evidence: definition.evidence, executionId, executionDigest: execution.digest, acceptedAt: new Date().toISOString() }
+    this.activeSession.evidence.push(evidence)
+    return { accepted: true, evidence, progress: this.activeSession.evidence.length, total: contractFor(id).objectives.length }
+  }
+
+  requestHint(id) {
+    if (id !== this.activeScenario || !this.activeSession) throw new Error('This adaptive mission is not active')
+    if (this.activeSession.completed) throw new Error('This adaptive mission is already complete')
+    const mode = MODES[this.activeSession.mode]
+    if (this.activeSession.hints.length >= mode.hints) throw new Error(this.activeSession.mode === 'professional' ? 'Professional mode does not provide hints.' : 'No more guidance is available for this run.')
+    const index = Math.min(this.activeSession.evidence.length, contractFor(id).objectives.length - 1)
+    const entry = { objectiveIndex: index, text: contractFor(id).objectives[index].hint, requestedAt: new Date().toISOString(), penalty: 75 }
+    this.activeSession.hints.push(entry)
+    return { ...entry, used: this.activeSession.hints.length, remaining: mode.hints - this.activeSession.hints.length }
+  }
+
+  completeMission(id) {
+    if (id !== this.activeScenario || !this.activeSession) throw new Error('This adaptive mission is not active')
+    if (this.activeSession.completed) return JSON.parse(JSON.stringify(this.activeSession.completed))
+    const contract = contractFor(id)
+    if (this.activeSession.evidence.length !== contract.objectives.length) throw new Error('Every objective needs accepted evidence before mission completion')
+    const seconds = Math.max(0, Math.floor((Date.now() - Date.parse(this.activeSession.startedAt)) / 1000))
+    const mode = MODES[this.activeSession.mode]
+    const rawScore = contract.baseScore - this.activeSession.hints.length * 75 - Math.floor(seconds / 60) * 10
+    const score = Math.max(250, Math.round(rawScore * mode.multiplier))
+    const evidenceDigest = createHash('sha256').update(JSON.stringify(this.activeSession.evidence)).digest('hex')
+    const summary = { schemaVersion: 1, sessionId: this.activeSession.sessionId, scenario: id, mode: this.activeSession.mode, seed: this.activeSession.seed, startedAt: this.activeSession.startedAt, completedAt: new Date().toISOString(), seconds, hints: this.activeSession.hints.length, score, evidenceDigest, objectives: this.activeSession.evidence }
+    const receipt = sealReceipt({ ...summary, type: 'adaptive-mission-result', receiptId: randomUUID(), launchReceiptDigest: this.activeReceipt?.digest || null })
+    this.activeSession.completed = { ...summary, receipt }
+    return JSON.parse(JSON.stringify(this.activeSession.completed))
   }
 
   normalizeChaosPlan(input = {}) {
@@ -263,6 +331,8 @@ class RangeOrchestrator {
     }
     this.activeScenario = null
     this.activeReceipt = null
+    this.activeSession = null
+    this.executions.clear()
     return { state: 'stopped' }
   }
 

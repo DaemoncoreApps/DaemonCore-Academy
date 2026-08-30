@@ -3,7 +3,7 @@ const { randomUUID } = require('crypto')
 const path = require('path')
 
 const cleanState = () => ({
-  schemaVersion: 4,
+  schemaVersion: 5,
   profile: {
     handle: null,
     xp: 0,
@@ -70,7 +70,7 @@ class DataStore {
     if (!input || typeof input !== 'object') return base
     return {
       ...base,
-      schemaVersion: 4,
+      schemaVersion: 5,
       profile: { ...base.profile, ...(input.profile || {}) },
       settings: { ...base.settings, ...(input.settings || {}) },
     }
@@ -145,13 +145,16 @@ class DataStore {
     const receiptDigest = /^[a-f0-9]{64}$/.test(event.receiptDigest || '') ? event.receiptDigest : null
     const packDigest = /^[a-f0-9]{64}$/.test(event.packDigest || '') ? event.packDigest : null
     const receiptId = /^[a-f0-9-]{36}$/.test(event.receiptId || '') ? event.receiptId : null
-    this.state.profile.missionAttempts.unshift({ id: randomUUID(), missionId: event.id, score, hints: Number(event.hints) || 0, seconds: Number(event.seconds) || 0, receiptDigest, packDigest, receiptId, at: new Date().toISOString() })
+    const mode = ['guided', 'assisted', 'blind', 'professional'].includes(event.mode) ? event.mode : 'legacy'
+    const seed = /^[A-F0-9]{12}$/.test(event.seed || '') ? event.seed : null
+    const evidenceDigest = /^[a-f0-9]{64}$/.test(event.evidenceDigest || '') ? event.evidenceDigest : null
+    this.state.profile.missionAttempts.unshift({ id: randomUUID(), missionId: event.id, score, hints: Number(event.hints) || 0, seconds: Number(event.seconds) || 0, mode, seed, evidenceDigest, receiptDigest, packDigest, receiptId, at: new Date().toISOString() })
     this.state.profile.missionAttempts = this.state.profile.missionAttempts.slice(0, 100)
     this.addXp(earned)
     this.unlock('first-signal')
     if ((Number(event.hints) || 0) === 0) this.unlock('evidence-led')
     if (this.state.profile.completedMissions.length >= 7) this.unlock('range-veteran')
-    this.addActivity('mission', event.title || event.id, earned, `${score} operation score`)
+    this.addActivity('mission', event.title || event.id, earned, `${score} operation score // ${mode} mode`)
   }
 
   recordLesson(event) {

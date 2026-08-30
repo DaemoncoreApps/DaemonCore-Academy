@@ -21,12 +21,15 @@ try {
 
   await store.record({ type: 'lesson', id: 'rules-of-engagement', title: 'Scope and rules of engagement', minutes: 18, practicalScore: 100 })
   await store.record({ type: 'drill', id: 'protocol-recognition', title: 'Protocol recognition', correct: 3, total: 3 })
-  state = await store.record({ type: 'mission', id: 'ghost-port', title: 'The Ghost Port', score: 430, hints: 0, seconds: 240 })
+  state = await store.record({ type: 'mission', id: 'ghost-port', title: 'The Ghost Port', score: 430, hints: 0, seconds: 240, mode: 'blind', seed: 'A1B2C3D4E5F6', evidenceDigest: 'a'.repeat(64) })
   assert.equal(state.profile.xp, 970)
   assert.deepEqual(state.profile.completedLessons, ['rules-of-engagement'])
   assert.equal(state.profile.lessonAttempts[0].practicalScore, 100)
   assert.equal(state.profile.lessonAttempts[0].passed, true)
   assert.deepEqual(state.profile.completedMissions, ['ghost-port'])
+  assert.equal(state.profile.missionAttempts[0].mode, 'blind')
+  assert.equal(state.profile.missionAttempts[0].seed, 'A1B2C3D4E5F6')
+  assert.equal(state.profile.missionAttempts[0].evidenceDigest, 'a'.repeat(64))
   assert.equal(state.profile.weeklyMinutes, 18)
   assert.ok(state.profile.achievements.includes('clean-sweep'))
   assert.ok(state.profile.achievements.includes('evidence-led'))
@@ -64,7 +67,7 @@ try {
   assert.equal(state.profile.xp, 2620)
 
   const persisted = JSON.parse(await readFile(recovered.file, 'utf8'))
-  assert.equal(persisted.schemaVersion, 4)
+  assert.equal(persisted.schemaVersion, 5)
   console.log('Operator record verified // atomic write, reload, and backup recovery')
 } finally {
   await rm(directory, { recursive: true, force: true })

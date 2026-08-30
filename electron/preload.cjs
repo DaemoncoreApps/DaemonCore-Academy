@@ -2,7 +2,7 @@ const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('daemoncore', {
   platform: process.platform,
-  version: '5.3.0',
+  version: '5.4.0',
   display: Object.freeze({
     setZoom: factor => ipcRenderer.invoke('display:set-zoom', factor),
   }),
@@ -14,8 +14,12 @@ contextBridge.exposeInMainWorld('daemoncore', {
     verifyPack: id => ipcRenderer.invoke('range:verify-pack', id),
     diagnostics: () => ipcRenderer.invoke('range:diagnostics'),
     exportReceipt: () => ipcRenderer.invoke('range:export-receipt'),
-    start: id => ipcRenderer.invoke('range:start', id),
+    contract: id => ipcRenderer.invoke('range:contract', id),
+    start: (id, options) => ipcRenderer.invoke('range:start', id, options),
     execute: (id, command) => ipcRenderer.invoke('range:execute', id, command),
+    validate: (id, objectiveIndex, executionId) => ipcRenderer.invoke('range:validate', id, objectiveIndex, executionId),
+    hint: id => ipcRenderer.invoke('range:hint', id),
+    complete: id => ipcRenderer.invoke('range:complete', id),
     chaosStatus: () => ipcRenderer.invoke('range:chaos-status'),
     chaosStart: input => ipcRenderer.invoke('range:chaos-start', input),
     chaosAbort: () => ipcRenderer.invoke('range:chaos-abort'),

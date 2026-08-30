@@ -19,6 +19,7 @@ import './readability.css'
 import './web-range.css'
 import './enterprise.css'
 import './range-fabric.css'
+import './adaptive-range.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

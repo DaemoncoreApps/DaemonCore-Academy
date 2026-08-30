@@ -1,0 +1,14 @@
+.modal-close{right:10px;top:10px;width:48px;height:48px;z-index:8;border-color:#353941;background:#15181d;color:#a9aeb7;touch-action:manipulation;transition:border-color .15s,background .15s,color .15s,transform .15s}
+.modal-close:hover{border-color:#794047;background:#251519;color:#ff5c64}
+.modal-close:active{transform:scale(.92);background:#35171c}
+.modal-close:focus-visible{outline:2px solid #ff5961;outline-offset:3px}
+.adaptive-launch{width:min(720px,92vw);max-height:94vh;overflow:auto}
+.mission-modes{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0 20px}
+.mission-modes button{min-height:78px;padding:11px;border:1px solid #292d33;background:#0a0c0f;color:#737983;text-align:left;cursor:pointer;position:relative}
+.mission-modes button:hover{border-color:#4b3438;color:#d7d9dc}
+.mission-modes button.active{border-color:#87353c;background:linear-gradient(145deg,#231216,#0e1013);color:#fff;box-shadow:inset 0 0 0 1px rgba(240,44,53,.14)}
+.mission-modes span,.mission-modes strong,.mission-modes em{display:block}
+.mission-modes span{font:700 8px var(--mono);letter-spacing:1px;color:#ed535b}
+.mission-modes strong{margin-top:8px;font:500 8px/1.45 var(--mono)}
+.mission-modes em{position:absolute;right:8px;top:8px;font:500 7px var(--mono);font-style:normal;color:#60656e}
+@media(max-width:1250px){.mission-modes{grid-template-columns:repeat(2,1fr)}}
