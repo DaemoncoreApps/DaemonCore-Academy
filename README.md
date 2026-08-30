@@ -28,6 +28,10 @@ Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 
 ### FieldOps Workbench // next
 
+- **DaemonCore Trust Authority** — a protected Ed25519 operator identity signs every new operation permit and audit receipt with the operator’s name, organization, role, device-key fingerprint, and timestamp.
+- **Signed operation permits** — new engagements cryptographically bind the operator, approving authority, client, ROE reference, Observe/Validate/Stress policy, exact targets, ports, network boundary, and validity window. Editing any bound field invalidates execution.
+- **Graduated authorization** — Observe permits posture and identity checks, Validate adds inventory and campaigns, and Stress adds the existing bounded resilience engine. Greater capability requires an explicitly stronger signed policy.
+- **Attribution-ready exports** — case files and professional reports include the signed permit, named operator, approving authority, policy level, fingerprint, and signature-integrity verdict.
 - **Campaign Engine** — run durable multi-target assessment campaigns across the exact systems in a signed engagement. Complete Assessment, Service Inventory, and Change Verification profiles coordinate the existing FieldOps modules in the background.
 - **Campaign control** — live progress, per-target task state, pause, resume, safe cancellation, and desktop-restart recovery turn isolated diagnostics into a repeatable engagement workflow.
 - **Traceable campaign evidence** — every successful campaign task points to its own digest-sealed capture. Campaign status and completion totals travel with the JSON case file and the printable client report.
@@ -121,6 +125,8 @@ There are no locked “coming soon” course cards pretending to be content. Fie
 
 A paid license unlocks the tool. It does not authorize a target.
 
+New FieldOps engagements also require a device-bound operator identity. DaemonCore generates an Ed25519 signing key and protects the private key with the operating system’s credential storage. The public fingerprint and named operator are embedded in signed permits and operation receipts; the private key is never included in an export. This provides device-key attribution and tamper evidence, not independent proof that a typed identity or authorization claim is truthful.
+
 Before a diagnostic or Chaos Engine experiment can run, the operator must create an engagement with a client, authorization reference, external or internal network mode, exact targets, exact TCP ports, a testing window, and an explicit authorization attestation. FieldOps resolves and pins the destination, rejects addresses outside the selected boundary, blocks loopback, link-local, multicast, reserved, and mixed-boundary results, refuses redirects, and writes every completed or blocked action to the evidence ledger. Port surveys are limited to the declared allowlist, 128 ports, and four concurrent connection attempts. Basic resilience sampling remains fixed at ten HEAD requests, concurrency one, with at least 500 milliseconds between requests.
 
 Campaign Engine applies that same boundary to the whole engagement. Operators select only allowlisted targets, choose a fixed assessment profile, and attest the campaign before launch. Work continues in the background, survives navigation, pauses between modules, resumes pending or failed tasks, and becomes recoverable after an unexpected desktop restart. Cancellation never abandons a half-written evidence record: the active module settles before the campaign closes.
@@ -196,6 +202,7 @@ The Windows installer uses one stable application identity and one installation 
 ```text
 electron/data-store.cjs       atomic local operator record
 electron/license-manager.cjs  Lemon Squeezy + protected key storage
+electron/trust-authority.cjs  protected operator keys + signed operation permits
 electron/engagement-store.cjs scope enforcement + external diagnostics
 electron/range-orchestrator.cjs
 electron/range-integrity.cjs    full-tree fingerprints + receipt verification
@@ -225,6 +232,7 @@ scripts/verify-phase7.mjs     interactive scenario and mastery-gate contract
 scripts/verify-phase8.mjs     Chaos Engine caps, abort, recovery, and audit contract
 scripts/verify-fieldops-workspace.mjs  captures, findings, retests, and persistence
 scripts/verify-campaign-engine.mjs     campaign scope, lifecycle, and recovery contract
+scripts/verify-trust-authority.mjs     operator keys, permits, attribution, and tamper contract
 scripts/verify-phase13.mjs    Web curriculum + live-range quality contract
 scripts/verify-phase14.mjs    enterprise depth + containment contract
 scripts/verify-phase15.mjs    identity range + pack tamper-rejection contract

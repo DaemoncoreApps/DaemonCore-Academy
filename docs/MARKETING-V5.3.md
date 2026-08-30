@@ -26,6 +26,27 @@ Campaign Engine coordinates FieldOps across as many as 100 explicitly authorized
 - **Restart recovery** — an interrupted desktop session becomes a resumable campaign instead of losing the engagement run.
 - **Evidence traceability** — each successful task links to a digest-sealed capture; campaign results are included in case-file exports and printable reports.
 
+## New feature block: DaemonCore Trust Authority
+
+### Every operation has a name, permit, scope, and cryptographic receipt.
+
+FieldOps no longer relies on an anonymous authorization checkbox. Operators bind a protected Ed25519 identity to their installation before opening a new engagement. DaemonCore then signs the engagement permit and every operation receipt with the operator’s name, organization, role, device-key fingerprint, and timestamp.
+
+- **Device-protected operator identity** — the private signing key is protected by the operating system and never appears in evidence exports.
+- **Named approving authority** — the permit records the approving person and professional email alongside the client and ROE reference.
+- **Cryptographically bound scope** — targets, ports, network mode, policy, and testing window are covered by the permit signature. A changed field fails verification and blocks execution.
+- **Observe policy** — authorizes posture, protocol-identity, and focused evidence collection.
+- **Validate policy** — adds service inventory, surface baselines, and multi-target Campaign Engine execution.
+- **Stress policy** — additionally authorizes the existing bounded Chaos Engine resilience profiles.
+- **Signed operation receipts** — completed, blocked, paused, cancelled, and failed actions retain the named signer and exact timestamp inside the hash-chained ledger.
+- **Attribution-ready delivery** — JSON case files and printable reports identify the operator, approving authority, policy, permit ID, certificate fingerprint, and signature-integrity result.
+
+### Trust statement
+
+Use this exact language in the FAQ or security section:
+
+> DaemonCore Trust Authority provides device-key attribution and tamper-evident records. It does not independently verify that a typed identity or authorization claim is truthful, and it never replaces written permission from the system owner.
+
 ## FieldOps capability block
 
 ### One workbench from discovery to delivery.
@@ -39,6 +60,8 @@ Campaign Engine coordinates FieldOps across as many as 100 explicitly authorized
 - Persistent asset observations and SHA-256-sealed raw captures
 - Reviewed findings, dispositions, evidence-backed retests, and closure history
 - Machine-readable case files, printable client reports, and a chained activity ledger
+- Device-bound operator identity, signed engagement permits, and named operation receipts
+- Observe, Validate, and Stress authorization policies enforced by the FieldOps backend
 - Controlled Chaos Engine resilience tests with live SLO aborts and recovery scoring
 
 ## Academy numbers
@@ -76,11 +99,11 @@ Then describe the contained lab separately:
 
 Use this only after v5.3 is published:
 
-> **DaemonCore Academy 5.3 is live.** Campaign Engine brings multi-target orchestration, background execution, restart recovery, and campaign-aware reporting to FieldOps Pro.
+> **DaemonCore Academy 5.3 is live.** Campaign Engine and DaemonCore Trust Authority bring multi-target orchestration, protected operator identity, signed permits, named operation receipts, restart recovery, and attribution-ready reporting to FieldOps Pro.
 
 Until then, use:
 
-> **DaemonCore 5.3 is in final verification.** Campaign Engine is coming to the next Windows installer.
+> **DaemonCore 5.3 is in final verification.** Campaign Engine and signed FieldOps operations are coming to the next Windows installer.
 
 ## Download link
 

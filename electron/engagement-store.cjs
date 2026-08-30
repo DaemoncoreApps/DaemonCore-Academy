@@ -8,8 +8,9 @@ const path = require('path')
 const tls = require('tls')
 const { createHash, randomUUID } = require('crypto')
 const { ToolBridge } = require('./tool-bridge.cjs')
+const { TrustAuthority } = require('./trust-authority.cjs')
 
-const cleanState = () => ({ schemaVersion: 5, engagements: [], campaigns: [], chaosRuns: [], captures: [], findings: [], audit: [] })
+const cleanState = () => ({ schemaVersion: 6, engagements: [], campaigns: [], chaosRuns: [], captures: [], findings: [], audit: [] })
 const clone = value => JSON.parse(JSON.stringify(value))
 const captureDigest = capture => { const { digest: _digest, ...unsigned }=capture;return createHash('sha256').update(JSON.stringify(unsigned)).digest('hex') }
 const hostnamePattern = /^(?=.{1,253}$)(?!-)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)*[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/
@@ -51,6 +52,7 @@ const webPorts=new Set([80,443,3000,5000,8000,8080,8081,8443,8888,9443])
 const serviceByPort={21:'ftp',22:'ssh',25:'smtp',53:'dns',80:'http',110:'pop3',143:'imap',389:'ldap',443:'https',445:'smb',465:'smtps',587:'smtp-submission',636:'ldaps',993:'imaps',995:'pop3s',1433:'mssql',1521:'oracle',2049:'nfs',2375:'docker',2376:'docker-tls',3000:'http-alt',3306:'mysql',3389:'rdp',5000:'http-alt',5432:'postgresql',5672:'amqp',6379:'redis',8000:'http-alt',8080:'http-alt',8081:'http-alt',8443:'https-alt',8888:'http-alt',9200:'elasticsearch',9443:'https-alt',27017:'mongodb'}
 const campaignProfiles={inventory:['deep-inventory'],surface:['dns-profile','surface'],complete:['dns-profile','deep-inventory','surface']}
 const activeCampaignStatuses=new Set(['queued','running','pause-requested','paused','cancelling'])
+const observedOperations=new Set(['dns','tcp','http','tls','http-posture','service-profile'])
 
 class EngagementStore {
   constructor(directory, options={}) {
@@ -63,6 +65,7 @@ class EngagementStore {
     this.dns=options.dns||dnsPromises
     this.pause=options.pause||pause
     this.toolBridge=options.toolBridge||new ToolBridge()
+    this.trust=options.trust||null
     this.lastRunAt=0
     this.running=false
     this.chaosAbort=new Set()
@@ -71,8 +74,8 @@ class EngagementStore {
     this.writeQueue=Promise.resolve()
   }
 
-  async initialize(){await mkdir(this.directory,{recursive:true});try{this.state={...cleanState(),...JSON.parse(await readFile(this.file,'utf8')),schemaVersion:5};this.state.campaigns||=[];this.state.chaosRuns||=[];this.state.captures||=[];this.state.findings||=[];for(const engagement of this.state.engagements)engagement.networkMode||='external';for(const campaign of this.state.campaigns){if(activeCampaignStatuses.has(campaign.status)){campaign.status='interrupted';campaign.finishedAt=this.now().toISOString();campaign.outcome='The desktop process ended before the campaign completed. Resume to continue pending work.';for(const task of campaign.tasks||[])if(task.status==='running')task.status='pending'}}for(const run of this.state.chaosRuns){if(['queued','running','recovering','aborting'].includes(run.status)){run.status='interrupted';run.finishedAt=this.now().toISOString();run.outcome='The desktop process ended before the experiment completed.'}}}catch{this.state=cleanState()}await this.persist();return this.snapshot()}
-  snapshot(){return {...clone(this.state),auditIntegrity:this.verifyAudit(),captureIntegrity:this.verifyCaptures()}}
+  async initialize(){await mkdir(this.directory,{recursive:true});try{this.state={...cleanState(),...JSON.parse(await readFile(this.file,'utf8')),schemaVersion:6};this.state.campaigns||=[];this.state.chaosRuns||=[];this.state.captures||=[];this.state.findings||=[];for(const engagement of this.state.engagements){engagement.networkMode||='external';engagement.policyLevel||=engagement.permit?.policyLevel||'legacy'}for(const campaign of this.state.campaigns){if(activeCampaignStatuses.has(campaign.status)){campaign.status='interrupted';campaign.finishedAt=this.now().toISOString();campaign.outcome='The desktop process ended before the campaign completed. Resume to continue pending work.';for(const task of campaign.tasks||[])if(task.status==='running')task.status='pending'}}for(const run of this.state.chaosRuns){if(['queued','running','recovering','aborting'].includes(run.status)){run.status='interrupted';run.finishedAt=this.now().toISOString();run.outcome='The desktop process ended before the experiment completed.'}}}catch{this.state=cleanState()}await this.persist();return this.snapshot()}
+  snapshot(){return {...clone(this.state),auditIntegrity:this.verifyAudit(),captureIntegrity:this.verifyCaptures(),signatureIntegrity:this.verifySignatures()}}
   assertEntitled(){if(!this.entitlement().fieldOps)throw new Error('FieldOps Pro entitlement required')}
 
   async create(input){
@@ -90,8 +93,9 @@ class EngagementStore {
     const validFrom=new Date(input.validFrom),validUntil=new Date(input.validUntil),now=this.now()
     if(Number.isNaN(validFrom.getTime())||Number.isNaN(validUntil.getTime())||validUntil<=validFrom)throw new Error('Enter a valid testing window')
     if(validUntil.getTime()-validFrom.getTime()>366*86_400_000)throw new Error('Testing windows cannot exceed one year')
-    const engagement={id:randomUUID(),name,client,authorizationReference,networkMode,targets,ports,validFrom:validFrom.toISOString(),validUntil:validUntil.toISOString(),attestedAt:now.toISOString(),status:'active',createdAt:now.toISOString()}
-    this.state.engagements.unshift(engagement);this.audit(engagement.id,'engagement','created',`${networkMode.toUpperCase()} authorization boundary recorded`);await this.persist();return this.snapshot()
+    const policyLevel=String(input?.policyLevel||'validate').toLowerCase(),engagement={id:randomUUID(),name,client,authorizationReference,networkMode,targets,ports,policyLevel,validFrom:validFrom.toISOString(),validUntil:validUntil.toISOString(),attestedAt:now.toISOString(),status:'active',createdAt:now.toISOString()}
+    if(this.trust){const approverName=String(input?.approverName||'').trim().replace(/\s+/g,' ').slice(0,100),approverEmail=String(input?.approverEmail||'').trim().toLowerCase().slice(0,160);if(approverName.length<3||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(approverEmail))throw new Error('Add the approving authority name and professional email');engagement.permit=this.trust.issuePermit({...engagement,approverName,approverEmail})}
+    this.state.engagements.unshift(engagement);this.audit(engagement.id,'engagement','created',`${networkMode.toUpperCase()} ${policyLevel.toUpperCase()} authorization boundary recorded`,{permitId:engagement.permit?.id||null});await this.persist();return this.snapshot()
   }
 
   async close(id){
@@ -109,6 +113,8 @@ class EngagementStore {
     const now=this.now().getTime();if(now<Date.parse(engagement.validFrom)||now>Date.parse(engagement.validUntil))throw new Error('The authorized testing window is closed')
     return engagement
   }
+
+  assertOperation(engagement,requiredOperation){if(!this.trust)return;if(!engagement.permit)throw new Error('This engagement must be reissued with a signed operation permit');const permit=this.trust.assertPermit(engagement.permit,requiredOperation),bound=permit.engagementId===engagement.id&&permit.client===engagement.client&&permit.authorizationReference===engagement.authorizationReference&&permit.networkMode===engagement.networkMode&&permit.policyLevel===engagement.policyLevel&&permit.validFrom===engagement.validFrom&&permit.validUntil===engagement.validUntil&&JSON.stringify(permit.targets)===JSON.stringify(engagement.targets)&&JSON.stringify(permit.ports)===JSON.stringify(engagement.ports);if(!bound)throw new Error('Engagement record no longer matches its signed operation permit')}
 
   async resolvePublic(target){
     if(net.isIP(target)){if(!isPublicAddress(target))throw new Error('FieldOps external mode blocks private, loopback, link-local, and reserved addresses');return [{address:target,family:net.isIPv4(target)?4:6}]}
@@ -139,6 +145,7 @@ class EngagementStore {
       port=targetOnly?null:Number(input?.port||({http:80,'http-posture':443,baseline:443,tls:443,'service-profile':443,'web-map':443}[type]))
       if(!targetOnly&&!engagement.ports.includes(port))throw new Error('Port is outside the engagement allowlist')
       if(!['dns','dns-profile','tcp','ports','surface','deep-inventory','http','http-posture','baseline','tls','service-profile','web-map'].includes(type))throw new Error('Unsupported diagnostic')
+      this.assertOperation(engagement,observedOperations.has(type)?'observe':'validate')
       requestPath=['http','http-posture','baseline','web-map'].includes(type)?normalizeHttpPath(input?.path):null
       if(type==='surface'){
         previousSurface=this.state.captures.find(item=>item.engagementId===engagement.id&&item.target===target&&item.type==='surface')
@@ -216,6 +223,7 @@ class EngagementStore {
 
   async startCampaign(input){
     const engagement=this.getActive(input?.engagementId)
+    this.assertOperation(engagement,'validate')
     if(this.running)throw new Error('Wait for the active diagnostic to finish')
     if(this.state.chaosRuns.some(item=>['queued','running','recovering','aborting'].includes(item.status)))throw new Error('Stop the active Chaos Engine experiment first')
     if(this.state.campaigns.some(item=>activeCampaignStatuses.has(item.status)))throw new Error('Another assessment campaign is active')
@@ -324,6 +332,7 @@ class EngagementStore {
 
   async startChaos(input){
     const engagement=this.getActive(input?.engagementId),target=normalizeTarget(input?.target),port=Number(input?.port),requestPath=normalizeHttpPath(input?.path),profile=String(input?.profile||'ramp')
+    this.assertOperation(engagement,'resilience')
     if(this.running)throw new Error('Wait for the active FieldOps diagnostic to finish')
     if(this.state.chaosRuns.some(item=>['queued','running','recovering','aborting'].includes(item.status)))throw new Error('Another Chaos Engine experiment is already active')
     if(this.state.campaigns.some(item=>activeCampaignStatuses.has(item.status)))throw new Error('Stop the active assessment campaign first')
@@ -416,9 +425,10 @@ class EngagementStore {
 
   certificate(target,address,port){return new Promise((resolve,reject)=>{const socket=tls.connect({host:address,port,servername:net.isIP(target)?undefined:target,rejectUnauthorized:false,timeout:7000},()=>{const cert=socket.getPeerCertificate(),authorized=socket.authorized,authorizationError=socket.authorizationError,protocol=socket.getProtocol()||null,cipher=socket.getCipher()||null,alpnProtocol=socket.alpnProtocol||null,validTo=cert.valid_to||null,daysRemaining=validTo?Math.floor((Date.parse(validTo)-this.now().getTime())/86_400_000):null;socket.end();resolve({authorized,authorizationError:authorizationError||null,protocol,cipher,alpnProtocol,subject:cert.subject||null,subjectAlternativeName:cert.subjectaltname||null,issuer:cert.issuer||null,validFrom:cert.valid_from||null,validTo,fingerprint256:cert.fingerprint256||null,serialNumber:cert.serialNumber||null,daysRemaining})});socket.once('timeout',()=>{socket.destroy();reject(new Error('TLS handshake timed out'))});socket.once('error',error=>reject(new Error(`TLS handshake failed: ${error.message}`)))})}
 
-  audit(engagementId,operation,status,summary,evidence=null){const previous=this.state.audit.find(item=>item.engagementId===engagementId),entry={id:randomUUID(),engagementId,operation,status,summary,evidence,at:this.now().toISOString(),previousHash:previous?.hash||null};entry.hash=createHash('sha256').update(JSON.stringify(entry)).digest('hex');this.state.audit.unshift(entry);this.state.audit=this.state.audit.slice(0,1000)}
+  audit(engagementId,operation,status,summary,evidence=null){const previous=this.state.audit.find(item=>item.engagementId===engagementId),entry={id:randomUUID(),engagementId,operation,status,summary,evidence,at:this.now().toISOString(),previousHash:previous?.hash||null};if(this.trust?.snapshot().configured)entry.attestation=this.trust.sign('fieldops-operation-receipt',entry);entry.hash=createHash('sha256').update(JSON.stringify(entry)).digest('hex');this.state.audit.unshift(entry);this.state.audit=this.state.audit.slice(0,1000)}
   verifyCaptures(){return this.state.captures.every(capture=>capture.digest===captureDigest(capture))}
   verifyAudit(){return this.state.audit.every((entry,index)=>{const {hash,...unsigned}=entry;const expected=createHash('sha256').update(JSON.stringify(unsigned)).digest('hex'),next=this.state.audit.slice(index+1).find(item=>item.engagementId===entry.engagementId);return hash===expected&&(!next||entry.previousHash===next.hash)})}
+  verifySignatures(){return this.state.engagements.every(item=>item.policyLevel==='legacy'&&!item.permit||Boolean(item.permit&&TrustAuthority.verify(item.permit.attestation,TrustAuthority.unsignedPermit(item.permit))))&&this.state.audit.every(entry=>{if(!entry.attestation)return true;const {hash:_hash,attestation,...unsigned}=entry;return TrustAuthority.verify(attestation,unsigned)})}
   persist(){const serialized=`${JSON.stringify(this.state,null,2)}\n`;this.writeQueue=this.writeQueue.then(async()=>{const temporary=`${this.file}.tmp`;await writeFile(temporary,serialized,'utf8');await rename(temporary,this.file)});return this.writeQueue}
 }
 

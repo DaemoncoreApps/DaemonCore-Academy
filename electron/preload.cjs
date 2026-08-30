@@ -38,6 +38,8 @@ contextBridge.exposeInMainWorld('daemoncore', {
   }),
   fieldops: Object.freeze({
     snapshot: () => ipcRenderer.invoke('fieldops:snapshot'),
+    identity: () => ipcRenderer.invoke('fieldops:identity'),
+    enrollIdentity: input => ipcRenderer.invoke('fieldops:identity-enroll', input),
     create: input => ipcRenderer.invoke('fieldops:create', input),
     run: input => ipcRenderer.invoke('fieldops:run', input),
     startCampaign: input => ipcRenderer.invoke('fieldops:campaign-start', input),

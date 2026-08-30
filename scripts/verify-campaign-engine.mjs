@@ -41,6 +41,6 @@ try{
 
   cancelStore.state.campaigns[0].status='running';cancelStore.state.campaigns[0].tasks[0].status='running';await cancelStore.persist()
   const recovered=new EngagementStore(cancelDirectory,{entitlement:()=>({fieldOps:true}),now:()=>now});state=await recovered.initialize()
-  assert.equal(state.schemaVersion,5);assert.equal(state.campaigns[0].status,'interrupted');assert.equal(state.campaigns[0].tasks[0].status,'pending')
+  assert.equal(state.schemaVersion,6);assert.equal(state.campaigns[0].status,'interrupted');assert.equal(state.campaigns[0].tasks[0].status,'pending')
   console.log('Campaign Engine verified // multi-target jobs, sealed captures, pause, cancellation, and restart recovery')
 }finally{await rm(directory,{recursive:true,force:true});await rm(cancelDirectory,{recursive:true,force:true})}

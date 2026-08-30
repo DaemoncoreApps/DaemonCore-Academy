@@ -1,0 +1,16 @@
+import { useState } from 'react'
+import { BadgeCheck, Check, Fingerprint, KeyRound, ShieldCheck, X } from 'lucide-react'
+import './trust-identity.css'
+
+function IdentityForm({ identity, onSave, onClose }) {
+  const current=identity?.identity||{}
+  const [form,setForm]=useState({fullName:current.fullName||'',organization:current.organization||'',email:current.email||'',role:current.role||''}),[busy,setBusy]=useState(false),[error,setError]=useState('')
+  const update=(key,value)=>setForm(item=>({...item,[key]:value}))
+  const submit=async event=>{event.preventDefault();setBusy(true);setError('');try{await onSave(form);onClose()}catch(caught){setError(caught.message)}finally{setBusy(false)}}
+  return <div className="modal-backdrop"><form className="identity-modal" onSubmit={submit}><button type="button" className="modal-close" onClick={onClose}><X/></button><KeyRound/><span>FIELDOPS TRUST AUTHORITY</span><h2>Bind this operator.</h2><p>DaemonCore creates a device-protected Ed25519 identity. Your name, organization, role, and certificate fingerprint are attached to new permits and operation receipts.</p><div><label>LEGAL / PROFESSIONAL NAME<input required minLength="3" value={form.fullName} onChange={event=>update('fullName',event.target.value)} placeholder="Jordan Rivera"/></label><label>ORGANIZATION<input required minLength="2" value={form.organization} onChange={event=>update('organization',event.target.value)} placeholder="Example Security"/></label><label>PROFESSIONAL EMAIL<input required type="email" value={form.email} onChange={event=>update('email',event.target.value)} placeholder="jordan@example.com"/></label><label>ROLE<input required minLength="2" value={form.role} onChange={event=>update('role',event.target.value)} placeholder="Senior Security Engineer"/></label></div>{error&&<div className="field-error">IDENTITY BLOCKED // {error}</div>}<button className="identity-save" disabled={busy}><ShieldCheck/> {busy?'PROTECTING IDENTITY':'Create device-bound identity'}</button><small>This local credential proves which protected device key signed a record. Enterprise SSO or organizational certificate validation can be added without replacing the evidence format.</small></form></div>
+}
+
+export function TrustIdentity({ identity, onEnroll }) {
+  const [open,setOpen]=useState(false),profile=identity?.identity
+  return <><section className={`trust-identity ${identity?.configured?'bound':'unbound'}`}><div className="trust-mark">{identity?.configured?<BadgeCheck/>:<Fingerprint/>}<i/></div><div><span>DAEMONCORE TRUST AUTHORITY</span><h3>{profile?.fullName||'Operator identity not bound'}</h3><p>{profile?`${profile.role} // ${profile.organization}`:'Bind a protected operator key before creating a signed engagement.'}</p></div><div className="trust-fingerprint"><span>{identity?.configured?'DEVICE-BOUND ED25519':'SIGNING DISABLED'}</span><strong>{profile?.fingerprint?`${profile.fingerprint.slice(0,12)}…${profile.fingerprint.slice(-12)}`:'NO CERTIFICATE'}</strong><small>{identity?.configured?<><Check/> OPERATION RECEIPTS SIGNED</>:'New engagements are blocked until enrollment.'}</small></div><button onClick={()=>setOpen(true)}>{identity?.configured?'Update identity':'Bind operator'}</button></section>{open&&<IdentityForm identity={identity} onSave={onEnroll} onClose={()=>setOpen(false)}/>}</>
+}
