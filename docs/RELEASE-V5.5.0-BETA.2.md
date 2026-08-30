@@ -1,4 +1,4 @@
-# DaemonCore Academy 5.5.0-beta.1
+# DaemonCore Academy 5.5.0-beta.2
 
 DaemonCore now has a first-class Linux build.
 
@@ -15,7 +15,7 @@ FieldOps license keys and device signing keys are protected through GNOME Keyrin
 
 ## Packaging confidence
 
-The Linux release pipeline runs the complete product verification suite on Ubuntu, builds both packages, extracts and inspects the AppImage, validates Debian metadata, and publishes SHA-256 checksums beside the downloads.
+The Linux release pipeline runs the complete product verification suite on Ubuntu, builds both packages without implicit publishing, extracts and inspects the AppImage, validates Debian metadata, and publishes SHA-256 checksums beside the downloads.
 
 ## Beta boundary
 

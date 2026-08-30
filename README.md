@@ -8,7 +8,7 @@ DaemonCore is the course I wanted instead: learn the mental model, validate it, 
 
 Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 
-**[Download the latest Windows installer](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/latest/download/DaemonCore-Academy-Setup.exe)** · **[Linux beta](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/tag/v5.5.0-beta.1)** · [FieldOps Operator Manual](output/pdf/DaemonCore-FieldOps-Operator-Manual-v5.4.0.pdf) · [Release notes](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases)
+**[Download the latest Windows installer](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/latest/download/DaemonCore-Academy-Setup.exe)** · **[Linux beta](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/tag/v5.5.0-beta.2)** · [FieldOps Operator Manual](output/pdf/DaemonCore-FieldOps-Operator-Manual-v5.4.0.pdf) · [Release notes](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases)
 
 ## Inside DaemonCore
 
@@ -223,7 +223,7 @@ Build the x64 Linux packages on Linux with:
 npm run package:linux
 ```
 
-The build produces `release/DaemonCore-Academy-5.5.0-beta.1.AppImage` and `release/DaemonCore-Academy-5.5.0-beta.1.deb`. The AppImage runs without installation after `chmod +x`. The Debian package installs system-wide while keeping operator data in the user’s standard Electron configuration directory. Linux FieldOps activation requires an unlocked Secret Service-compatible keyring; Academy remains available if secure storage is unavailable.
+The build produces `release/DaemonCore-Academy-5.5.0-beta.2.AppImage` and `release/DaemonCore-Academy-5.5.0-beta.2.deb`. The AppImage runs without installation after `chmod +x`. The Debian package installs system-wide while keeping operator data in the user’s standard Electron configuration directory. Linux FieldOps activation requires an unlocked Secret Service-compatible keyring; Academy remains available if secure storage is unavailable.
 
 ## Project map
 
