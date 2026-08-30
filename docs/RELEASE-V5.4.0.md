@@ -16,6 +16,12 @@ The live ranges no longer reward one magic command.
 
 The close control across in-app windows now has a 48-pixel target, visible hover and pressed states, a keyboard focus ring, and Escape-key support. The icon stays compact; the part that actually receives the click is considerably larger.
 
+## FieldOps operator manual
+
+- Ship a release-matched, 22-page FieldOps manual covering activation, signed engagements, diagnostics, campaigns, evidence, findings, reports, Chaos Engine operations, recovery, and troubleshooting.
+- Include both a polished PDF for operators and an editable Word source for future revisions.
+- Document the authorization boundary and shipped capabilities without presenting FieldOps as an authorization authority or unrestricted attack framework.
+
 ## Range boundary
 
 Adaptive missions still run only inside DaemonCore’s disposable Docker networks: internal-only, no published ports, no host mounts, verified egress denial, and automatic teardown.
