@@ -11,7 +11,9 @@ services:
       range:
         ipv4_address: 10.77.0.20
     read_only: true
-    tmpfs: [/tmp:size=64m,noexec,nosuid,nodev, /workspace:size=32m,nosuid,nodev]
+    tmpfs:
+      - /tmp:size=64m,noexec,nosuid,nodev
+      - /workspace:size=32m,nosuid,nodev
     cap_drop: [ALL]
     security_opt: [no-new-privileges:true]
     pids_limit: 128
