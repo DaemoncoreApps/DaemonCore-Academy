@@ -8,7 +8,7 @@ DaemonCore is the course I wanted instead: learn the mental model, validate it, 
 
 Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 
-**[Download the latest Windows installer](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/latest/download/DaemonCore-Academy-Setup.exe)** · **[Linux beta](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/tag/v5.5.0-beta.2)** · [FieldOps Operator Manual](output/pdf/DaemonCore-FieldOps-Operator-Manual-v5.4.0.pdf) · [Release notes](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases)
+**[Download the stable Windows installer](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/latest/download/DaemonCore-Academy-Setup.exe)** · **[Try Mission OS 6.0 beta on Windows or Linux](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/tag/v6.0.0-beta.1)** · [FieldOps Operator Manual](output/pdf/DaemonCore-FieldOps-Operator-Manual-v5.4.0.pdf) · [Release notes](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases)
 
 ## Inside DaemonCore
 
