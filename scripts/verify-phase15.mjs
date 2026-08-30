@@ -16,6 +16,7 @@ const scenario=additionalMissionScenarios['identity-citadel']
 assert.equal(scenario.commands.length,4,'Identity Citadel needs a complete evidence sequence')
 assert.match(scenario.commands.map(step=>step.command).join('\n'),/dig[\s\S]*kinit[\s\S]*ldapsearch/,'The mission must use native identity protocols')
 assert.match(scenario.commands[2].command,/-Y GSSAPI/,'LDAP evidence must use the operator Kerberos ticket')
+assert.match(scenario.commands[2].command,/ldapsearch[^\n]*-N/,'LDAP evidence must preserve the registered Docker service name')
 assert.doesNotMatch(scenario.commands[2].command,/-w\s/,'LDAP evidence must not expose a directory password')
 const range=path.join(root,'ranges','identity-citadel')
 const compose=await readFile(path.join(range,'compose.yaml'),'utf8')
