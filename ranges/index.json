@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "algorithm": "sha256-tree-v1",
-  "generatedAt": "2026-08-30T03:51:14.220Z",
+  "generatedAt": "2026-08-30T03:53:03.753Z",
   "packs": [
     {
       "id": "artifact-zero",
@@ -212,7 +212,7 @@
       "id": "identity-citadel",
       "title": "Identity Citadel",
       "engine": "docker",
-      "digest": "e7823a5ec5e5c90c3572ca0964fad9bf1d1b26d9078c6979bbfd13777de4f0f8",
+      "digest": "0ef2e3b46de5192ae1e868b504c7d46af49d7d9b6f2b73c5b66a44cd3f5fdab9",
       "files": [
         {
           "path": "compose.yaml",
@@ -226,8 +226,8 @@
         },
         {
           "path": "domain-controller/entrypoint.sh",
-          "bytes": 606,
-          "digest": "257d5325b739eefba22fde1eaf49ae168b8d1fdee973ec78349f0db302014d8c"
+          "bytes": 683,
+          "digest": "f8184ee6d709e7a608c99f2ed39e28170ca29189dc14c747e66044f8d97f5e19"
         },
         {
           "path": "operator/dc-submit",
@@ -251,7 +251,7 @@
         }
       ],
       "fileCount": 7,
-      "totalBytes": 4592
+      "totalBytes": 4669
     },
     {
       "id": "night-shift",
