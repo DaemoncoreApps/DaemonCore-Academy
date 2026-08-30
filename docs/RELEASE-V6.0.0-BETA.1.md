@@ -28,3 +28,5 @@ This beta changes the Academy from a catalog into an operating curriculum. Missi
 ## Beta notice
 
 This is an opt-in prerelease for cross-platform field validation. Back up the local operator record from Settings before upgrading a production workstation. Docker remains required for live disposable ranges; simulation fallback remains available for curriculum review.
+
+The Windows beta installer is not Authenticode-signed because a commercial code-signing certificate is not yet configured in the protected release environment. Windows may display an Unknown Publisher warning. Verify the installer against `SHA256SUMS-windows.txt`; do not deploy this beta through a managed production fleet. The Linux packages and their checksums were built and inspected by the tagged GitHub release workflow.
