@@ -3,5 +3,6 @@ dist/
 release/
 build/app-staging/
 build/icon-sizes/
+build/icons/
 *.log
 .DS_Store

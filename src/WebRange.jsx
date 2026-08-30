@@ -17,7 +17,7 @@ export function WebForgePage({ profile, onLaunch }) {
 
 export function WebLabRunner({ lab, onExit, onComplete, rangeId='web-range', forgeName='Web Forge' }) {
   const api=window.daemoncore?.range
-  const [engine,setEngine]=useState(api?'starting':'offline'),[error,setError]=useState(api?'':`${forgeName} requires the Windows desktop build and Docker Desktop.`),[containment,setContainment]=useState(null)
+  const [engine,setEngine]=useState(api?'starting':'offline'),[error,setError]=useState(api?'':`${forgeName} requires the desktop build and a running Docker engine.`),[containment,setContainment]=useState(null)
   const [input,setInput]=useState(''),[history,setHistory]=useState([]),[done,setDone]=useState([]),[evidence,setEvidence]=useState([]),[busy,setBusy]=useState(false),[hints,setHints]=useState(0),[seconds,setSeconds]=useState(0),[report,setReport]=useState(false)
   const scrollRef=useRef(null)
   useEffect(()=>{let live=true;(async()=>{if(!api)return;try{const result=await api.start(rangeId);if(live){setContainment(result.containment);setEngine('live');setHistory([{kind:'system',text:`${forgeName.toUpperCase()} SEALED // ${result.containment.network} // EGRESS BLOCKED`}])}}catch(failure){if(live){setEngine('offline');setError(failure.message)}}})();return()=>{live=false;api?.stop().catch(()=>{})}},[api,forgeName,rangeId])

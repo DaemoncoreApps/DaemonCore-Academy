@@ -1,0 +1,83 @@
+name: Linux beta release
+
+on:
+  push:
+    tags:
+      - 'v*-beta.*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing beta tag, for example v5.5.0-beta.1
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: linux-release-${{ github.event.inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  linux-packages:
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: ${{ github.event.inputs.tag || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify the release tree
+        run: npm test
+
+      - name: Build AppImage and Debian package
+        run: npm run package:linux
+
+      - name: Inspect packages and write checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          appimage="$(find release -maxdepth 1 -type f -name '*.AppImage' -print -quit)"
+          deb="$(find release -maxdepth 1 -type f -name '*.deb' -print -quit)"
+          test -n "$appimage"
+          test -n "$deb"
+          chmod +x "$appimage"
+          "$appimage" --appimage-extract >/dev/null
+          test -x squashfs-root/daemoncore-academy
+          dpkg-deb --info "$deb" >/dev/null
+          sha256sum "$appimage" "$deb" | tee release/SHA256SUMS-linux.txt
+
+      - name: Keep a CI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: daemoncore-linux-${{ env.RELEASE_TAG }}
+          path: |
+            release/*.AppImage
+            release/*.deb
+            release/SHA256SUMS-linux.txt
+          if-no-files-found: error
+
+      - name: Create or update the prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            notes_file="$(find docs -maxdepth 1 -type f -iname "release-${RELEASE_TAG#v}.md" -print -quit)"
+            if [ -n "$notes_file" ]; then
+              gh release create "$RELEASE_TAG" --prerelease --notes-file "$notes_file" --title "DaemonCore Academy ${RELEASE_TAG#v} // Linux beta"
+            else
+              gh release create "$RELEASE_TAG" --prerelease --generate-notes --title "DaemonCore Academy ${RELEASE_TAG#v} // Linux beta"
+            fi
+          fi
+          gh release upload "$RELEASE_TAG" release/*.AppImage release/*.deb release/SHA256SUMS-linux.txt --clobber

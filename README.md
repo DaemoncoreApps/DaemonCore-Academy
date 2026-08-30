@@ -8,7 +8,7 @@ DaemonCore is the course I wanted instead: learn the mental model, validate it, 
 
 Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 
-**[Download the latest Windows installer](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/latest/download/DaemonCore-Academy-Setup.exe)** · [FieldOps Operator Manual](output/pdf/DaemonCore-FieldOps-Operator-Manual-v5.4.0.pdf) · [Release notes](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/latest)
+**[Download the latest Windows installer](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/latest/download/DaemonCore-Academy-Setup.exe)** · **[Linux beta](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/tag/v5.5.0-beta.1)** · [FieldOps Operator Manual](output/pdf/DaemonCore-FieldOps-Operator-Manual-v5.4.0.pdf) · [Release notes](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases)
 
 ## Inside DaemonCore
 
@@ -25,6 +25,14 @@ Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 ![FieldOps Pro license and authorization gate](docs/screenshots/fieldops-pro-gate.png)
 
 ## What ships
+
+### Linux beta // 5.5
+
+- **First-class desktop packages** — the same Academy, sealed ranges, FieldOps workspace, licensing, local records, and exports ship as an x64 AppImage and Debian package.
+- **Native Linux toolchain** — DaemonCore uses the host Docker Engine and Nmap directly, retains the pinned Docker Nmap fallback, and preserves the same exact-target and declared-port boundary.
+- **Keyring-backed secrets** — Lemon Squeezy keys and FieldOps signing keys use GNOME Keyring or KWallet. DaemonCore refuses Electron’s unencrypted `basic_text` fallback instead of silently writing commercial credentials in plaintext.
+- **Portable release verification** — Ubuntu CI lints and exercises the full product, extracts and inspects the AppImage, validates the Debian package, and publishes SHA-256 checksums with the prerelease.
+- **Shared product contract** — version metadata now comes from the package manifest, Linux icons are generated from the same source mark, and platform copy no longer treats Docker Desktop or Windows as universal requirements.
 
 ### Adaptive Range Engine // 5.4
 
@@ -46,7 +54,7 @@ Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 - **Campaign Engine** — run durable multi-target assessment campaigns across the exact systems in a signed engagement. Complete Assessment, Service Inventory, and Change Verification profiles coordinate the existing FieldOps modules in the background.
 - **Campaign control** — live progress, per-target task state, pause, resume, safe cancellation, and desktop-restart recovery turn isolated diagnostics into a repeatable engagement workflow.
 - **Traceable campaign evidence** — every successful campaign task points to its own digest-sealed capture. Campaign status and completion totals travel with the JSON case file and the printable client report.
-- **Deep Service Inventory** — sends the pinned authorized address and declared TCP allowlist through a shell-free Nmap bridge for full service/version, confidence, product, CPE, state, and reason evidence. It prefers a local Nmap install, can use Docker Desktop with a pinned image, and falls back to the built-in passive profiler.
+- **Deep Service Inventory** — sends the pinned authorized address and declared TCP allowlist through a shell-free Nmap bridge for full service/version, confidence, product, CPE, state, and reason evidence. It prefers a local Nmap install, can use Docker with a pinned image, and falls back to the built-in passive profiler.
 - **Surface Intelligence** — one authorized target baseline combines pinned boundary-aware resolution, bounded DNS records, the declared port allowlist, and posture evidence from up to eight observed web services.
 - **Change Intelligence** — repeat baselines compare resolved addresses, exposed ports, DNS control-plane records, HTTP posture, response behavior, server disclosure, and TLS certificate identity against the prior sealed capture.
 - **Service Profile** — one authorized port can be resolved into passive server-first banner evidence, protocol identity, HTTP posture, and TLS certificate context without sending credentials or protocol commands.
@@ -128,7 +136,7 @@ Remote pack delivery is the next infrastructure layer. It will require a distrib
 - **Engagement Vault** — append-only scope records, dated testing windows, target and port allowlists, complete case-file export, and a SHA-256 chained activity ledger that exposes tampering.
 - **DaemonCore Chaos Engine** — four real black-box resilience profiles with a non-blocking native worker, live latency and error telemetry, automatic SLO aborts, emergency stop, recovery validation, resilience scoring, durable run history, and evidence export.
 - **Sealed Power Domain** — a dedicated disposable Chaos Worker can drive up to 500 requests per second, 100 concurrent workers, and 30,000 requests against the Academy black box. The worker and target have no published ports, no host mounts, no privileges, and no internet egress.
-- **Readable by default** — the Windows renderer now opens at 125% with saved 100%, 115%, 125%, and 140% interface choices. A typography floor protects dense FieldOps and Chaos telemetry from collapsing back into microscopic labels.
+- **Readable by default** — the desktop renderer opens at 125% with saved 100%, 115%, 125%, and 140% interface choices. A typography floor protects dense FieldOps and Chaos telemetry from collapsing back into microscopic labels.
 
 There are no locked “coming soon” course cards pretending to be content. FieldOps is the one intentional commercial gate.
 
@@ -166,7 +174,7 @@ These IDs are entitlement policy, not secrets. Never put a Lemon Squeezy managem
 
 ## The Ghost Port is a real range
 
-When Docker Desktop is available, The Ghost Port provisions a root operator container and a purpose-built target. Nmap and curl return live results, arbitrary shell commands work inside the operator container, and the target is destroyed when the run ends.
+When Docker is available, The Ghost Port provisions a root operator container and a purpose-built target. Nmap and curl return live results, arbitrary shell commands work inside the operator container, and the target is destroyed when the run ends.
 
 The shell is unrestricted. The boundary is not.
 
@@ -176,11 +184,12 @@ Before access is released, DaemonCore verifies an internal-only Docker network, 
 
 Requirements:
 
-- Windows 10 or 11
+- Windows 10/11, Ubuntu 22.04+, or Debian 12+ on x64
 - Node.js 20+
-- Docker Desktop with Linux containers for the live range
+- Docker Desktop with Linux containers on Windows, or Docker Engine on Linux
+- GNOME Keyring or KWallet for protected FieldOps credentials on Linux
 
-```powershell
+```shell
 git clone https://github.com/DaemoncoreApps/DaemonCore-Academy.git
 cd DaemonCore-Academy
 npm install
@@ -208,11 +217,20 @@ The installer lands at `release/DaemonCore-Academy-Setup.exe`. Every GitHub rele
 
 The Windows installer uses one stable application identity and one installation path. When DaemonCore is already installed, setup asks before removing the previous program files and applying the update. Operator records, course progress, FieldOps case files, and license data are retained through the upgrade. Old installer files already sitting in Downloads are not deleted automatically.
 
+Build the x64 Linux packages on Linux with:
+
+```shell
+npm run package:linux
+```
+
+The build produces `release/DaemonCore-Academy-5.5.0-beta.1.AppImage` and `release/DaemonCore-Academy-5.5.0-beta.1.deb`. The AppImage runs without installation after `chmod +x`. The Debian package installs system-wide while keeping operator data in the user’s standard Electron configuration directory. Linux FieldOps activation requires an unlocked Secret Service-compatible keyring; Academy remains available if secure storage is unavailable.
+
 ## Project map
 
 ```text
 electron/data-store.cjs       atomic local operator record
 electron/license-manager.cjs  Lemon Squeezy + protected key storage
+electron/secure-storage.cjs   DPAPI, GNOME Keyring, KWallet enforcement
 electron/trust-authority.cjs  protected operator keys + signed operation permits
 electron/engagement-store.cjs scope enforcement + external diagnostics
 electron/range-orchestrator.cjs

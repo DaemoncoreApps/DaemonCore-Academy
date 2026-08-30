@@ -61,10 +61,16 @@ class RangeOrchestrator {
       return { available: true, engine: 'docker', version: stdout.trim() }
     } catch (error) {
       const missing = error.code === 'ENOENT'
+      const detail = `${error.message || ''} ${error.stderr || ''}`
+      const denied = error.code === 'EACCES' || /permission denied|docker\.sock|access is denied/i.test(detail)
       return {
         available: false,
         engine: 'docker',
-        reason: missing ? 'Docker Desktop is not installed or is not on PATH.' : 'Docker Desktop is installed but its engine is not running.',
+        reason: missing
+          ? 'Docker is not installed or is not on PATH.'
+          : denied
+            ? 'Docker is installed, but this account cannot access the engine. Check Docker socket or group permissions and sign in again.'
+            : 'Docker is installed, but its engine is not running.',
       }
     }
   }

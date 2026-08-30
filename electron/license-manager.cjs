@@ -1,6 +1,7 @@
 const { mkdir, readFile, rename, unlink, writeFile } = require('fs/promises')
 const { createHmac, timingSafeEqual } = require('crypto')
 const path = require('path')
+const { inspectSecureStorage, requireSecureStorage } = require('./secure-storage.cjs')
 
 const LICENSE_API = 'https://api.lemonsqueezy.com/v1/licenses'
 const cleanMeta = () => ({
@@ -37,6 +38,7 @@ class LicenseManager {
     this.secretFile = path.join(directory, 'license-key.bin')
     this.policy = options.policy || require('./license-policy.json')
     this.safeStorage = options.safeStorage
+    this.platform = options.platform || process.platform
     this.fetch = options.fetch || global.fetch
     this.now = options.now || (() => new Date())
     this.meta = cleanMeta()
@@ -54,15 +56,18 @@ class LicenseManager {
     try { stored = JSON.parse(await readFile(this.metaFile, 'utf8')); this.meta = { ...cleanMeta(), ...(stored.meta || stored) } } catch {}
     try {
       const encrypted = await readFile(this.secretFile)
-      if (!this.safeStorage?.isEncryptionAvailable()) throw new Error('Secure Windows storage is unavailable')
+      requireSecureStorage(this.safeStorage, this.platform)
       const protectedValue = this.safeStorage.decryptString(encrypted)
       const secret = protectedValue.startsWith('{') ? JSON.parse(protectedValue) : { licenseKey: protectedValue, instanceId: this.meta.instanceId }
       this.licenseKey = secret.licenseKey
       if (stored?.meta && (!this.validIntegrity(stored.integrity, stored.meta) || secret.instanceId !== this.meta.instanceId)) {
         this.meta = { ...cleanMeta(), instanceId: secret.instanceId, maskedKey: `••••-${this.licenseKey.slice(-8)}`, status: 'tampered', error: 'The cached entitlement failed its integrity check. Connect to validate again.' }
       }
-    } catch {
-      if (this.meta.instanceId) this.meta = { ...this.meta, status: 'locked', error: 'The protected license key could not be opened on this Windows account.' }
+    } catch (error) {
+      if (this.meta.instanceId) {
+        const storage = inspectSecureStorage(this.safeStorage, this.platform)
+        this.meta = { ...this.meta, status: 'locked', error: storage.available ? 'The protected license key could not be opened by this operating-system account.' : storage.reason || error.message }
+      }
     }
     return this.snapshot()
   }
@@ -85,6 +90,7 @@ class LicenseManager {
       checkoutUrl: this.policy.checkoutUrl || null,
       licensed: ['active', 'grace'].includes(this.meta.status),
       fieldOps: ['active', 'grace'].includes(this.meta.status) && this.meta.tier === 'fieldops',
+      credentialStorage: inspectSecureStorage(this.safeStorage, this.platform),
       graceRemainingDays,
       ...clone(this.meta),
     }
@@ -126,7 +132,7 @@ class LicenseManager {
       const customerEmail = String(email || '').trim().toLowerCase()
       if (key.length < 8) throw new Error('Enter the license key from your Lemon Squeezy receipt')
       if (label.length < 2) throw new Error('Give this installation a device name')
-      if (!this.safeStorage?.isEncryptionAvailable()) throw new Error('Secure Windows credential storage is unavailable')
+      requireSecureStorage(this.safeStorage, this.platform)
       const result = await this.request('activate', { license_key: key, instance_name: label })
       if (!result.activated || result.license_key?.status !== 'active' || !result.instance?.id) throw new Error(result.error || 'License activation was rejected')
       const tier = this.verifyProduct(result.meta)

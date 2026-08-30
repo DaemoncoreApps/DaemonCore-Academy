@@ -14,7 +14,7 @@ export function RangeChaosLab(){
   useEffect(()=>{if(!api)return;api.status().then(status=>setEngine(status.state)).catch(caught=>{setEngine('offline');setError(caught.message)})},[api])
   useEffect(()=>{if(!api||!active)return;const timer=setInterval(()=>api.chaosStatus().then(setRun).catch(caught=>setError(caught.message)),500);return()=>clearInterval(timer)},[active,api])
   useEffect(()=>()=>{if(ownsRange.current)api?.stop().catch(()=>{})},[api])
-  const launch=async()=>{if(!api){setError('Install the Windows build and Docker Desktop to run the sealed worker.');return}setBusy(true);setError('');try{let status=await api.status();if(status.state!=='sealed'){setEngine('provisioning');status=await api.start('ghost-port');ownsRange.current=true}setEngine(status.state);setRun(await api.chaosStart(form))}catch(caught){setError(caught.message);setEngine('offline')}finally{setBusy(false)}}
+  const launch=async()=>{if(!api){setError('Install the desktop build and start Docker to run the sealed worker.');return}setBusy(true);setError('');try{let status=await api.status();if(status.state!=='sealed'){setEngine('provisioning');status=await api.start('ghost-port');ownsRange.current=true}setEngine(status.state);setRun(await api.chaosStart(form))}catch(caught){setError(caught.message);setEngine('offline')}finally{setBusy(false)}}
   const abort=async()=>{setBusy(true);try{setRun(await api.chaosAbort())}catch(caught){setError(caught.message)}finally{setBusy(false)}}
   const destroy=async()=>{setBusy(true);try{await api.stop();ownsRange.current=false;setEngine('ready');setRun(null)}catch(caught){setError(caught.message)}finally{setBusy(false)}}
   const metrics=run?.metrics||{},recovery=run?.recovery||{},progress=run?.progress||0

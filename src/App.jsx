@@ -74,7 +74,7 @@ function useLicense() {
   const api=window.daemoncore?.license
   const [license,setLicense]=useState(api?null:previewLicense)
   useEffect(()=>{if(api)api.snapshot().then(setLicense)},[api])
-  const invoke=async(method,input)=>{if(!api)throw new Error('License activation is available in the Windows desktop build');const next=await api[method](input);setLicense(next);return next}
+  const invoke=async(method,input)=>{if(!api)throw new Error('License activation is available in the desktop build');const next=await api[method](input);setLicense(next);return next}
   return {license,activate:input=>invoke('activate',input),validate:()=>invoke('validate'),deactivate:()=>invoke('deactivate'),checkout:()=>api?.checkout()}
 }
 
@@ -82,17 +82,17 @@ function useFieldOps() {
   const api=window.daemoncore?.fieldops
   const [data,setData]=useState(api?null:{schemaVersion:6,engagements:[],campaigns:[],chaosRuns:[],captures:[],findings:[],audit:[]}),[identity,setIdentity]=useState(api?null:{configured:false,status:'preview',identity:null})
   useEffect(()=>{if(api){api.snapshot().then(setData);api.identity().then(setIdentity)}},[api])
-  const enrollIdentity=async input=>{if(!api)throw new Error('Operator identity requires the Windows desktop build');const next=await api.enrollIdentity(input);setIdentity(next);return next}
-  const create=async input=>{if(!api)throw new Error('FieldOps requires the Windows desktop build');const next=await api.create(input);setData(next);return next}
-  const run=async input=>{if(!api)throw new Error('FieldOps requires the Windows desktop build');const result=await api.run(input);setData(await api.snapshot());return result}
-  const campaignAction=async(method,input)=>{if(!api)throw new Error('Campaign Control requires the Windows desktop build');const next=await api[method](input);setData(next);return next}
-  const createFinding=async input=>{if(!api)throw new Error('FieldOps requires the Windows desktop build');const next=await api.createFinding(input);setData(next);return next}
-  const updateFinding=async(id,input)=>{if(!api)throw new Error('FieldOps requires the Windows desktop build');const next=await api.updateFinding(id,input);setData(next);return next}
-  const retestFinding=async(id,input)=>{if(!api)throw new Error('FieldOps requires the Windows desktop build');const next=await api.retestFinding(id,input);setData(next);return next}
-  const startChaos=async input=>{if(!api)throw new Error('Chaos Engine requires the Windows desktop build');const next=await api.startChaos(input);setData(next);return next}
-  const abortChaos=async id=>{if(!api)throw new Error('Chaos Engine requires the Windows desktop build');const next=await api.abortChaos(id);setData(next);return next}
+  const enrollIdentity=async input=>{if(!api)throw new Error('Operator identity requires the desktop build');const next=await api.enrollIdentity(input);setIdentity(next);return next}
+  const create=async input=>{if(!api)throw new Error('FieldOps requires the desktop build');const next=await api.create(input);setData(next);return next}
+  const run=async input=>{if(!api)throw new Error('FieldOps requires the desktop build');const result=await api.run(input);setData(await api.snapshot());return result}
+  const campaignAction=async(method,input)=>{if(!api)throw new Error('Campaign Control requires the desktop build');const next=await api[method](input);setData(next);return next}
+  const createFinding=async input=>{if(!api)throw new Error('FieldOps requires the desktop build');const next=await api.createFinding(input);setData(next);return next}
+  const updateFinding=async(id,input)=>{if(!api)throw new Error('FieldOps requires the desktop build');const next=await api.updateFinding(id,input);setData(next);return next}
+  const retestFinding=async(id,input)=>{if(!api)throw new Error('FieldOps requires the desktop build');const next=await api.retestFinding(id,input);setData(next);return next}
+  const startChaos=async input=>{if(!api)throw new Error('Chaos Engine requires the desktop build');const next=await api.startChaos(input);setData(next);return next}
+  const abortChaos=async id=>{if(!api)throw new Error('Chaos Engine requires the desktop build');const next=await api.abortChaos(id);setData(next);return next}
   const refresh=async()=>{if(!api)return data;const next=await api.snapshot();setData(next);return next}
-  const close=async id=>{if(!api)throw new Error('FieldOps requires the Windows desktop build');const next=await api.close(id);setData(next);return next}
+  const close=async id=>{if(!api)throw new Error('FieldOps requires the desktop build');const next=await api.close(id);setData(next);return next}
   const exportEvidence=id=>api?.export(id)
   const exportReport=id=>api?.report(id)
   return {data,identity,enrollIdentity,create,run,startCampaign:input=>campaignAction('startCampaign',input),pauseCampaign:id=>campaignAction('pauseCampaign',id),resumeCampaign:id=>campaignAction('resumeCampaign',id),cancelCampaign:id=>campaignAction('cancelCampaign',id),createFinding,updateFinding,retestFinding,startChaos,abortChaos,refresh,close,exportEvidence,exportReport}

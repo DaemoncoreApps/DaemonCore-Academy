@@ -1,6 +1,7 @@
 const { mkdir, readFile, rename, writeFile } = require('fs/promises')
 const path = require('path')
 const { createHash, createPrivateKey, createPublicKey, generateKeyPairSync, randomUUID, sign, verify } = require('crypto')
+const { inspectSecureStorage, requireSecureStorage } = require('./secure-storage.cjs')
 
 const stableStringify = value => JSON.stringify(value, (_key, item) => {
   if (!item || Array.isArray(item) || typeof item !== 'object') return item
@@ -20,6 +21,7 @@ class TrustAuthority {
     this.metaFile = path.join(directory, 'fieldops-operator.json')
     this.keyFile = path.join(directory, 'fieldops-operator-key.bin')
     this.safeStorage = options.safeStorage
+    this.platform = options.platform || process.platform
     this.now = options.now || (() => new Date())
     this.identity = null
     this.privateKey = null
@@ -32,7 +34,7 @@ class TrustAuthority {
     try {
       const record = JSON.parse(await readFile(this.metaFile, 'utf8'))
       const encrypted = await readFile(this.keyFile)
-      if (!this.safeStorage?.isEncryptionAvailable()) throw new Error('Protected credential storage is unavailable')
+      requireSecureStorage(this.safeStorage, this.platform)
       const privateKey = createPrivateKey({ key: Buffer.from(this.safeStorage.decryptString(encrypted), 'base64'), format: 'der', type: 'pkcs8' })
       const publicKey = createPublicKey(privateKey).export({ format: 'der', type: 'spki' }).toString('base64')
       if (publicKey !== record.identity?.publicKey || !TrustAuthority.verify(record.credential, record.identity)) throw new Error('Operator credential integrity verification failed')
@@ -56,7 +58,7 @@ class TrustAuthority {
     const role = String(input?.role || '').trim().replace(/\s+/g, ' ').slice(0, 80)
     if (fullName.length < 3 || organization.length < 2 || role.length < 2) throw new Error('Full name, organization, and role are required')
     if (!emailPattern.test(email)) throw new Error('Enter a valid professional email address')
-    if (!this.safeStorage?.isEncryptionAvailable()) throw new Error('Protected credential storage is unavailable')
+    requireSecureStorage(this.safeStorage, this.platform)
     if (!this.privateKey) {
       const pair = generateKeyPairSync('ed25519')
       this.privateKey = pair.privateKey
@@ -79,7 +81,7 @@ class TrustAuthority {
 
   snapshot() {
     const publicIdentity = this.identity ? (({ publicKey: _publicKey, ...identity }) => identity)(this.identity) : null
-    return { configured: Boolean(this.identity && this.privateKey), status: this.status, error: this.error, identity: publicIdentity }
+    return { configured: Boolean(this.identity && this.privateKey), status: this.status, error: this.error, identity: publicIdentity, credentialStorage: inspectSecureStorage(this.safeStorage, this.platform) }
   }
 
   assertReady() {

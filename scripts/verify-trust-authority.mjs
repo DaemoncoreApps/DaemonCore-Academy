@@ -8,7 +8,7 @@ const require=createRequire(import.meta.url)
 const {TrustAuthority}=require('../electron/trust-authority.cjs')
 const {EngagementStore}=require('../electron/engagement-store.cjs')
 const directory=await mkdtemp(path.join(tmpdir(),'daemoncore-trust-'))
-const safeStorage={isEncryptionAvailable:()=>true,encryptString:value=>Buffer.from(`protected:${value}`),decryptString:value=>value.toString().replace(/^protected:/,'')}
+const safeStorage={isEncryptionAvailable:()=>true,getSelectedStorageBackend:()=>process.platform==='linux'?'gnome_libsecret':'dpapi',encryptString:value=>Buffer.from(`protected:${value}`),decryptString:value=>value.toString().replace(/^protected:/,'')}
 const current=new Date('2026-08-29T16:00:00Z')
 const scope={name:'Signed boundary validation',client:'Example Corp',authorizationReference:'ROE-2026-77',approverName:'Morgan Chen',approverEmail:'morgan@example.com',networkMode:'external',targets:'example.com',ports:'443',validFrom:'2026-08-29T15:00:00Z',validUntil:'2026-08-30T15:00:00Z',attested:true}
 

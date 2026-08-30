@@ -1,8 +1,9 @@
 const { contextBridge, ipcRenderer } = require('electron')
+const { version } = require('../package.json')
 
 contextBridge.exposeInMainWorld('daemoncore', {
   platform: process.platform,
-  version: '5.4.0',
+  version,
   display: Object.freeze({
     setZoom: factor => ipcRenderer.invoke('display:set-zoom', factor),
   }),

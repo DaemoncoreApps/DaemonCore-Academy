@@ -79,7 +79,7 @@ class ToolBridge {
       const probe = await this.execute('docker', ['version', '--format', '{{.Server.Version}}'], 15_000)
       return { kind: 'docker-nmap', file: 'docker', prefix: ['run', '--rm', this.image], version: `Docker ${probe.stdout.trim()} // ${this.image}` }
     } catch {
-      throw new Error('Nmap Tool Bridge is unavailable. Install Nmap or start Docker Desktop, then run this operation again.')
+      throw new Error('Nmap Tool Bridge is unavailable. Install Nmap or start the Docker engine, then run this operation again.')
     }
   }
 

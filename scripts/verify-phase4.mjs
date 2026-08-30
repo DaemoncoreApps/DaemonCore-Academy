@@ -10,7 +10,7 @@ const {EngagementStore,isPrivateAddress,isPublicAddress}=require('../electron/en
 const directory=await mkdtemp(path.join(tmpdir(),'daemoncore-phase4-'))
 
 const policy={storeId:1,requireAcademyLicense:true,offlineGraceDays:14,checkoutUrl:'https://example.lemonsqueezy.com',tiers:[{id:'fieldops',label:'FieldOps Pro',productIds:[4],variantIds:[5]},{id:'academy',label:'Academy',productIds:[4],variantIds:[6]}]}
-const safeStorage={isEncryptionAvailable:()=>true,encryptString:value=>Buffer.from(`protected:${value}`,'utf8'),decryptString:value=>value.toString('utf8').replace(/^protected:/,'')}
+const safeStorage={isEncryptionAvailable:()=>true,getSelectedStorageBackend:()=>process.platform==='linux'?'gnome_libsecret':'dpapi',encryptString:value=>Buffer.from(`protected:${value}`,'utf8'),decryptString:value=>value.toString('utf8').replace(/^protected:/,'')}
 let current=new Date('2026-08-26T15:00:00Z'),offline=false,deactivated=false
 const licenseResponse={license_key:{status:'active',expires_at:null},instance:{id:'instance-01',name:'RED-RIG-01'},meta:{store_id:1,product_id:4,product_name:'DaemonCore',variant_id:5,variant_name:'FieldOps Pro',customer_email:'operator@example.com'}}
 const fetch=async url=>{
