@@ -29,7 +29,7 @@ try{
   assert.equal(launch.containment.egressBlocked,true)
   await execute('DNS service discovery','dig +short _kerberos._tcp.daemoncore.lab SRV @10.77.0.10',/88\s+dc01\.daemoncore\.lab\./i)
   await execute('Kerberos ticket acquisition',`printf 'Operator-Lab-42!\n' | kinit lab.operator@DAEMONCORE.LAB && klist`,/lab\.operator@DAEMONCORE\.LAB[\s\S]*krbtgt\/DAEMONCORE\.LAB/i)
-  await execute('LDAP delegated edge',`ldapsearch -LLL -H ldap://dc01.daemoncore.lab -D 'Administrator@DAEMONCORE.LAB' -w 'Citadel-Lab-42!' -b 'DC=daemoncore,DC=lab' '(&(objectClass=group)(cn=Backup Operators Lab))' cn member`,/Backup Operators Lab[\s\S]*svc\.backup/i)
+  await execute('LDAP delegated edge',`ldapsearch -LLL -Q -Y GSSAPI -H ldap://dc01.daemoncore.lab -b 'DC=daemoncore,DC=lab' '(&(objectClass=group)(cn=Backup Operators Lab))' cn member`,/Backup Operators Lab[\s\S]*svc\.backup/i)
   await execute('SMB authentication',`smbclient -L //dc01.daemoncore.lab -U 'lab.operator%Operator-Lab-42!'`,/IPC\$/i)
   await execute('Finding acceptance',`dc-submit 'delegated backup service account expands administrative reach'`,/FINDING ACCEPTED[\s\S]*DAEMONCORE\.LAB SEALED/i)
   const report={schemaVersion:1,certification:'identity-citadel-runtime',certifiedAt:new Date().toISOString(),commit:process.env.GITHUB_SHA||null,runner:process.env.RUNNER_OS||process.platform,launchReceipt:launch.receipt,checks}

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "algorithm": "sha256-tree-v1",
-  "generatedAt": "2026-08-30T03:49:20.345Z",
+  "generatedAt": "2026-08-30T03:51:14.220Z",
   "packs": [
     {
       "id": "artifact-zero",
@@ -212,7 +212,7 @@
       "id": "identity-citadel",
       "title": "Identity Citadel",
       "engine": "docker",
-      "digest": "953f1e32350af2f9a9e5e3c3701360b88c8a83674a368e8e45fac94ad62e58f3",
+      "digest": "e7823a5ec5e5c90c3572ca0964fad9bf1d1b26d9078c6979bbfd13777de4f0f8",
       "files": [
         {
           "path": "compose.yaml",
@@ -236,8 +236,8 @@
         },
         {
           "path": "operator/Dockerfile",
-          "bytes": 340,
-          "digest": "761ad62d2d45e4d7f6e5517926aa4758f518fa0634f964563ebc420e8ed60388"
+          "bytes": 368,
+          "digest": "a7f18e5d702707ca06a34b2fdebb18170fd8370f3eb8ce2f220b927dfc1d14ef"
         },
         {
           "path": "operator/krb5.conf",
@@ -251,7 +251,7 @@
         }
       ],
       "fileCount": 7,
-      "totalBytes": 4564
+      "totalBytes": 4592
     },
     {
       "id": "night-shift",
