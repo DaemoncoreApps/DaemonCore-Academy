@@ -81,6 +81,7 @@ ipcMain.handle('data:snapshot', rangeHandler(() => dataStore.snapshot()))
 ipcMain.handle('data:onboard', rangeHandler(handle => dataStore.onboard(handle)))
 ipcMain.handle('data:record', rangeHandler(event => dataStore.record(event)))
 ipcMain.handle('data:settings', rangeHandler(settings => dataStore.updateSettings(settings)))
+ipcMain.handle('data:mission-os', rangeHandler(input => dataStore.updateMissionOS(input)))
 ipcMain.handle('display:set-zoom', async (event, factor) => {
   if (!trustedSender(event)) throw new Error('Untrusted display request')
   const scale = Math.max(1, Math.min(1.4, Number(factor) || 1.25))

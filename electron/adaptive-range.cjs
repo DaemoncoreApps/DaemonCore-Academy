@@ -80,6 +80,53 @@ const CONTRACTS = Object.freeze({
   },
 })
 
+const FLAGSHIP_VARIANTS = Object.freeze({
+  'ghost-port': [
+    { id: 'inventory-drift', label: 'Inventory Drift', brief: 'Treat the approved inventory as the source of truth and prove only the undocumented exposure.' },
+    { id: 'service-ownership', label: 'Service Ownership', brief: 'Prioritize service identity and access behavior before assigning operational impact.' },
+    { id: 'change-control', label: 'Change Control', brief: 'Frame the evidence as a change-control exception without assuming compromise.' },
+  ],
+  'broken-trust': [
+    { id: 'tenant-boundary', label: 'Tenant Boundary', brief: 'Prove the exact cross-tenant decision failure with the minimum authorized requests.' },
+    { id: 'object-ownership', label: 'Object Ownership', brief: 'Preserve owner and tenant context so the authorization conclusion survives review.' },
+    { id: 'control-design', label: 'Control Design', brief: 'Separate successful authentication from the missing object authorization check.' },
+  ],
+  'night-shift': [
+    { id: 'timeline-first', label: 'Timeline First', brief: 'Lead with integrity and chronology before interpreting the suspicious sequence.' },
+    { id: 'signal-separation', label: 'Signal Separation', brief: 'Distinguish linked high-confidence events from routine endpoint noise.' },
+    { id: 'alternative-hypothesis', label: 'Alternative Hypothesis', brief: 'State what the evidence supports while preserving plausible alternative explanations.' },
+  ],
+})
+
+function caseVariantFor(id, seed) {
+  const variants = FLAGSHIP_VARIANTS[id]
+  if (!variants) return null
+  const index = Number.parseInt(String(seed || '0').slice(-4), 16) % variants.length
+  return variants[index]
+}
+
+function debriefFor(id, session, seconds, executionCount) {
+  const failed = session.stats?.failedExecutions || 0
+  const rejected = session.stats?.rejectedEvidence || 0
+  const targetSeconds = { 'ghost-port': 1500, 'broken-trust': 2400, 'night-shift': 3600 }[id] || 2700
+  const dimensions = [
+    { id: 'evidence', label: 'Evidence coverage', score: Math.round(session.evidence.length / contractFor(id).objectives.length * 100) },
+    { id: 'independence', label: 'Operator independence', score: Math.max(0, 100 - session.hints.length * 22) },
+    { id: 'method', label: 'Method discipline', score: Math.max(40, 100 - failed * 8 - rejected * 5) },
+    { id: 'tempo', label: 'Time discipline', score: Math.max(50, Math.min(100, Math.round(targetSeconds / Math.max(1, seconds) * 100))) },
+  ]
+  const weakest = [...dimensions].sort((a, b) => a.score - b.score)[0]
+  const strengths = dimensions.filter(dimension => dimension.score >= 90).map(dimension => dimension.label)
+  return {
+    dimensions,
+    overall: Math.round(dimensions.reduce((sum, dimension) => sum + dimension.score, 0) / dimensions.length),
+    executionCount,
+    strengths: strengths.length ? strengths : ['Objective completion'],
+    remediation: weakest.score < 80 ? `Re-run in a higher-autonomy mode and focus on ${weakest.label.toLowerCase()}.` : 'Advance to the next route stage or repeat in Professional mode.',
+    nextAction: session.hints.length ? 'Repeat without guidance and preserve the same evidence threshold.' : 'Export the sealed receipt, then advance to the next Mission OS stage.',
+  }
+}
+
 function normalizeMode(value) {
   const mode = String(value || 'assisted').toLowerCase()
   if (!MODES[mode]) throw new Error('Unknown mission mode')
@@ -107,4 +154,4 @@ function publicContract(id) {
   }
 }
 
-module.exports = { CONTRACTS, MODES, contractFor, matchesObjective, normalizeMode, publicContract }
+module.exports = { CONTRACTS, FLAGSHIP_VARIANTS, MODES, caseVariantFor, contractFor, debriefFor, matchesObjective, normalizeMode, publicContract }

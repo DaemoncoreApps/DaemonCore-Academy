@@ -67,7 +67,7 @@ try {
   assert.equal(state.profile.xp, 2620)
 
   const persisted = JSON.parse(await readFile(recovered.file, 'utf8'))
-  assert.equal(persisted.schemaVersion, 5)
+  assert.equal(persisted.schemaVersion, 6)
   console.log('Operator record verified // atomic write, reload, and backup recovery')
 } finally {
   await rm(directory, { recursive: true, force: true })

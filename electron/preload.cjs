@@ -31,6 +31,7 @@ contextBridge.exposeInMainWorld('daemoncore', {
     onboard: handle => ipcRenderer.invoke('data:onboard', handle),
     record: event => ipcRenderer.invoke('data:record', event),
     updateSettings: settings => ipcRenderer.invoke('data:settings', settings),
+    updateMissionOS: input => ipcRenderer.invoke('data:mission-os', input),
     reset: () => ipcRenderer.invoke('data:reset'),
     export: () => ipcRenderer.invoke('data:export'),
   }),

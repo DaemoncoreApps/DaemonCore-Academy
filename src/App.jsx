@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import {
   Activity, ArrowLeft, ArrowRight, Award, BarChart3, Bell, BookOpen, BrainCircuit,
-  Box, Braces, Check, ChevronRight, Circle, Clock3, Command, Crosshair,
+  Box, Braces, Check, ChevronRight, Circle, Clock3, Command, Compass, Crosshair,
   Database, Flame, Gauge, GraduationCap, Grid2X2, HardDrive, Hexagon,
   KeyRound, Layers3, LockKeyhole, Menu, Network, Play, Radar, Search,
   Settings, Shield, ShieldCheck, Sparkles, Swords, Target, Terminal,
@@ -20,9 +20,12 @@ import { enterpriseCourses } from './enterprise-curriculum.js'
 import { EnterpriseForgePage } from './EnterpriseRange.jsx'
 import { RangeFabric } from './RangeFabric.jsx'
 import { ModalClose } from './ModalClose.jsx'
+import { MissionOSPage } from './MissionOS.jsx'
+import missionOSData from '../shared/mission-os.json'
 
 const nav = [
   { id: 'command', label: 'Command', icon: Grid2X2 },
+  { id: 'missionos', label: 'Mission OS', icon: Compass },
   { id: 'academy', label: 'Academy', icon: GraduationCap },
   { id: 'webforge', label: 'Web Forge', icon: Braces },
   { id: 'enterprise', label: 'Enterprise Forge', icon: Layers3 },
@@ -37,7 +40,7 @@ const nav = [
 const missionIcons={network:Network,key:KeyRound,activity:Activity,shield:Shield,layers:Layers3,box:Box}
 const missions=missionCatalog.map(mission=>({...mission,icon:missionIcons[mission.icon]}))
 
-const emptyData = { schemaVersion:5, profile:{handle:null,createdAt:null,xp:0,level:1,streak:0,bestStreak:0,lastActiveDate:null,weekKey:null,weeklyMinutes:0,weeklyGoalMinutes:180,completedMissions:[],completedLessons:[],completedWebLabs:[],completedEnterpriseLabs:[],lessonAttempts:[],missionAttempts:[],webLabAttempts:[],enterpriseLabAttempts:[],drillAttempts:[],capstoneAttempts:[],achievements:[],activity:[]},settings:{reduceMotion:false,compactMode:false,uiScale:1.25} }
+const emptyData = { schemaVersion:6, profile:{handle:null,createdAt:null,xp:0,level:1,streak:0,bestStreak:0,lastActiveDate:null,weekKey:null,weeklyMinutes:0,weeklyGoalMinutes:180,completedMissions:[],completedLessons:[],completedWebLabs:[],completedEnterpriseLabs:[],lessonAttempts:[],missionAttempts:[],webLabAttempts:[],enterpriseLabAttempts:[],drillAttempts:[],capstoneAttempts:[],achievements:[],activity:[],missionOS:{assessment:null,selectedPathway:null,selectedAt:null}},settings:{reduceMotion:false,compactMode:false,uiScale:1.25} }
 const weekKey=()=>{const date=new Date(),day=(date.getUTCDay()+6)%7;date.setUTCDate(date.getUTCDate()-day);return date.toISOString().slice(0,10)}
 const previewLicense={configured:false,requireAcademyLicense:false,checkoutUrl:null,licensed:false,fieldOps:false,status:'unlicensed',tier:null,tierLabel:null}
 
@@ -65,9 +68,23 @@ function useAppData() {
     return saveFallback({...data,profile:p})
   }
   const updateSettings=async settings=>{if(api){const next=await api.updateSettings(settings);setData(next);return}saveFallback({...data,settings})}
+  const updateMissionOS=async input=>{
+    if(api){const next=await api.updateMissionOS(input);setData(next);return next}
+    const profile={...emptyData.profile,...data.profile,missionOS:{...emptyData.profile.missionOS,...data.profile?.missionOS}}
+    if(input.action==='assessment'){
+      const scores=Object.fromEntries(missionOSData.domains.map(domain=>[domain.id,{correct:0,total:0,score:0}]))
+      for(const question of missionOSData.questions){const answer=input.answers?.[question.id];if(!Number.isInteger(answer))throw new Error(`Assessment answer missing: ${question.id}`);scores[question.domain].total++;if(answer===question.answer)scores[question.domain].correct++}
+      Object.values(scores).forEach(result=>{result.score=Math.round(result.correct/result.total*100)})
+      const overall=Math.round(Object.values(scores).reduce((sum,result)=>sum+result.score,0)/missionOSData.domains.length)
+      const recommendedPathway=[...missionOSData.pathways].sort((a,b)=>{const fit=pathway=>Object.entries(pathway.weights).reduce((sum,[domain,weight])=>sum+scores[domain].score*weight,0)/Object.values(pathway.weights).reduce((sum,weight)=>sum+weight,0);return fit(b)-fit(a)})[0].id
+      profile.missionOS.assessment={completedAt:new Date().toISOString(),overall,scores,answers:input.answers,recommendedPathway}
+    }else if(input.action==='select-pathway'){profile.missionOS.selectedPathway=input.pathwayId;profile.missionOS.selectedAt=new Date().toISOString()}
+    else if(input.action==='reset-assessment')profile.missionOS.assessment=null
+    return saveFallback({...data,schemaVersion:6,profile})
+  }
   const reset=async()=>{if(api){const next=await api.reset();setData(next);return}saveFallback(emptyData)}
   const exportData=async()=>{if(api)return api.export();const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='daemoncore-operator-record.json';a.click();URL.revokeObjectURL(url);return{canceled:false}}
-  return {data,onboard,record,updateSettings,reset,exportData}
+  return {data,onboard,record,updateSettings,updateMissionOS,reset,exportData}
 }
 
 function useLicense() {
@@ -261,7 +278,7 @@ export default function App() {
   const navigationCollapsed=collapsed??store.data.settings.compactMode
   const title=module?module.title:page==='settings'?'Settings':nav.find(n=>n.id===page)?.label||'Command'
   const completeQuiz=async event=>{await store.record(event);setToast(`Drill logged // +${event.correct*120} XP`)}
-  const completeMission=async({mission:cleared,score,hints,seconds,receipt,launchReceipt,mode,seed,evidenceDigest})=>{await store.record({type:'mission',id:cleared.id,title:cleared.title,score,hints,seconds,mode,seed,evidenceDigest,receiptDigest:receipt?.digest,packDigest:launchReceipt?.pack?.digest,receiptId:receipt?.receiptId});setActiveMission(null);setPage('labs');setToast(`${String(mode||'adaptive').toUpperCase()} mission sealed // ${score} XP`)}
+  const completeMission=async({mission:cleared,score,hints,seconds,receipt,launchReceipt,mode,seed,evidenceDigest,debrief,caseVariant})=>{await store.record({type:'mission',id:cleared.id,title:cleared.title,score,hints,seconds,mode,seed,evidenceDigest,debrief,caseVariant,receiptDigest:receipt?.digest,packDigest:launchReceipt?.pack?.digest,receiptId:receipt?.receiptId});setActiveMission(null);setPage('labs');setToast(`${String(mode||'adaptive').toUpperCase()} mission sealed // ${score} XP`)}
   const completeWebLab=async event=>{await store.record(event);setActiveWebLab(null);setPage('webforge');setToast(`Web Forge sealed // +${event.score} XP`)}
   const completeEnterpriseLab=async event=>{await store.record({...event,type:'enterpriseLab'});setActiveEnterpriseLab(null);setPage('enterprise');setToast(`Enterprise Forge sealed // +${event.score} XP`)}
   const completeLesson=async completedLesson=>{await store.record({type:'lesson',id:completedLesson.id,title:completedLesson.title,minutes:completedLesson.minutes,practicalScore:completedLesson.practicalScore});setLesson(null);setToast(`Lesson mastered // practical ${completedLesson.practicalScore}% recorded`)}
@@ -275,6 +292,7 @@ export default function App() {
   let current
   if(module)current=<ModuleDetail module={module} onBack={()=>setModule(null)} startLesson={setLesson} profile={operator}/>
   else if(page==='command')current=<CommandPage setPage={setPage} profile={operator}/>
+  else if(page==='missionos')current=<MissionOSPage profile={operator} onUpdate={store.updateMissionOS} onNavigate={setPage}/>
   else if(page==='academy')current=<AcademyPage selectModule={setModule} profile={operator}/>
   else if(page==='webforge')current=<WebForgePage profile={operator} onLaunch={setActiveWebLab}/>
   else if(page==='enterprise')current=<EnterpriseForgePage profile={operator} onLaunch={setActiveEnterpriseLab}/>
@@ -285,5 +303,7 @@ export default function App() {
   else if(page==='intel')current=<IntelPage onOpen={setArticle}/>
   else if(page==='operator')current=<OperatorPage profile={operator}/>
   else current=<SettingsPage data={store.data} {...licenseProps} onUpdate={store.updateSettings} onExport={store.exportData} onReset={store.reset}/>
-  return <div className="app-shell"><Sidebar page={page} setPage={p=>{setPage(p);setModule(null)}} collapsed={navigationCollapsed} setCollapsed={setCollapsed} profile={operator}/><main><Topbar title={title} profile={operator}/>{current}<footer className="app-footer"><span>DAEMONCORE ACADEMY // MASTERY SYSTEM</span><span><i/> LICENSED LOCAL-FIRST PLATFORM</span><span>{licensing.license.tierLabel?.toUpperCase()||'COMMERCIAL CORE READY'}</span></footer></main>{mission&&<MissionModal mission={mission} onClose={()=>setMission(null)} onLaunch={({mode})=>{setActiveMission({...mission,mode});setMission(null)}}/>}{quiz&&<QuizModal drill={quiz} onClose={()=>setQuiz(null)} onComplete={completeQuiz}/>} {toast&&<Toast message={toast}/>}</div>
+  const platform={win32:'WINDOWS',linux:'LINUX',darwin:'MACOS'}[window.daemoncore?.platform]||'WEB PREVIEW'
+  const version=window.daemoncore?.version||'6.0 PREVIEW'
+  return <div className="app-shell"><Sidebar page={page} setPage={p=>{setPage(p);setModule(null)}} collapsed={navigationCollapsed} setCollapsed={setCollapsed} profile={operator}/><main><Topbar title={title} profile={operator}/>{current}<footer className="app-footer"><span>DAEMONCORE ACADEMY // MISSION OS</span><span><i/> LICENSED LOCAL-FIRST PLATFORM</span><span>V{version} // {platform}</span></footer></main>{mission&&<MissionModal mission={mission} onClose={()=>setMission(null)} onLaunch={({mode})=>{setActiveMission({...mission,mode});setMission(null)}}/>}{quiz&&<QuizModal drill={quiz} onClose={()=>setQuiz(null)} onComplete={completeQuiz}/>} {toast&&<Toast message={toast}/>}</div>
 }

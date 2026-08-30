@@ -26,6 +26,17 @@ Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 
 ## What ships
 
+### Mission OS // 6.0 alpha
+
+- **A real entry diagnostic** — twelve scenario decisions establish a persisted baseline across scope, network analysis, web and API, identity, cloud and supply chain, and evidence and detection.
+- **Six professional routes** — Penetration Tester, Web & API Specialist, Identity Security, Cloud Security, Detection & Response, and Security Engineer turn the catalog into deliberate role-based training.
+- **Evidence-derived next actions** — route progress is calculated from the lessons, ranges, enterprise cases, and capstones completed on this device. No fake readiness score or imaginary rank.
+- **Seeded flagship cases** — Ghost Port, Broken Trust, and Night Shift now receive a run-specific professional case emphasis tied to the sealed session seed.
+- **After-action reviews** — completed ranges grade evidence coverage, independence, method discipline, and time discipline, then assign a concrete remediation and next action.
+- **Visible build identity** — the footer reports the exact app version and platform so support, screenshots, and operator records stop being ambiguous.
+
+The 6.0 line is under active certification. The stable download button continues to resolve to the latest published release until a 6.0 installer passes the complete release gate.
+
 ### Linux beta // 5.5
 
 - **First-class desktop packages** — the same Academy, sealed ranges, FieldOps workspace, licensing, local records, and exports ship as an x64 AppImage and Debian package.

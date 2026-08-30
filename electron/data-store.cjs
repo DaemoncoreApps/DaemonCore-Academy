@@ -1,9 +1,10 @@
 const { mkdir, readFile, rename, writeFile, copyFile } = require('fs/promises')
 const { randomUUID } = require('crypto')
 const path = require('path')
+const missionOS = require('../shared/mission-os.json')
 
 const cleanState = () => ({
-  schemaVersion: 5,
+  schemaVersion: 6,
   profile: {
     handle: null,
     xp: 0,
@@ -27,6 +28,7 @@ const cleanState = () => ({
     achievements: [],
     activity: [],
     createdAt: null,
+    missionOS: { assessment: null, selectedPathway: null, selectedAt: null },
   },
   settings: { reduceMotion: false, compactMode: false, uiScale: 1.25 },
 })
@@ -70,8 +72,8 @@ class DataStore {
     if (!input || typeof input !== 'object') return base
     return {
       ...base,
-      schemaVersion: 5,
-      profile: { ...base.profile, ...(input.profile || {}) },
+      schemaVersion: 6,
+      profile: { ...base.profile, ...(input.profile || {}), missionOS: { ...base.profile.missionOS, ...(input.profile?.missionOS || {}) } },
       settings: { ...base.settings, ...(input.settings || {}) },
     }
   }
@@ -148,7 +150,9 @@ class DataStore {
     const mode = ['guided', 'assisted', 'blind', 'professional'].includes(event.mode) ? event.mode : 'legacy'
     const seed = /^[A-F0-9]{12}$/.test(event.seed || '') ? event.seed : null
     const evidenceDigest = /^[a-f0-9]{64}$/.test(event.evidenceDigest || '') ? event.evidenceDigest : null
-    this.state.profile.missionAttempts.unshift({ id: randomUUID(), missionId: event.id, score, hints: Number(event.hints) || 0, seconds: Number(event.seconds) || 0, mode, seed, evidenceDigest, receiptDigest, packDigest, receiptId, at: new Date().toISOString() })
+    const debrief = event.debrief && typeof event.debrief === 'object' ? clone(event.debrief) : null
+    const caseVariant = event.caseVariant && typeof event.caseVariant === 'object' ? clone(event.caseVariant) : null
+    this.state.profile.missionAttempts.unshift({ id: randomUUID(), missionId: event.id, score, hints: Number(event.hints) || 0, seconds: Number(event.seconds) || 0, mode, seed, evidenceDigest, receiptDigest, packDigest, receiptId, debrief, caseVariant, at: new Date().toISOString() })
     this.state.profile.missionAttempts = this.state.profile.missionAttempts.slice(0, 100)
     this.addXp(earned)
     this.unlock('first-signal')
@@ -234,6 +238,43 @@ class DataStore {
       reduceMotion: Boolean(next?.reduceMotion),
       compactMode: Boolean(next?.compactMode),
       uiScale: Math.max(1, Math.min(1.4, Number(next?.uiScale) || 1.25)),
+    }
+    await this.persist()
+    return this.snapshot()
+  }
+
+  async updateMissionOS(input) {
+    if (!this.state.profile.handle) throw new Error('Complete onboarding first')
+    if (!input || typeof input !== 'object') throw new Error('Mission OS update is required')
+    if (input.action === 'assessment') {
+      const answers = input.answers || {}
+      const scores = Object.fromEntries(missionOS.domains.map(domain => [domain.id, { correct: 0, total: 0, score: 0 }]))
+      for (const question of missionOS.questions) {
+        const answer = answers[question.id]
+        if (!Number.isInteger(answer) || answer < 0 || answer >= question.options.length) throw new Error(`Assessment answer missing or invalid: ${question.id}`)
+        scores[question.domain].total += 1
+        if (answer === question.answer) scores[question.domain].correct += 1
+      }
+      for (const result of Object.values(scores)) result.score = Math.round(result.correct / result.total * 100)
+      const overall = Math.round(Object.values(scores).reduce((sum, result) => sum + result.score, 0) / missionOS.domains.length)
+      const ranked = missionOS.pathways.map(pathway => {
+        const entries = Object.entries(pathway.weights)
+        const weight = entries.reduce((sum, [, value]) => sum + value, 0)
+        const fit = Math.round(entries.reduce((sum, [domain, value]) => sum + scores[domain].score * value, 0) / weight)
+        return { id: pathway.id, fit }
+      }).sort((a, b) => b.fit - a.fit || a.id.localeCompare(b.id))
+      this.state.profile.missionOS.assessment = { completedAt: new Date().toISOString(), overall, scores, answers: { ...answers }, recommendedPathway: ranked[0].id }
+      this.addActivity('assessment', 'Mission OS diagnostic completed', 0, `${overall}% baseline // ${ranked[0].id}`)
+    } else if (input.action === 'select-pathway') {
+      if (!missionOS.pathways.some(pathway => pathway.id === input.pathwayId)) throw new Error('Unknown Mission OS pathway')
+      this.state.profile.missionOS.selectedPathway = input.pathwayId
+      this.state.profile.missionOS.selectedAt = new Date().toISOString()
+      const pathway = missionOS.pathways.find(item => item.id === input.pathwayId)
+      this.addActivity('pathway', `${pathway.label} pathway selected`, 0)
+    } else if (input.action === 'reset-assessment') {
+      this.state.profile.missionOS.assessment = null
+    } else {
+      throw new Error('Unknown Mission OS action')
     }
     await this.persist()
     return this.snapshot()

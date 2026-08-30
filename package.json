@@ -2,7 +2,7 @@
   "name": "daemoncore-academy",
   "private": true,
   "type": "module",
-  "version": "5.5.0-beta.2",
+  "version": "6.0.0-alpha.1",
   "description": "A sealed cyber range and operator training desktop platform.",
   "desktopName": "daemoncore-academy.desktop",
   "main": "electron/main.cjs",
@@ -41,9 +41,10 @@
     "check:tool-bridge": "node scripts/verify-tool-bridge.mjs",
     "check:installer": "node scripts/verify-installer.mjs",
     "check:linux": "node scripts/verify-linux.mjs",
+    "check:mission-os": "node scripts/verify-mission-os.mjs",
     "certify:identity": "node scripts/certify-identity-range.mjs",
     "check:range": "node scripts/verify-range.mjs",
-    "test": "npm run check && npm run check:data && npm run check:phase4 && npm run check:phase5 && npm run check:phase6 && npm run check:phase7 && npm run check:phase8 && npm run check:phase11 && npm run check:phase12 && npm run check:phase13 && npm run check:phase14 && npm run check:phase15 && npm run check:phase16 && npm run check:fieldops && npm run check:campaigns && npm run check:trust && npm run check:tool-bridge && npm run check:installer && npm run check:linux && npm run check:range && npm run build"
+    "test": "npm run check && npm run check:data && npm run check:phase4 && npm run check:phase5 && npm run check:phase6 && npm run check:phase7 && npm run check:phase8 && npm run check:phase11 && npm run check:phase12 && npm run check:phase13 && npm run check:phase14 && npm run check:phase15 && npm run check:phase16 && npm run check:fieldops && npm run check:campaigns && npm run check:trust && npm run check:tool-bridge && npm run check:installer && npm run check:linux && npm run check:range && npm run check:mission-os && npm run build"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
@@ -76,6 +77,7 @@
     "files": [
       "dist/**/*",
       "electron/**/*",
+      "shared/**/*",
       "package.json"
     ],
     "extraResources": [

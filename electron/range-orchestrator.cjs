@@ -3,7 +3,7 @@ const { createHash, randomBytes, randomUUID } = require('crypto')
 const { readFile } = require('fs/promises')
 const path = require('path')
 const { fingerprintPack, sealReceipt } = require('./range-integrity.cjs')
-const { contractFor, matchesObjective, normalizeMode, publicContract, MODES } = require('./adaptive-range.cjs')
+const { caseVariantFor, contractFor, debriefFor, matchesObjective, normalizeMode, publicContract, MODES } = require('./adaptive-range.cjs')
 
 const CHAOS_WORKER = 'dc-ghost-chaos'
 const ALLOWED_SCENARIOS = new Set(['ghost-port', 'broken-trust', 'night-shift', 'token-afterlife', 'policy-collision', 'artifact-zero', 'identity-citadel', 'web-range', 'enterprise-range'])
@@ -187,7 +187,7 @@ class RangeOrchestrator {
         const seed = randomBytes(6).toString('hex').toUpperCase()
         const receipt = sealReceipt({ schemaVersion: 2, receiptId: randomUUID(), scenario: id, mode, seed, startedAt, runtime: { engine: availability.engine, version: availability.version }, pack: { algorithm: integrity.algorithm, digest: integrity.digest, fileCount: integrity.fileCount }, containment, operatorContainer: manifest.operatorContainer, targetContainer: manifest.targetContainer })
         this.activeReceipt = receipt
-        this.activeSession = { sessionId: randomUUID(), scenario: id, mode, seed, startedAt, hints: [], evidence: [] }
+        this.activeSession = { sessionId: randomUUID(), scenario: id, mode, seed, startedAt, hints: [], evidence: [], caseVariant: caseVariantFor(id, seed), stats: { executions: 0, failedExecutions: 0, rejectedEvidence: 0 } }
         this.executions.clear()
         return { state: 'sealed', scenario: id, containment, integrity, receipt, manifest, session: this.sessionSnapshot(), contract: publicContract(id) }
       } catch (error) {
@@ -219,9 +219,12 @@ class RangeOrchestrator {
 
   recordExecution(command, stdout, stderr, exitCode) {
     if (!this.activeSession) throw new Error('No adaptive mission session is active')
+    this.activeSession.stats ||= { executions: 0, failedExecutions: 0, rejectedEvidence: 0 }
     const execution = { executionId: randomUUID(), command, stdout, stderr, exitCode, at: new Date().toISOString() }
     execution.digest = createHash('sha256').update(JSON.stringify(execution)).digest('hex')
     this.executions.set(execution.executionId, execution)
+    this.activeSession.stats.executions += 1
+    if (exitCode !== 0) this.activeSession.stats.failedExecutions += 1
     while (this.executions.size > 200) this.executions.delete(this.executions.keys().next().value)
     return { ...execution }
   }
@@ -244,9 +247,9 @@ class RangeOrchestrator {
     if (index !== this.activeSession.evidence.length) throw new Error('Mission objectives must be proven in order')
     const execution = this.executions.get(executionId)
     if (!execution) throw new Error('Evidence must reference an execution from this active run')
-    if (execution.exitCode !== 0) return { accepted: false, objectiveIndex: index, reason: 'The evidence command did not exit successfully.' }
+    if (execution.exitCode !== 0) { this.activeSession.stats.rejectedEvidence += 1; return { accepted: false, objectiveIndex: index, reason: 'The evidence command did not exit successfully.' } }
     const output = `${execution.stdout}\n${execution.stderr}`
-    if (!matchesObjective(id, index, output)) return { accepted: false, objectiveIndex: index, reason: 'The latest output does not yet prove this objective.' }
+    if (!matchesObjective(id, index, output)) { this.activeSession.stats.rejectedEvidence += 1; return { accepted: false, objectiveIndex: index, reason: 'The latest output does not yet prove this objective.' } }
     const definition = contractFor(id).objectives[index]
     const evidence = { objectiveIndex: index, label: definition.label, evidence: definition.evidence, executionId, executionDigest: execution.digest, acceptedAt: new Date().toISOString() }
     this.activeSession.evidence.push(evidence)
@@ -274,7 +277,8 @@ class RangeOrchestrator {
     const rawScore = contract.baseScore - this.activeSession.hints.length * 75 - Math.floor(seconds / 60) * 10
     const score = Math.max(250, Math.round(rawScore * mode.multiplier))
     const evidenceDigest = createHash('sha256').update(JSON.stringify(this.activeSession.evidence)).digest('hex')
-    const summary = { schemaVersion: 1, sessionId: this.activeSession.sessionId, scenario: id, mode: this.activeSession.mode, seed: this.activeSession.seed, startedAt: this.activeSession.startedAt, completedAt: new Date().toISOString(), seconds, hints: this.activeSession.hints.length, score, evidenceDigest, objectives: this.activeSession.evidence }
+    const debrief = debriefFor(id, this.activeSession, seconds, this.executions.size)
+    const summary = { schemaVersion: 2, sessionId: this.activeSession.sessionId, scenario: id, mode: this.activeSession.mode, seed: this.activeSession.seed, caseVariant: this.activeSession.caseVariant, startedAt: this.activeSession.startedAt, completedAt: new Date().toISOString(), seconds, hints: this.activeSession.hints.length, score, evidenceDigest, objectives: this.activeSession.evidence, debrief }
     const receipt = sealReceipt({ ...summary, type: 'adaptive-mission-result', receiptId: randomUUID(), launchReceiptDigest: this.activeReceipt?.digest || null })
     this.activeSession.completed = { ...summary, receipt }
     return JSON.parse(JSON.stringify(this.activeSession.completed))
