@@ -38,6 +38,7 @@ services:
       - /state:size=384m,nosuid,nodev
       - /run:size=32m,nosuid,nodev
       - /tmp:size=32m,noexec,nosuid,nodev
+      - /var/lib/samba:size=32m,nosuid,nodev
       - /var/log/samba:size=64m,nosuid,nodev
     cap_drop: [ALL]
     # Samba needs SYS_ADMIN for the filesystem metadata behind SYSVOL ACLs.

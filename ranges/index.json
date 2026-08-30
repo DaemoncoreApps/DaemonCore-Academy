@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "algorithm": "sha256-tree-v1",
-  "generatedAt": "2026-08-30T03:47:37.088Z",
+  "generatedAt": "2026-08-30T03:49:20.345Z",
   "packs": [
     {
       "id": "artifact-zero",
@@ -212,17 +212,17 @@
       "id": "identity-citadel",
       "title": "Identity Citadel",
       "engine": "docker",
-      "digest": "e382b396b3f32ed8226a985d8cce9ac8349b3db455d318562562880e118c2cf1",
+      "digest": "953f1e32350af2f9a9e5e3c3701360b88c8a83674a368e8e45fac94ad62e58f3",
       "files": [
         {
           "path": "compose.yaml",
-          "bytes": 1762,
-          "digest": "627d9ee7f5494dbe94dfd8bb4c66123eaa8f0077a8c4e7f3652b839e0094c3a6"
+          "bytes": 1807,
+          "digest": "f74be86b72a967382e8eea4fbc343a8a6bcd6a647b46b3ad023a251498a09f32"
         },
         {
           "path": "domain-controller/Dockerfile",
-          "bytes": 495,
-          "digest": "68b6b49aa983e907e207e78d4f9c7a613e8a900ed1edaaadd2acb0e35b45b2a0"
+          "bytes": 503,
+          "digest": "45b9a87bf2ffbbadf511474062cd289d78776e8feee93a128721daaf0680e7d5"
         },
         {
           "path": "domain-controller/entrypoint.sh",
@@ -251,7 +251,7 @@
         }
       ],
       "fileCount": 7,
-      "totalBytes": 4511
+      "totalBytes": 4564
     },
     {
       "id": "night-shift",

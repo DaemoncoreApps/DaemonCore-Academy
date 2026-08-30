@@ -28,6 +28,8 @@ assert.doesNotMatch(compose,/tmpfs:\s*\[/,'tmpfs mount options must not use ambi
 assert.match(compose,/cap_drop:\s*\[ALL\]/)
 assert.match(compose,/cap_add:\s*\[CHOWN, DAC_OVERRIDE, NET_BIND_SERVICE, SETGID, SETUID, SYS_ADMIN\]/)
 assert.match(dockerfile,/samba-ad-provision/)
+assert.match(dockerfile,/\bwinbind\b/)
+assert.match(compose,/\/var\/lib\/samba:size=32m,nosuid,nodev/)
 assert.match(entrypoint,/samba-tool domain provision/)
 assert.match(entrypoint,/samba-tool[^\n]*user create/)
 assert.doesNotMatch(entrypoint,/samba-tool\s+-s/,'Samba config options belong to the selected subcommand')
