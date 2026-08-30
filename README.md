@@ -26,7 +26,7 @@ Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 
 ## What ships
 
-### Mission OS // 6.0 alpha
+### Mission OS // 6.0 beta
 
 - **A real entry diagnostic** — twelve scenario decisions establish a persisted baseline across scope, network analysis, web and API, identity, cloud and supply chain, and evidence and detection.
 - **Six professional routes** — Penetration Tester, Web & API Specialist, Identity Security, Cloud Security, Detection & Response, and Security Engineer turn the catalog into deliberate role-based training.
@@ -35,7 +35,7 @@ Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 - **After-action reviews** — completed ranges grade evidence coverage, independence, method discipline, and time discipline, then assign a concrete remediation and next action.
 - **Visible build identity** — the footer reports the exact app version and platform so support, screenshots, and operator records stop being ambiguous.
 
-The 6.0 line is under active certification. The stable download button continues to resolve to the latest published release until a 6.0 installer passes the complete release gate.
+The 6.0 beta ships separately from the stable channel while cross-platform field certification continues. Stable download links remain pinned to the latest production release.
 
 ### Linux beta // 5.5
 

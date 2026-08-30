@@ -23,4 +23,4 @@ The flagship Docker missions now end with a professional after-action review. Da
 
 ## Release language
 
-Label this work “6.0 alpha” until packaged installers pass clean-machine certification. Do not replace the current stable download or promise a public 6.0 release date yet.
+Label this work “6.0 beta.” Keep the stable Windows call to action as the primary download and present 6.0 beta as an opt-in preview until cross-platform field certification is complete.

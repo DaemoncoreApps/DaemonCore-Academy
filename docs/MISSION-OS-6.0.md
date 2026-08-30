@@ -2,7 +2,7 @@
 
 Mission OS turns DaemonCore from a large catalog into a deliberate operating curriculum. It answers three questions every time the app opens: where the operator stands, what role they are building toward, and what work should happen next.
 
-## What is real in alpha 1
+## What ships in beta 1
 
 - A 12-decision entry diagnostic covering six security domains
 - Six selectable professional pathways
@@ -21,4 +21,4 @@ The range remains disposable and egress-denied. Case variation changes the profe
 
 ## Release gate
 
-6.0 should not replace the stable installer until the full test suite, Windows packaging, clean-machine upgrade, Docker range smoke tests, receipt export, and Linux packaging pass. Alpha builds should be clearly labeled and published separately from stable.
+6.0 beta remains separate from the stable installer while signed Windows packaging, Linux packaging, clean-machine upgrades, Docker range smoke tests, and receipt exports are certified. Promote it only after those gates pass on release artifacts.
