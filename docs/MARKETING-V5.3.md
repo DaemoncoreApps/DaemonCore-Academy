@@ -1,6 +1,6 @@
 # DaemonCore Academy 5.3 website update
 
-> Release status: these capabilities are on `main` for the next installer release. The public latest-download link still serves v5.2 until a v5.3 release is built and published.
+> Release status: v5.3.0 is live. The public latest-download link now serves the v5.3 Windows installer.
 
 ## Hero update
 
@@ -97,13 +97,7 @@ Then describe the contained lab separately:
 
 ## Release banner
 
-Use this only after v5.3 is published:
-
 > **DaemonCore Academy 5.3 is live.** Campaign Engine and DaemonCore Trust Authority bring multi-target orchestration, protected operator identity, signed permits, named operation receipts, restart recovery, and attribution-ready reporting to FieldOps Pro.
-
-Until then, use:
-
-> **DaemonCore 5.3 is in final verification.** Campaign Engine and signed FieldOps operations are coming to the next Windows installer.
 
 ## Download link
 
