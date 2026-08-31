@@ -73,7 +73,7 @@ jobs:
         run: |
           set -euo pipefail
           if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
-            notes_file="$(find docs -maxdepth 1 -type f -iname "release-${RELEASE_TAG#v}.md" -print -quit)"
+            notes_file="$(find docs -maxdepth 1 -type f -iname "release-${RELEASE_TAG}.md" -print -quit)"
             if [ -n "$notes_file" ]; then
               gh release create "$RELEASE_TAG" --prerelease --notes-file "$notes_file" --title "DaemonCore Academy ${RELEASE_TAG#v} // Mission OS beta"
             else

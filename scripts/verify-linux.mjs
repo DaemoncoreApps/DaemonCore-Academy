@@ -50,6 +50,6 @@ assert.match(workflow, /runs-on: ubuntu-latest/)
 assert.match(workflow, /npm run package:linux/)
 assert.match(workflow, /--appimage-extract/)
 assert.match(workflow, /dpkg-deb --info/)
-assert.match(workflow, /-iname "release-\$\{RELEASE_TAG#v\}\.md"/)
+assert.match(workflow, /-iname "release-\$\{RELEASE_TAG\}\.md"/)
 
 console.log('Linux beta verified // AppImage, deb, native keyring enforcement, portable version metadata, and release CI')
