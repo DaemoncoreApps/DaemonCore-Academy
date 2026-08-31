@@ -4,7 +4,7 @@
 
 Version 6.0.0-beta.1
 Public beta edition
-30 August 2026
+31 August 2026
 
 DaemonCore Academy is a local-first cyber operator training platform. Mission OS turns its practical lessons, disposable ranges, evidence-led web and enterprise work, and mastery capstones into a deliberate professional route.
 
@@ -22,7 +22,7 @@ DaemonCore Academy is a local-first cyber operator training platform. Mission OS
 | Platforms | Windows 64-bit; x64 Ubuntu and Debian-family Linux |
 | Publisher | DaemonCore Apps |
 | Classification | Customer training documentation |
-| Last revised | 30 August 2026 |
+| Last revised | 31 August 2026 |
 
 This guide covers the functionality shipped in `6.0.0-beta.1`. Product behavior is authoritative when it differs from the guide. Preserve a progress export before upgrading a workstation used for active study.
 
@@ -72,12 +72,25 @@ Academy is organized around proof of work. Instruction introduces a method; an i
 
 1. Install the official build and confirm the visible version and platform.
 2. Export any existing local progress before a beta upgrade.
-3. Complete the 12-scenario Mission OS diagnostic.
-4. Select one of six professional routes.
-5. Follow the route's next best action rather than collecting random completions.
-6. Preserve commands, raw signals, negative controls, and conclusions during practical work.
-7. Complete the after-action review and assigned remediation.
-8. Revisit the route dashboard and continue from recorded evidence.
+3. Use the first-run guide to understand the Learn, Practice, Launch, and Prove stages.
+4. Start in Academy or complete the 12-scenario Mission OS diagnostic to build a route.
+5. Select one of six professional routes.
+6. Follow the persistent next-action guidance rather than collecting random completions.
+7. Preserve commands, raw signals, negative controls, and conclusions during practical work.
+8. Complete the after-action review and assigned remediation.
+9. Revisit the route dashboard and continue from recorded evidence.
+
+## Know when a command is live
+
+Lesson pages teach method and contain in-app workbenches. Their command blocks are labeled **Reference command // not run here** and are worked examples; copying one does not execute it. Do not paste lesson examples into the Windows terminal merely because they look executable.
+
+A command is live only after all three conditions are true:
+
+1. You explicitly selected **Launch sealed range** from a mission briefing.
+2. The app displayed **Containment verified** after the Docker preflight.
+3. The terminal prompt begins with `root@dc-`.
+
+The first mission defaults to Guided mode and exposes the exact runbook. After a lesson is mastered, its completion screen can open the matching Lab Range, Web Forge, or Enterprise Forge surface. The workflow dock remains available throughout the main app and its **How this works** control reopens the guide at any time.
 
 ## Product map
 
@@ -253,12 +266,13 @@ Each tactical lesson is designed to move from explanation to an operator artifac
 
 1. Read the operator outcome, objectives, prerequisites, environment, and boundary.
 2. Work each guided section in order.
-3. Reproduce the supplied command only inside the stated lab context.
-4. Compare the actual output with the expected signal.
-5. Explain what the signal proves and what it does not prove.
-6. Complete the operator exercise and its success criteria.
+3. Study each reference command as a worked example; the lesson page does not execute it.
+4. Compare the worked example with the stated expected signal.
+5. Explain what the signal would prove and what it would not prove.
+6. Complete the in-app operator exercise and its success criteria.
 7. Pass the interactive workbench.
 8. Complete the knowledge validation to record mastery.
+9. Choose whether to return to the pathway or apply the method in the matching live range.
 
 ## Evidence standard
 
@@ -289,7 +303,7 @@ The seven sealed missions provide live synthetic systems without granting access
 
 1. Read the brief, objectives, boundary, expected services, and stop conditions.
 2. Run mission diagnostics and resolve Docker or policy failures.
-3. Launch the range and wait for declared services to become ready.
+3. Launch the range and wait for **Containment verified** and a `root@dc-` prompt before entering commands.
 4. Work from the mission objective; use help as reference, not as the completion path.
 5. Preserve commands and raw outputs before submitting each objective.
 6. Stop when the objective is proven. Do not explore unrelated container behavior.

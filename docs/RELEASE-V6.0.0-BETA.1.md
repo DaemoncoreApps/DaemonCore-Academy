@@ -2,6 +2,16 @@
 
 This beta changes the Academy from a catalog into an operating curriculum. Mission OS establishes an honest capability baseline, gives each operator a professional route, and recommends the next piece of recorded work.
 
+## Guided Academy workflow // requested on Reddit
+
+- First-run walkthrough for the Learn → Practice → Launch → Prove operator loop
+- Persistent next-action dock with an always-available “How this works” control
+- Explicit **Instruction**, **No live target**, and **Reference command // not run here** labels inside lessons
+- Live-terminal recognition based on an intentional range launch, **Containment verified**, and the `root@dc-` prompt
+- Guided mode selected by default for an operator's first Docker mission
+- Direct handoff from lesson completion to the matching Lab Range, Web Forge, or Enterprise Forge surface
+- Automated usability contract covering the guide, command boundary, persistence, and range handoff
+
 ## Mission OS
 
 - A 12-scenario entry diagnostic across scope, network analysis, web and API, identity, cloud and supply chain, and evidence and detection

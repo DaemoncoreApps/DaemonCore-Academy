@@ -28,6 +28,10 @@ Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 
 ### Mission OS // 6.0 beta
 
+- **Community-requested guided start** — a new first-run walkthrough explains the complete Learn → Practice → Launch → Prove loop before a new operator enters the curriculum.
+- **No more command ambiguity** — every lesson identifies its current activity, labels command blocks as worked examples, and states plainly when there is no live target. Live execution begins only after a sealed Docker range reports containment verified and displays a `root@dc-` prompt.
+- **Persistent next-step guidance** — a compact workflow dock follows the operator across the app with the next useful action and a permanent “How this works” control.
+- **Safer first mission handoff** — first-time operators enter Guided mode by default, see what Docker will open before launch, and can move directly from a completed lesson into the matching practical surface.
 - **A real entry diagnostic** — twelve scenario decisions establish a persisted baseline across scope, network analysis, web and API, identity, cloud and supply chain, and evidence and detection.
 - **Six professional routes** — Penetration Tester, Web & API Specialist, Identity Security, Cloud Security, Detection & Response, and Security Engineer turn the catalog into deliberate role-based training.
 - **Evidence-derived next actions** — route progress is calculated from the lessons, ranges, enterprise cases, and capstones completed on this device. No fake readiness score or imaginary rank.
@@ -126,7 +130,7 @@ Remote pack delivery is the next infrastructure layer. It will require a distrib
 
 - **Full-Spectrum Security Assessment** — twenty-eight practical lessons and twenty-four hours of guided work spanning scope, recon, Windows and Linux attack surfaces, web, sessions, authorization, injection, APIs, enterprise identity, cloud, containers, supply chain, secrets, validation, evidence, cleanup, and retesting.
 - **Advanced operator sequence** — eight hour-long deep dives covering Linux privilege graphs, Windows service control, Active Directory paths, Kerberos trust, segmentation and pivot analysis, SSRF, OAuth/OIDC, and CI/CD provenance.
-- **Operator workshops** — every lesson now includes objectives, prerequisites, an annotated three-step workflow, commands or artifacts, expected signal, interpretation, a required deliverable, success criteria, and primary references.
+- **Operator workshops** — every lesson now includes objectives, prerequisites, an explicit Learn → Practice → Validate → Apply workflow, clearly labeled reference commands or artifacts, expected signal, interpretation, a required deliverable, success criteria, and primary references.
 - **Interactive operator workbenches** — twenty-eight tailored simulations with eighty-four decision nodes spanning scope compilation, packet timelines, privilege graphs, directory trust, access matrices, IAM evaluation, provenance, vulnerability triage, and closeout control.
 - **Real mastery gating** — the knowledge validation stays locked until the operator passes the lesson workbench. Practical scores and replay attempts are stored in the local operator record.
 - **Twenty-eight validation checks** — progress is recorded only after the lesson check is answered correctly.
