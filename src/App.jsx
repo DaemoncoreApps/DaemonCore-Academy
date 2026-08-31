@@ -44,15 +44,16 @@ const missions=missionCatalog.map(mission=>({...mission,icon:missionIcons[missio
 const emptyData = { schemaVersion:6, profile:{handle:null,createdAt:null,xp:0,level:1,streak:0,bestStreak:0,lastActiveDate:null,weekKey:null,weeklyMinutes:0,weeklyGoalMinutes:180,completedMissions:[],completedLessons:[],completedWebLabs:[],completedEnterpriseLabs:[],lessonAttempts:[],missionAttempts:[],webLabAttempts:[],enterpriseLabAttempts:[],drillAttempts:[],capstoneAttempts:[],achievements:[],activity:[],missionOS:{assessment:null,selectedPathway:null,selectedAt:null}},settings:{reduceMotion:false,compactMode:false,uiScale:1.25,academyGuideComplete:false} }
 const weekKey=()=>{const date=new Date(),day=(date.getUTCDay()+6)%7;date.setUTCDate(date.getUTCDate()-day);return date.toISOString().slice(0,10)}
 const previewLicense={configured:false,requireAcademyLicense:false,checkoutUrl:null,licensed:false,fieldOps:false,status:'unlicensed',tier:null,tierLabel:null}
+const readFallbackData=()=>{try{return JSON.parse(localStorage.getItem('daemoncore-state-v1'))||emptyData}catch{return emptyData}}
 
 function useAppData() {
   const api=window.daemoncore?.data
-  const [data,setData]=useState(()=>{if(api)return null;try{return JSON.parse(localStorage.getItem('daemoncore-state-v1'))||emptyData}catch{return emptyData}})
-  useEffect(()=>{if(api)api.snapshot().then(setData)},[api])
-  const saveFallback=next=>{setData(next);localStorage.setItem('daemoncore-state-v1',JSON.stringify(next));return next}
-  const onboard=async handle=>{if(api){const next=await api.onboard(handle);setData(next);return}const normalized=handle.trim().toUpperCase();if(!/^[A-Z0-9_-]{2,20}$/.test(normalized))throw new Error('Handle must be 2–20 valid characters');saveFallback({...data,profile:{...data.profile,handle:normalized,createdAt:new Date().toISOString(),activity:[{id:crypto.randomUUID(),type:'profile',title:'Operator record initialized',xp:0,at:new Date().toISOString()}]}})}
+  const [data,setData]=useState(()=>api?null:readFallbackData())
+  const rememberData=next=>{setData(next);try{localStorage.setItem('daemoncore-state-v1',JSON.stringify(next))}catch{/* The desktop store remains authoritative when browser storage is unavailable. */}return next}
+  useEffect(()=>{let active=true;if(!api)return;const load=async()=>{try{let next=await api.snapshot();const fallback=readFallbackData();if(!next?.profile?.handle&&fallback?.profile?.handle&&api.migrateFallback)next=await api.migrateFallback(fallback);if(active)rememberData(next)}catch{if(active)setData(readFallbackData())}};load();return()=>{active=false}},[api])
+  const onboard=async handle=>{if(api){return rememberData(await api.onboard(handle))}const normalized=handle.trim().toUpperCase();if(!/^[A-Z0-9_-]{2,20}$/.test(normalized))throw new Error('Handle must be 2–20 valid characters');rememberData({...data,profile:{...data.profile,handle:normalized,createdAt:new Date().toISOString(),activity:[{id:crypto.randomUUID(),type:'profile',title:'Operator record initialized',xp:0,at:new Date().toISOString()}]}})}
   const record=async event=>{
-    if(api){const next=await api.record(event);setData(next);return next}
+    if(api)return rememberData(await api.record(event))
     const p={...emptyData.profile,...data.profile},now=new Date(),today=now.toISOString().slice(0,10),awards=new Set(p.achievements||[])
     if(p.weekKey!==weekKey()){p.weekKey=weekKey();p.weeklyMinutes=0}
     if(p.lastActiveDate!==today){const gap=p.lastActiveDate?Math.round((Date.parse(today)-Date.parse(p.lastActiveDate))/86400000):null;p.streak=gap===1?p.streak+1:1;p.bestStreak=Math.max(p.bestStreak,p.streak);p.lastActiveDate=today}
@@ -66,11 +67,11 @@ function useAppData() {
     if(event.type==='capstone'){earned=event.score>=80?750:0;p.capstoneAttempts=[{id:crypto.randomUUID(),capstoneId:event.id,score:event.score,passed:event.score>=80,domainScores:event.domainScores||{},decisions:event.decisions||[],at:now.toISOString()},...(p.capstoneAttempts||[])].slice(0,100);if(event.score>=80)awards.add('decision-forged')}
     if(p.streak>=14)awards.add('night-operator')
     p.achievements=[...awards];p.xp+=earned;p.level=Math.floor(p.xp/1000)+1;p.activity=[{id:crypto.randomUUID(),type:event.type,title:event.title,xp:earned,at:now.toISOString()},...p.activity].slice(0,100)
-    return saveFallback({...data,profile:p})
+    return rememberData({...data,profile:p})
   }
-  const updateSettings=async settings=>{if(api){const next=await api.updateSettings(settings);setData(next);return}saveFallback({...data,settings})}
+  const updateSettings=async settings=>{if(api)return rememberData(await api.updateSettings(settings));rememberData({...data,settings})}
   const updateMissionOS=async input=>{
-    if(api){const next=await api.updateMissionOS(input);setData(next);return next}
+    if(api)return rememberData(await api.updateMissionOS(input))
     const profile={...emptyData.profile,...data.profile,missionOS:{...emptyData.profile.missionOS,...data.profile?.missionOS}}
     if(input.action==='assessment'){
       const scores=Object.fromEntries(missionOSData.domains.map(domain=>[domain.id,{correct:0,total:0,score:0}]))
@@ -81,9 +82,9 @@ function useAppData() {
       profile.missionOS.assessment={completedAt:new Date().toISOString(),overall,scores,answers:input.answers,recommendedPathway}
     }else if(input.action==='select-pathway'){profile.missionOS.selectedPathway=input.pathwayId;profile.missionOS.selectedAt=new Date().toISOString()}
     else if(input.action==='reset-assessment')profile.missionOS.assessment=null
-    return saveFallback({...data,schemaVersion:6,profile})
+    return rememberData({...data,schemaVersion:6,profile})
   }
-  const reset=async()=>{if(api){const next=await api.reset();setData(next);return}saveFallback(emptyData)}
+  const reset=async()=>{if(api)return rememberData(await api.reset());rememberData(emptyData)}
   const exportData=async()=>{if(api)return api.export();const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='daemoncore-operator-record.json';a.click();URL.revokeObjectURL(url);return{canceled:false}}
   return {data,onboard,record,updateSettings,updateMissionOS,reset,exportData}
 }

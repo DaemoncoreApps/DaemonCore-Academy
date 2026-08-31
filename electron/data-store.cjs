@@ -93,6 +93,18 @@ class DataStore {
     return this.snapshot()
   }
 
+  async migrateFallback(input) {
+    if (this.state.profile.handle) return this.snapshot()
+    const migrated = this.normalize(input)
+    const handle = String(migrated.profile.handle || '').trim().toUpperCase()
+    if (!/^[A-Z0-9_-]{2,20}$/.test(handle)) return this.snapshot()
+    migrated.profile.handle = handle
+    migrated.profile.createdAt ||= new Date().toISOString()
+    this.state = migrated
+    await this.persist()
+    return this.snapshot()
+  }
+
   touchActivity() {
     const now = new Date()
     const today = dateKey(now)

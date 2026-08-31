@@ -1,9 +1,8 @@
 const { contextBridge, ipcRenderer } = require('electron')
-const { version } = require('../package.json')
 
 contextBridge.exposeInMainWorld('daemoncore', {
   platform: process.platform,
-  version,
+  version: ipcRenderer.sendSync('app:version'),
   display: Object.freeze({
     setZoom: factor => ipcRenderer.invoke('display:set-zoom', factor),
   }),
@@ -28,6 +27,7 @@ contextBridge.exposeInMainWorld('daemoncore', {
   }),
   data: Object.freeze({
     snapshot: () => ipcRenderer.invoke('data:snapshot'),
+    migrateFallback: state => ipcRenderer.invoke('data:migrate-fallback', state),
     onboard: handle => ipcRenderer.invoke('data:onboard', handle),
     record: event => ipcRenderer.invoke('data:record', event),
     updateSettings: settings => ipcRenderer.invoke('data:settings', settings),

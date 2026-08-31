@@ -10,6 +10,9 @@ const { LicenseManager } = require('./license-manager.cjs')
 const { EngagementStore } = require('./engagement-store.cjs')
 const { TrustAuthority } = require('./trust-authority.cjs')
 
+// Keep every release on one durable record path even if the display name changes.
+app.setPath('userData', path.join(app.getPath('appData'), 'daemoncore-academy'))
+
 const isDev = !app.isPackaged
 const rangeRoot = isDev ? path.join(__dirname, '..', 'ranges') : path.join(process.resourcesPath, 'ranges')
 const range = new RangeOrchestrator(rangeRoot)
@@ -53,6 +56,7 @@ function rangeHandler(handler) {
   }
 }
 
+ipcMain.on('app:version', event => { event.returnValue = app.getVersion() })
 ipcMain.handle('range:availability', rangeHandler(() => range.availability()))
 ipcMain.handle('range:status', rangeHandler(() => range.status()))
 ipcMain.handle('range:manifest', rangeHandler(id => range.manifest(id)))
@@ -78,6 +82,7 @@ ipcMain.handle('range:chaos-start', rangeHandler(input => range.startChaos(input
 ipcMain.handle('range:chaos-abort', rangeHandler(() => range.abortChaos()))
 ipcMain.handle('range:stop', rangeHandler(() => range.stop()))
 ipcMain.handle('data:snapshot', rangeHandler(() => dataStore.snapshot()))
+ipcMain.handle('data:migrate-fallback', rangeHandler(state => dataStore.migrateFallback(state)))
 ipcMain.handle('data:onboard', rangeHandler(handle => dataStore.onboard(handle)))
 ipcMain.handle('data:record', rangeHandler(event => dataStore.record(event)))
 ipcMain.handle('data:settings', rangeHandler(settings => dataStore.updateSettings(settings)))
