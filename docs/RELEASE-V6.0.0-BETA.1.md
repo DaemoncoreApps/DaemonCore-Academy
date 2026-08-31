@@ -25,6 +25,13 @@ This beta changes the Academy from a catalog into an operating curriculum. Missi
 - Linux ships as both an x86_64 AppImage and Debian package
 - FieldOps licensing and the free Academy boundary are unchanged
 
+## Updated operator guides
+
+- FieldOps Operator Manual `v6.0.0-beta.1` in release-ready PDF and editable Word formats
+- Academy Mission OS Operator Guide `v6.0.0-beta.1` covering the entry diagnostic, six routes, curriculum breadth, Docker missions, Web Forge, Enterprise Forge, capstones, after-action review, backups, and troubleshooting
+- Windows and Linux install, upgrade, checksum, Docker, and protected-storage runbooks
+- FieldOps disconnected-workstation procedure, signed authorization workflow, campaigns, sealed evidence, findings, retests, reports, and bounded Chaos Engine reference
+
 ## Beta notice
 
 This is an opt-in prerelease for cross-platform field validation. Back up the local operator record from Settings before upgrading a production workstation. Docker remains required for live disposable ranges; simulation fallback remains available for curriculum review.

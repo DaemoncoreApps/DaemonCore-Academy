@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import html
+import os
 import re
+import sys
 from pathlib import Path
 
 from reportlab.lib import colors
@@ -23,10 +25,36 @@ from reportlab.platypus import (
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = ROOT / "docs" / "FIELDOPS-OPERATOR-MANUAL.md"
-OUTPUT = ROOT / "output" / "pdf" / "DaemonCore-FieldOps-Operator-Manual-v5.4.0.pdf"
+GUIDE = "academy" if "--academy" in sys.argv else os.environ.get("DAEMONCORE_GUIDE", "fieldops").lower()
+if GUIDE == "academy":
+    SOURCE = ROOT / "docs" / "ACADEMY-MISSION-OS-GUIDE.md"
+    OUTPUT = ROOT / "output" / "pdf" / "DaemonCore-Academy-Mission-OS-Guide-v6.0.0-beta.1.pdf"
+    GUIDE_NAME = "ACADEMY MISSION OS GUIDE"
+    COVER_TITLE = "ACADEMY"
+    COVER_SUBTITLE = "MISSION OS OPERATOR GUIDE"
+    COVER_KICKER = "DAEMONCORE  //  EVIDENCE-LED OPERATOR DEVELOPMENT"
+    COVER_LEAD = "Diagnose the signal. Build the route. Prove the work.<br/>A local-first operating guide for practical cyber training."
+    COVER_NOTE = "PROGRESS IS RECORDED. CAPABILITY IS PROVEN BY THE WORK."
+    DOCUMENT_TITLE = "DaemonCore Academy Mission OS Operator Guide"
+    DOCUMENT_SUBJECT = "Operator guidance for DaemonCore Academy Mission OS 6.0.0-beta.1"
+    SCREENSHOT = ROOT / "docs" / "screenshots" / "command-center.png"
+    SCREENSHOT_ANCHOR = "__no_academy_screenshot__"
+    SCREENSHOT_CAPTION = "DaemonCore Academy command center and recorded operator progress"
+else:
+    SOURCE = ROOT / "docs" / "FIELDOPS-OPERATOR-MANUAL.md"
+    OUTPUT = ROOT / "output" / "pdf" / "DaemonCore-FieldOps-Operator-Manual-v6.0.0-beta.1.pdf"
+    GUIDE_NAME = "FIELDOPS OPERATOR MANUAL"
+    COVER_TITLE = "FIELDOPS"
+    COVER_SUBTITLE = "OPERATOR MANUAL"
+    COVER_KICKER = "DAEMONCORE  //  AUTHORIZED ASSESSMENT CONTROL PLANE"
+    COVER_LEAD = "Signed scope. Pinned targets. Sealed evidence.<br/>Professional assessment operations from one local-first desktop workspace."
+    COVER_NOTE = "A LICENSE UNLOCKS THE TOOL. THE ENGAGEMENT AUTHORIZES THE TARGET."
+    DOCUMENT_TITLE = "DaemonCore FieldOps Operator Manual"
+    DOCUMENT_SUBJECT = "Operator guidance for DaemonCore FieldOps 6.0.0-beta.1"
+    SCREENSHOT = ROOT / "docs" / "screenshots" / "fieldops-pro-gate.png"
+    SCREENSHOT_ANCHOR = "Move a license to another device"
+    SCREENSHOT_CAPTION = "FieldOps Pro gate before commercial activation"
 ICON = ROOT / "build" / "icon-sizes" / "256.png"
-SCREENSHOT = ROOT / "docs" / "screenshots" / "fieldops-pro-gate.png"
 
 RED = colors.HexColor("#E33E48")
 DARK = colors.HexColor("#111317")
@@ -221,7 +249,7 @@ def cover_story(style_map):
     meta = Table(
         [
             [Paragraph("PRODUCT", meta_label), Paragraph("RELEASE", meta_label), Paragraph("EDITION", meta_label)],
-            [Paragraph("DaemonCore Academy", meta_value), Paragraph("5.4.0", meta_value), Paragraph("Public release", meta_value)],
+            [Paragraph("DaemonCore Academy", meta_value), Paragraph("6.0 Beta 1", meta_value), Paragraph("Public beta", meta_value)],
         ],
         colWidths=[CONTENT_WIDTH / 3] * 3,
     )
@@ -235,12 +263,12 @@ def cover_story(style_map):
     ]))
     return [
         Spacer(1, 0.28 * inch), icon, Spacer(1, 0.28 * inch),
-        Paragraph("DAEMONCORE  //  AUTHORIZED ASSESSMENT CONTROL PLANE", kicker),
-        Spacer(1, 0.16 * inch), Paragraph("FIELDOPS", title),
-        Paragraph("OPERATOR MANUAL", subtitle), Spacer(1, 0.22 * inch),
-        Paragraph("Signed scope. Pinned targets. Sealed evidence.<br/>Professional assessment operations from one local-first Windows workspace.", lead),
+        Paragraph(COVER_KICKER, kicker),
+        Spacer(1, 0.16 * inch), Paragraph(COVER_TITLE, title),
+        Paragraph(COVER_SUBTITLE, subtitle), Spacer(1, 0.22 * inch),
+        Paragraph(COVER_LEAD, lead),
         Spacer(1, 0.45 * inch), meta, Spacer(1, 0.5 * inch),
-        Paragraph("A LICENSE UNLOCKS THE TOOL. THE ENGAGEMENT AUTHORIZES THE TARGET.", note),
+        Paragraph(COVER_NOTE, note),
         Spacer(1, 0.12 * inch), Paragraph("30 AUGUST 2026  //  DAEMONCORE APPS", date),
         PageBreak(),
     ]
@@ -268,10 +296,14 @@ def content_story(lines: list[str], style_map):
             continue
         if raw.startswith("## "):
             heading = raw[3:]
-            if heading == "Move a license to another device" and SCREENSHOT.exists():
-                shot = Image(str(SCREENSHOT), width=6.15 * inch, height=4.06 * inch)
+            if heading == SCREENSHOT_ANCHOR and SCREENSHOT.exists():
+                shot = Image(
+                    str(SCREENSHOT),
+                    width=(4.8 if GUIDE == "academy" else 6.15) * inch,
+                    height=(2.7 if GUIDE == "academy" else 4.06) * inch,
+                )
                 shot.hAlign = "CENTER"
-                story.extend([shot, Paragraph("FieldOps Pro gate before commercial activation", style_map["caption"])])
+                story.extend([shot, Paragraph(SCREENSHOT_CAPTION, style_map["caption"])])
             story.append(Paragraph(inline_markup(heading), style_map["h2"]))
             index += 1
             continue
@@ -337,9 +369,9 @@ def draw_later_page(canvas, doc) -> None:
     canvas.line(inch, PAGE_HEIGHT - 39, PAGE_WIDTH - inch, PAGE_HEIGHT - 39)
     canvas.setFont("Segoe-Bold", 7.2)
     canvas.setFillColor(MID)
-    canvas.drawString(inch, PAGE_HEIGHT - 31, "DAEMONCORE  //  FIELDOPS OPERATOR MANUAL  //  5.4.0")
+    canvas.drawString(inch, PAGE_HEIGHT - 31, f"DAEMONCORE  //  {GUIDE_NAME}  //  6.0.0-BETA.1")
     canvas.setFont("Segoe", 7.2)
-    canvas.drawString(inch, 28, "PUBLIC RELEASE  |  Copyright 2026 DaemonCore Apps")
+    canvas.drawString(inch, 28, "PUBLIC BETA  |  Copyright 2026 DaemonCore Apps")
     canvas.drawRightString(PAGE_WIDTH - inch, 28, str(doc.page))
     canvas.restoreState()
 
@@ -355,9 +387,9 @@ def main() -> None:
         leftMargin=inch,
         topMargin=0.72 * inch,
         bottomMargin=0.65 * inch,
-        title="DaemonCore FieldOps Operator Manual",
+        title=DOCUMENT_TITLE,
         author="DaemonCore Apps",
-        subject="Operator guidance for DaemonCore FieldOps 5.4.0",
+        subject=DOCUMENT_SUBJECT,
     )
     lines = SOURCE.read_text(encoding="utf-8").splitlines()
     story = cover_story(style_map) + content_story(lines, style_map)

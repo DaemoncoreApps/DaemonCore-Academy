@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import re
 import shutil
 import sys
@@ -14,10 +15,42 @@ from docx.shared import Inches, Pt, RGBColor
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = ROOT / "docs" / "FIELDOPS-OPERATOR-MANUAL.md"
-OUTPUT = ROOT / "docs" / "manuals" / "DaemonCore-FieldOps-Operator-Manual-v5.4.0.docx"
+GUIDE = "academy" if "--academy" in sys.argv else os.environ.get("DAEMONCORE_GUIDE", "fieldops").lower()
+if GUIDE == "academy":
+    SOURCE = ROOT / "docs" / "ACADEMY-MISSION-OS-GUIDE.md"
+    OUTPUT = ROOT / "docs" / "manuals" / "DaemonCore-Academy-Mission-OS-Guide-v6.0.0-beta.1.docx"
+    GUIDE_NAME = "ACADEMY MISSION OS GUIDE"
+    COVER_TITLE = "ACADEMY"
+    COVER_SUBTITLE = "MISSION OS OPERATOR GUIDE"
+    COVER_KICKER = "DAEMONCORE  //  EVIDENCE-LED OPERATOR DEVELOPMENT"
+    COVER_LEAD = "Diagnose the signal. Build the route. Prove the work.\nA local-first operating guide for practical cyber training."
+    COVER_NOTE = "PROGRESS IS RECORDED. CAPABILITY IS PROVEN BY THE WORK."
+    DOCUMENT_TITLE = "DaemonCore Academy Mission OS Operator Guide"
+    DOCUMENT_SUBJECT = "Operator guidance for DaemonCore Academy Mission OS 6.0.0-beta.1"
+    DOCUMENT_KEYWORDS = "DaemonCore, Academy, Mission OS, operator guide, cyber range"
+    SCREENSHOT = ROOT / "docs" / "screenshots" / "command-center.png"
+    SCREENSHOT_ANCHOR = "__no_academy_screenshot__"
+    SCREENSHOT_ALT = "DaemonCore Academy command center and operator progress overview"
+    SCREENSHOT_TITLE = "DaemonCore Academy command center"
+    SCREENSHOT_CAPTION = "DaemonCore Academy command center and recorded operator progress"
+else:
+    SOURCE = ROOT / "docs" / "FIELDOPS-OPERATOR-MANUAL.md"
+    OUTPUT = ROOT / "docs" / "manuals" / "DaemonCore-FieldOps-Operator-Manual-v6.0.0-beta.1.docx"
+    GUIDE_NAME = "FIELDOPS OPERATOR MANUAL"
+    COVER_TITLE = "FIELDOPS"
+    COVER_SUBTITLE = "OPERATOR MANUAL"
+    COVER_KICKER = "DAEMONCORE  //  AUTHORIZED ASSESSMENT CONTROL PLANE"
+    COVER_LEAD = "Signed scope. Pinned targets. Sealed evidence.\nProfessional assessment operations from one local-first desktop workspace."
+    COVER_NOTE = "A LICENSE UNLOCKS THE TOOL. THE ENGAGEMENT AUTHORIZES THE TARGET."
+    DOCUMENT_TITLE = "DaemonCore FieldOps Operator Manual"
+    DOCUMENT_SUBJECT = "Operator guidance for DaemonCore FieldOps 6.0.0-beta.1"
+    DOCUMENT_KEYWORDS = "DaemonCore, FieldOps, operator manual, authorized assessment"
+    SCREENSHOT = ROOT / "docs" / "screenshots" / "fieldops-pro-gate.png"
+    SCREENSHOT_ANCHOR = "Move a license to another device"
+    SCREENSHOT_ALT = "FieldOps Pro license and authorization gate before activation"
+    SCREENSHOT_TITLE = "FieldOps Pro gate"
+    SCREENSHOT_CAPTION = "FieldOps Pro gate before commercial activation"
 ICON = ROOT / "build" / "icon-sizes" / "256.png"
-SCREENSHOT = ROOT / "docs" / "screenshots" / "fieldops-pro-gate.png"
 
 RED = "E33E48"
 DARK = "111317"
@@ -190,7 +223,7 @@ def add_running_furniture(section) -> None:
     p = header.paragraphs[0]
     p.alignment = WD_ALIGN_PARAGRAPH.LEFT
     p.paragraph_format.space_after = Pt(3)
-    run = p.add_run("DAEMONCORE  //  FIELDOPS OPERATOR MANUAL  //  5.4.0")
+    run = p.add_run(f"DAEMONCORE  //  {GUIDE_NAME}  //  6.0.0-BETA.1")
     set_run_font(run, name="Aptos", size=7.5, color=MID, bold=True)
     p_pr = p._p.get_or_add_pPr()
     borders = OxmlElement("w:pBdr")
@@ -209,7 +242,7 @@ def add_running_furniture(section) -> None:
     table._tbl.tblPr.remove(table._tbl.tblPr.find(qn("w:tblBorders"))) if table._tbl.tblPr.find(qn("w:tblBorders")) is not None else None
     left = table.cell(0, 0).paragraphs[0]
     left.paragraph_format.space_after = Pt(0)
-    run = left.add_run("PUBLIC RELEASE  |  Copyright 2026 DaemonCore Apps")
+    run = left.add_run("PUBLIC BETA  |  Copyright 2026 DaemonCore Apps")
     set_run_font(run, size=7.5, color=MID)
     right = table.cell(0, 1).paragraphs[0]
     right.paragraph_format.space_after = Pt(0)
@@ -231,19 +264,19 @@ def add_cover(doc: Document) -> None:
     kicker = doc.add_paragraph()
     kicker.alignment = WD_ALIGN_PARAGRAPH.CENTER
     kicker.paragraph_format.space_after = Pt(12)
-    run = kicker.add_run("DAEMONCORE  //  AUTHORIZED ASSESSMENT CONTROL PLANE")
+    run = kicker.add_run(COVER_KICKER)
     set_run_font(run, name="Aptos", size=9, color=RED, bold=True)
 
     title = doc.add_paragraph()
     title.alignment = WD_ALIGN_PARAGRAPH.CENTER
     title.paragraph_format.space_after = Pt(4)
-    run = title.add_run("FIELDOPS")
+    run = title.add_run(COVER_TITLE)
     set_run_font(run, name="Aptos Display", size=34, color=DARK, bold=True)
 
     subtitle = doc.add_paragraph()
     subtitle.alignment = WD_ALIGN_PARAGRAPH.CENTER
     subtitle.paragraph_format.space_after = Pt(18)
-    run = subtitle.add_run("OPERATOR MANUAL")
+    run = subtitle.add_run(COVER_SUBTITLE)
     set_run_font(run, name="Aptos", size=15, color=RED, bold=True)
 
     lead = doc.add_paragraph()
@@ -251,13 +284,13 @@ def add_cover(doc: Document) -> None:
     lead.paragraph_format.left_indent = Inches(0.6)
     lead.paragraph_format.right_indent = Inches(0.6)
     lead.paragraph_format.space_after = Pt(34)
-    run = lead.add_run("Signed scope. Pinned targets. Sealed evidence.\nProfessional assessment operations from one local-first Windows workspace.")
+    run = lead.add_run(COVER_LEAD)
     set_run_font(run, size=12, color=MID)
 
     table = doc.add_table(rows=2, cols=3)
     set_table_geometry(table, [3120, 3120, 3120])
     set_repeat_table_header(table.rows[0])
-    labels = (("PRODUCT", "DaemonCore Academy"), ("RELEASE", "5.4.0"), ("EDITION", "Public release"))
+    labels = (("PRODUCT", "DaemonCore Academy"), ("RELEASE", "6.0 Beta 1"), ("EDITION", "Public beta"))
     for index, (label, value) in enumerate(labels):
         set_cell_shading(table.cell(0, index), DARK)
         set_cell_shading(table.cell(1, index), LIGHT)
@@ -276,7 +309,7 @@ def add_cover(doc: Document) -> None:
     note.alignment = WD_ALIGN_PARAGRAPH.CENTER
     note.paragraph_format.space_before = Pt(34)
     note.paragraph_format.space_after = Pt(0)
-    run = note.add_run("A LICENSE UNLOCKS THE TOOL. THE ENGAGEMENT AUTHORIZES THE TARGET.")
+    run = note.add_run(COVER_NOTE)
     set_run_font(run, size=8.5, color=RED, bold=True)
 
     date = doc.add_paragraph()
@@ -383,7 +416,7 @@ def render_markdown(doc: Document, lines: list[str]) -> None:
             continue
         if stripped.startswith("## "):
             # Skip the cover subtitle already rendered on page one.
-            if stripped == "## Operator Manual" and index < 4:
+            if stripped in {"## Operator Manual", "## Mission OS Operator Guide"} and index < 4:
                 index += 1
                 continue
             doc.add_paragraph(stripped[3:], style="Heading 2")
@@ -416,7 +449,7 @@ def render_markdown(doc: Document, lines: list[str]) -> None:
             index += 1
             continue
         # Cover metadata is already represented in the custom cover.
-        if index < 12 and (stripped.startswith("Version 5.4.0") or stripped in {"Public release edition", "30 August 2026"}):
+        if index < 12 and (stripped.startswith("Version 6.0.0-beta.1") or stripped in {"Public beta edition", "30 August 2026"}):
             index += 1
             continue
         paragraph_lines = [stripped]
@@ -431,11 +464,11 @@ def render_markdown(doc: Document, lines: list[str]) -> None:
         add_inline_markdown(p, " ".join(paragraph_lines))
 
 
-def insert_license_screenshot(doc: Document) -> None:
-    # Insert after the activation chapter's opening content by locating the next chapter.
+def insert_guide_screenshot(doc: Document) -> None:
+    # Keep the explanatory image adjacent to the workflow it supports.
     target = None
     for paragraph in doc.paragraphs:
-        if paragraph.text.strip() == "Move a license to another device":
+        if paragraph.text.strip() == SCREENSHOT_ANCHOR:
             target = paragraph
             break
     if target is None or not SCREENSHOT.exists():
@@ -447,31 +480,31 @@ def insert_license_screenshot(doc: Document) -> None:
     image_paragraph.paragraph_format.space_before = Pt(8)
     image_paragraph.paragraph_format.space_after = Pt(3)
     screenshot = image_paragraph.add_run().add_picture(str(SCREENSHOT), width=Inches(6.2))
-    screenshot._inline.docPr.set("descr", "FieldOps Pro license and authorization gate before activation")
-    screenshot._inline.docPr.set("title", "FieldOps Pro gate")
+    screenshot._inline.docPr.set("descr", SCREENSHOT_ALT)
+    screenshot._inline.docPr.set("title", SCREENSHOT_TITLE)
     caption_p = OxmlElement("w:p")
     target._p.addprevious(caption_p)
     caption = next(p for p in doc.paragraphs if p._p is caption_p)
     caption.alignment = WD_ALIGN_PARAGRAPH.CENTER
     caption.paragraph_format.space_after = Pt(10)
-    run = caption.add_run("FieldOps Pro gate before commercial activation")
+    run = caption.add_run(SCREENSHOT_CAPTION)
     set_run_font(run, size=8, color=MID, italic=True)
 
 
 def set_document_properties(doc: Document) -> None:
     props = doc.core_properties
-    props.title = "DaemonCore FieldOps Operator Manual"
-    props.subject = "Operator guidance for DaemonCore FieldOps 5.4.0"
+    props.title = DOCUMENT_TITLE
+    props.subject = DOCUMENT_SUBJECT
     props.author = "DaemonCore Apps"
-    props.keywords = "DaemonCore, FieldOps, operator manual, authorized assessment"
-    props.comments = "Public release edition"
+    props.keywords = DOCUMENT_KEYWORDS
+    props.comments = "Public beta edition"
 
 
 def main() -> int:
     if not SOURCE.exists():
         raise FileNotFoundError(SOURCE)
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    qa_dir = ROOT / "tmp" / "fieldops-manual"
+    qa_dir = ROOT / "tmp" / f"{GUIDE}-manual"
     if qa_dir.exists():
         shutil.rmtree(qa_dir)
     qa_dir.mkdir(parents=True)
@@ -480,11 +513,11 @@ def main() -> int:
     configure_styles(doc)
     set_document_properties(doc)
     add_cover(doc)
-    for section in doc.sections:
-        configure_section(section, first=section is doc.sections[0])
+    for section_index, section in enumerate(doc.sections):
+        configure_section(section, first=section_index == 0)
         add_running_furniture(section)
     render_markdown(doc, SOURCE.read_text(encoding="utf-8").splitlines())
-    insert_license_screenshot(doc)
+    insert_guide_screenshot(doc)
     doc.save(OUTPUT)
     print(OUTPUT)
     return 0

@@ -2,11 +2,11 @@
 
 ## Operator Manual
 
-Version 5.4.0
-Public release edition
+Version 6.0.0-beta.1
+Public beta edition
 30 August 2026
 
-FieldOps is an authorization-bound assessment control plane for Windows. It combines scoped diagnostics, multi-target assessment campaigns, evidence preservation, findings management, bounded resilience experiments, and professional exports in one local-first workspace.
+FieldOps is an authorization-bound assessment control plane for Windows and supported x64 Linux desktops. It combines scoped diagnostics, multi-target assessment campaigns, evidence preservation, findings management, bounded resilience experiments, and professional exports in one local-first workspace.
 
 > A FieldOps Pro license unlocks the tool. It does not authorize a target. The operator remains responsible for obtaining and preserving valid written authorization.
 
@@ -17,14 +17,14 @@ FieldOps is an authorization-bound assessment control plane for Windows. It comb
 | Field | Value |
 | --- | --- |
 | Document | DaemonCore FieldOps Operator Manual |
-| Product release | DaemonCore Academy 5.4.0 |
-| Edition | Public release |
-| Platform | Windows desktop |
+| Product release | DaemonCore Academy 6.0.0-beta.1 |
+| Edition | Public beta |
+| Platform | Windows 64-bit; x64 Ubuntu and Debian-family Linux |
 | Publisher | DaemonCore Apps |
 | Classification | Customer documentation |
 | Last revised | 30 August 2026 |
 
-This manual describes the FieldOps functionality shipped with DaemonCore Academy 5.4.0. Product behavior is authoritative when it differs from this document. Features described as future, planned, or experimental are intentionally excluded.
+This manual describes the FieldOps functionality shipped with DaemonCore Academy 6.0.0-beta.1. Product behavior is authoritative when it differs from this document. This is an opt-in beta: preserve an export before upgrading a production workstation and verify release artifacts against the published SHA-256 files.
 
 The product is proprietary commercial software. Possession of this manual or source access does not grant permission to bypass licensing, copy, redistribute, modify, or resell the software. Refer to the license and end-user agreement distributed with the application.
 
@@ -75,7 +75,7 @@ FieldOps organizes professional assessment work around one rule: execution must 
 ## Core workflow
 
 1. Activate a FieldOps Pro license.
-2. Bind the named operator identity to the Windows device.
+2. Bind the named operator identity to the protected desktop credential context.
 3. Create a signed engagement from the written scope or rules of engagement.
 4. Collect target and service evidence with diagnostics or campaigns.
 5. Review digest-sealed captures in the evidence vault.
@@ -103,31 +103,41 @@ FieldOps organizes professional assessment work around one rule: execution must 
 
 ## Requirements
 
-- A supported 64-bit Windows installation
+- A supported 64-bit Windows installation or x64 Ubuntu/Debian-family desktop
 - Permission to install a desktop application
 - Network access for initial Lemon Squeezy activation and periodic license validation
 - A FieldOps Pro license key for the paid workspace
-- Optional: a local Nmap installation or running Docker Desktop for deep service inventory
+- Optional: a local Nmap installation or an accessible Docker Engine for deep service inventory
 
 The built-in passive profiler remains available when neither Nmap nor Docker is available. Docker is not required for the standard FieldOps interface, focused diagnostics, evidence management, or reporting.
 
-## Install
+## Install on Windows
 
 1. Download `DaemonCore-Academy-Setup.exe` from the official release channel.
 2. Close any running DaemonCore Academy window.
 3. Run the installer and follow the Windows prompts.
 4. Launch **DaemonCore Academy** from the Start menu or desktop shortcut.
-5. Confirm the displayed application version before starting paid work.
+5. Confirm the footer displays `6.0.0-beta.1` and `WINDOWS` before starting paid work.
+
+The Windows beta is not Authenticode-signed. Windows may show **Unknown Publisher**. Download only from the tagged official release and verify `DaemonCore-Academy-Setup.exe` against `SHA256SUMS-windows.txt` before running it. Do not deploy this beta through a managed production fleet.
+
+## Install on Linux
+
+Use the AppImage for a portable launch, or the Debian package for an installed desktop entry. The first beta support matrix covers x64 Ubuntu and Debian-family desktops; compatible derivatives may work but remain outside that matrix.
+
+1. Download either `DaemonCore-Academy-6.0.0-beta.1.AppImage` or `DaemonCore-Academy-6.0.0-beta.1.deb` from the tagged release.
+2. Verify the selected package against `SHA256SUMS.txt`.
+3. For AppImage, run `chmod +x DaemonCore-Academy-6.0.0-beta.1.AppImage`, then launch it as the desktop user.
+4. For Debian packages, run `sudo apt install ./DaemonCore-Academy-6.0.0-beta.1.deb`.
+5. Confirm the footer displays `6.0.0-beta.1` and `LINUX`.
+
+Never launch DaemonCore with `--no-sandbox`, as root, or with `--password-store=basic`.
 
 ## Upgrade
 
-The installer uses a stable application identity and is intended to replace the prior installed version. Close the app before upgrading. Existing local operator progress, licensing metadata, identity material, engagements, captures, findings, and audit records are stored in the Windows application-data location rather than the installation directory.
+The Windows installer uses a stable application identity and is intended to replace the prior installed version. A newer Debian package upgrades in place. AppImage users replace the old AppImage file manually. Close the app before upgrading. Existing local operator progress, licensing metadata, identity material, engagements, captures, findings, and audit records are stored in the per-user application-data location rather than the installation directory.
 
-Before a material upgrade, export active engagement case files and complete any running campaign or Chaos Engine experiment. Do not uninstall or remove Windows application data unless you intend to remove locally retained records.
-
-## Display scale
-
-DaemonCore Academy opens at 125% by default and supports saved 100%, 115%, 125%, and 140% interface scales. Use Settings if dense FieldOps telemetry is difficult to read.
+Before a material upgrade, export active engagement case files and complete any running campaign or Chaos Engine experiment. Do not remove the per-user application-data directory unless you intend to remove locally retained records.
 
 ---
 
@@ -145,7 +155,7 @@ Academy training content is available without a paid license. FieldOps is the co
 6. Select **Activate**.
 7. Confirm the tier reads **FieldOps Pro** and the entitlement is active.
 
-The license key is protected with Windows secure credential storage. The interface retains a masked key, license instance, tier, product metadata, validation time, and grace deadline.
+The license key is protected with operating-system credential storage. On Linux, FieldOps activation requires an unlocked GNOME Keyring or KWallet backend; the app blocks protected writes when Electron reports `basic_text`. The interface retains a masked key, license instance, tier, product metadata, validation time, and grace deadline.
 
 ## Offline grace
 
@@ -167,7 +177,7 @@ Deactivation removes the protected license key from the current device. It does 
 | Different store | The key was issued by another Lemon Squeezy store | Verify the purchase source |
 | Product not recognized | The key does not map to the FieldOps variant | Contact the seller with the order details |
 | Email mismatch | Supplied email differs from the purchase email | Use the checkout email |
-| Secure storage unavailable | Windows cannot protect the license secret | Verify the Windows account and credential services |
+| Secure storage unavailable | The operating system cannot protect the license secret | Verify Windows credential services or unlock GNOME Keyring/KWallet |
 | Offline expired | Validation failed beyond the grace deadline | Restore connectivity and validate |
 | Tampered | Cached entitlement integrity failed | Connect and run license validation again |
 
@@ -193,8 +203,8 @@ The signature can demonstrate that a record was signed by the same device-held k
 
 ## Protect the identity
 
-- Use a dedicated Windows account protected by strong authentication.
-- Do not share a Windows profile between operators.
+- Use a dedicated desktop account protected by strong authentication.
+- Do not share an operating-system profile between operators.
 - Do not copy protected application-data files between devices.
 - Treat a device compromise as a signing-key compromise.
 - Preserve exports before rebuilding or retiring the workstation.
@@ -318,7 +328,7 @@ Open an active engagement and select **Diagnostics**. Choose an operation, autho
 FieldOps selects one of three paths:
 
 1. Local Nmap, when an accessible installation responds to the version probe.
-2. Docker Desktop with the pinned Nmap image.
+2. Docker Desktop on Windows or an accessible Docker Engine on Linux with the pinned Nmap image.
 3. The built-in passive profiler when neither external engine is available.
 
 The bridge passes an already resolved IP address and declared port list as separate arguments. It does not pass a hostname, free-form flags, or shell text. External engine failures are recorded in the evidence and the native profiler is used where possible.
@@ -546,7 +556,7 @@ Records are written using temporary-file replacement to reduce partial-write ris
 
 ## Backup
 
-Use FieldOps case-file exports as the supported portable engagement archive. Keep copies in an approved evidence repository. Application-data backups may depend on the original Windows account and device protection context and should not be treated as a portable license or signing-key transfer.
+Use FieldOps case-file exports as the supported portable engagement archive. Keep copies in an approved evidence repository. Application-data backups may depend on the original operating-system account, device protection context, and Linux keyring and should not be treated as a portable license or signing-key transfer.
 
 ## Retention
 
@@ -574,7 +584,7 @@ The activity ledger records the blocked reason when an engagement was identified
 ## Deep inventory reports no engine
 
 - Confirm Nmap is installed and available to the desktop process, or
-- Start Docker Desktop and wait for Docker Engine readiness, then retry.
+- Start Docker Desktop on Windows, or confirm `docker version` succeeds as the same unprivileged desktop user on Linux, then retry.
 
 If neither engine is available, FieldOps normally records the adapter notice and uses the built-in passive profiler.
 
@@ -582,9 +592,9 @@ If neither engine is available, FieldOps normally records the adapter notice and
 
 FieldOps verifies certificates for HTTP HEAD operations and does not follow redirects. Confirm the authorized hostname, selected TLS option, port, certificate chain, and server-name configuration. The separate TLS identity operation can still collect certificate context with validation state for analysis.
 
-## License is locked after Windows changes
+## License is locked after account, device, or keyring changes
 
-The protected key may be tied to the original Windows credential context. Restore access to that account or deactivate/reactivate when possible. Contact the seller if an instance cannot be released.
+The protected key may be tied to the original credential context. Restore access to that account or keyring, or deactivate/reactivate when possible. Contact the seller if an instance cannot be released.
 
 ## Campaign was interrupted
 
@@ -638,11 +648,25 @@ Stop creating findings or distributing exports. Preserve the affected files and 
 7. Close the engagement boundary.
 8. Apply the agreed retention schedule.
 
+## Disconnected or air-gapped workstation
+
+FieldOps can continue local review, findings work, reporting, and authorized diagnostics that do not require public name resolution or internet services while the installation remains inside its 14-day offline license grace. Air-gapped operation does not disable entitlement, permit, policy, target, port, time-window, or integrity checks.
+
+1. Validate the license while connected, then record the displayed grace deadline.
+2. Preinstall and test required local tools and Docker images before disconnecting; FieldOps does not fetch them across an air gap.
+3. Export an initial case file and record its SHA-256 in the engagement evidence log.
+4. Confirm system time, operator identity, signed permit, exact targets, ports, and testing window after entering the disconnected environment.
+5. Keep case files and printable reports on approved encrypted removable media using the engagement's transfer procedure.
+6. Do not copy the protected application-data directory as a substitute for a case-file export.
+7. Before the grace deadline, reconnect through an approved path and validate, or stop FieldOps work until validation can occur.
+
+> An isolated network can still contain production dependencies and sensitive systems. Air-gapped does not mean authorized, low-impact, or safe by default.
+
 ---
 
 # 17. Product limits and responsible operation
 
-FieldOps 5.4.0 provides scoped diagnostics and evidence workflow. It does not claim complete vulnerability coverage and does not replace specialist platforms for interception, packet capture, credentialed vulnerability management, exploitation, source review, cloud-provider APIs, wireless testing, malware analysis, or large-scale performance engineering.
+FieldOps 6.0.0-beta.1 provides scoped diagnostics and evidence workflow. It does not claim complete vulnerability coverage and does not replace specialist platforms for interception, packet capture, credentialed vulnerability management, exploitation, source review, cloud-provider APIs, wireless testing, malware analysis, or large-scale performance engineering.
 
 ## Shipped safety boundaries
 
@@ -702,10 +726,10 @@ The operator must understand the target, authorization, expected load, third-par
 
 ## Support package
 
-When requesting support, provide the application version, Windows version, exact visible error, operation type, and whether Nmap or Docker is available. Remove customer secrets and unnecessary target information. Never send a license key, private application-data file, or protected signing-key material.
+When requesting support, provide the application version, operating-system and distribution version, package type, exact visible error, operation type, and whether Nmap or Docker is available. Remove customer secrets and unnecessary target information. Never send a license key, private application-data file, or protected signing-key material.
 
 ---
 
 DaemonCore FieldOps
-Operator Manual - Version 5.4.0
+Operator Manual - Version 6.0.0-beta.1
 Copyright 2026 DaemonCore Apps. All rights reserved.
