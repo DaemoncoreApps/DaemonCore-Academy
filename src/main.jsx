@@ -21,6 +21,7 @@ import './enterprise.css'
 import './range-fabric.css'
 import './adaptive-range.css'
 import './mission-os.css'
+import './academy-guide.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

@@ -21,6 +21,7 @@ import { EnterpriseForgePage } from './EnterpriseRange.jsx'
 import { RangeFabric } from './RangeFabric.jsx'
 import { ModalClose } from './ModalClose.jsx'
 import { MissionOSPage } from './MissionOS.jsx'
+import { AcademyWorkflowGuide, WorkflowDock } from './AcademyGuide.jsx'
 import missionOSData from '../shared/mission-os.json'
 
 const nav = [
@@ -40,7 +41,7 @@ const nav = [
 const missionIcons={network:Network,key:KeyRound,activity:Activity,shield:Shield,layers:Layers3,box:Box}
 const missions=missionCatalog.map(mission=>({...mission,icon:missionIcons[mission.icon]}))
 
-const emptyData = { schemaVersion:6, profile:{handle:null,createdAt:null,xp:0,level:1,streak:0,bestStreak:0,lastActiveDate:null,weekKey:null,weeklyMinutes:0,weeklyGoalMinutes:180,completedMissions:[],completedLessons:[],completedWebLabs:[],completedEnterpriseLabs:[],lessonAttempts:[],missionAttempts:[],webLabAttempts:[],enterpriseLabAttempts:[],drillAttempts:[],capstoneAttempts:[],achievements:[],activity:[],missionOS:{assessment:null,selectedPathway:null,selectedAt:null}},settings:{reduceMotion:false,compactMode:false,uiScale:1.25} }
+const emptyData = { schemaVersion:6, profile:{handle:null,createdAt:null,xp:0,level:1,streak:0,bestStreak:0,lastActiveDate:null,weekKey:null,weeklyMinutes:0,weeklyGoalMinutes:180,completedMissions:[],completedLessons:[],completedWebLabs:[],completedEnterpriseLabs:[],lessonAttempts:[],missionAttempts:[],webLabAttempts:[],enterpriseLabAttempts:[],drillAttempts:[],capstoneAttempts:[],achievements:[],activity:[],missionOS:{assessment:null,selectedPathway:null,selectedAt:null}},settings:{reduceMotion:false,compactMode:false,uiScale:1.25,academyGuideComplete:false} }
 const weekKey=()=>{const date=new Date(),day=(date.getUTCDay()+6)%7;date.setUTCDate(date.getUTCDate()-day);return date.toISOString().slice(0,10)}
 const previewLicense={configured:false,requireAcademyLicense:false,checkoutUrl:null,licensed:false,fieldOps:false,status:'unlicensed',tier:null,tierLabel:null}
 
@@ -242,10 +243,10 @@ function ModuleDetail({ module, onBack, startLesson, profile }) {
   </div>
 }
 
-function MissionModal({ mission, onClose, onLaunch }) {
-  const [mode,setMode]=useState('assisted')
+function MissionModal({ mission, defaultMode='assisted', onClose, onLaunch }) {
+  const [mode,setMode]=useState(defaultMode)
   const modes=[['guided','GUIDED','Exact runbook available','1.0×'],['assisted','ASSISTED','Tool map + progressive hints','1.15×'],['blind','BLIND','Objectives only','1.35×'],['professional','PRO','No hints // live evidence','1.5×']]
-  return <div className="modal-backdrop" onMouseDown={e=>e.target===e.currentTarget&&onClose()}><div className="mission-modal adaptive-launch"><ModalClose onClose={onClose} label="Close mission briefing"/><span className="section-code"><i/> ADAPTIVE RANGE MISSION</span><div className="modal-code">DC // RANGE // {mission.id.toUpperCase()}</div><h2>{mission.title}</h2><p className="modal-brief">{mission.brief}</p><div className="brief-grid"><div><span>DIFFICULTY</span><strong>{mission.difficulty}</strong></div><div><span>TIMEBOX</span><strong>{mission.time}</strong></div><div><span>BASE REWARD</span><strong>{mission.xp} XP</strong></div></div><h4>SELECT OPERATOR MODE</h4><div className="mission-modes">{modes.map(([id,label,detail,multiplier])=><button type="button" className={mode===id?'active':''} key={id} onClick={()=>setMode(id)}><span>{label}</span><strong>{detail}</strong><em>{multiplier}</em></button>)}</div><h4>OUTCOMES TO PROVE</h4><ol>{mission.objectives.map((o,i)=><li key={o}><span>0{i+1}</span>{o}</li>)}</ol><div className="authorization"><ShieldCheck size={21}/><p><strong>Outcome validation enabled.</strong> Alternate commands count when their resulting evidence proves the objective.</p></div><button className="primary full" onClick={()=>onLaunch({mode})}><Play size={16} fill="currentColor"/> Launch {mode} run</button></div></div>
+  return <div className="modal-backdrop" onMouseDown={e=>e.target===e.currentTarget&&onClose()}><div className="mission-modal adaptive-launch"><ModalClose onClose={onClose} label="Close mission briefing"/><span className="section-code"><i/> ADAPTIVE RANGE MISSION</span><div className="modal-code">DC // RANGE // {mission.id.toUpperCase()}</div><h2>{mission.title}</h2><p className="modal-brief">{mission.brief}</p><div className="brief-grid"><div><span>DIFFICULTY</span><strong>{mission.difficulty}</strong></div><div><span>TIMEBOX</span><strong>{mission.time}</strong></div><div><span>BASE REWARD</span><strong>{mission.xp} XP</strong></div></div><div className="range-handoff"><Terminal/><div><span>WHAT HAPPENS WHEN YOU LAUNCH</span><strong>A disposable Docker terminal opens inside the training range.</strong><p>Wait for <b>Containment verified</b>. Commands entered at the <code>root@dc-</code> prompt run inside that range—not in this lesson and not in your Windows terminal.</p></div></div><h4>SELECT OPERATOR MODE</h4><div className="mission-modes">{modes.map(([id,label,detail,multiplier])=><button type="button" className={mode===id?'active':''} key={id} onClick={()=>setMode(id)}><span>{label}{id==='guided'&&defaultMode==='guided'?' // START HERE':''}</span><strong>{detail}</strong><em>{multiplier}</em></button>)}</div><h4>OUTCOMES TO PROVE</h4><ol>{mission.objectives.map((o,i)=><li key={o}><span>0{i+1}</span>{o}</li>)}</ol><div className="authorization"><ShieldCheck size={21}/><p><strong>Outcome validation enabled.</strong> Alternate commands count when their resulting evidence proves the objective.</p></div><button className="primary full" onClick={()=>onLaunch({mode})}><Play size={16} fill="currentColor"/> Launch sealed range // {mode}</button></div></div>
 }
 
 function QuizModal({ drill, onClose, onComplete }) {
@@ -264,7 +265,7 @@ export default function App() {
   const store=useAppData()
   const licensing=useLicense()
   const fieldOps=useFieldOps()
-  const [page,setPage]=useState('command'), [collapsed,setCollapsed]=useState(null), [module,setModule]=useState(null), [mission,setMission]=useState(null), [activeMission,setActiveMission]=useState(null), [activeWebLab,setActiveWebLab]=useState(null), [activeEnterpriseLab,setActiveEnterpriseLab]=useState(null), [activeCapstone,setActiveCapstone]=useState(null), [lesson,setLesson]=useState(null), [quiz,setQuiz]=useState(null), [article,setArticle]=useState(null), [toast,setToast]=useState('')
+  const [page,setPage]=useState('command'), [collapsed,setCollapsed]=useState(null), [module,setModule]=useState(null), [mission,setMission]=useState(null), [activeMission,setActiveMission]=useState(null), [activeWebLab,setActiveWebLab]=useState(null), [activeEnterpriseLab,setActiveEnterpriseLab]=useState(null), [activeCapstone,setActiveCapstone]=useState(null), [lesson,setLesson]=useState(null), [quiz,setQuiz]=useState(null), [article,setArticle]=useState(null), [toast,setToast]=useState(''), [guideState,setGuideState]=useState({handle:null,forced:false,dismissed:false})
   useEffect(()=>{if(!toast)return;const t=setTimeout(()=>setToast(''),2600);return()=>clearTimeout(t)},[toast])
   useEffect(()=>{document.body.classList.toggle('reduce-motion',Boolean(store.data?.settings?.reduceMotion))},[store.data?.settings?.reduceMotion])
   useEffect(()=>{const scale=Math.max(1,Math.min(1.4,Number(store.data?.settings?.uiScale)||1.25));if(window.daemoncore?.display)window.daemoncore.display.setZoom(scale);else document.body.style.zoom=String(scale)},[store.data?.settings?.uiScale])
@@ -275,13 +276,15 @@ export default function App() {
   if(licensing.license.requireAcademyLicense&&!licensing.license.licensed)return <LicenseGate {...licenseProps}/>
   if(!store.data.profile.handle)return <Onboarding onComplete={store.onboard}/>
   const operator=store.data.profile
+  const guideOpen=guideState.forced||(!store.data.settings.academyGuideComplete&&(guideState.handle!==operator.handle||!guideState.dismissed))
   const navigationCollapsed=collapsed??store.data.settings.compactMode
   const title=module?module.title:page==='settings'?'Settings':nav.find(n=>n.id===page)?.label||'Command'
   const completeQuiz=async event=>{await store.record(event);setToast(`Drill logged // +${event.correct*120} XP`)}
   const completeMission=async({mission:cleared,score,hints,seconds,receipt,launchReceipt,mode,seed,evidenceDigest,debrief,caseVariant})=>{await store.record({type:'mission',id:cleared.id,title:cleared.title,score,hints,seconds,mode,seed,evidenceDigest,debrief,caseVariant,receiptDigest:receipt?.digest,packDigest:launchReceipt?.pack?.digest,receiptId:receipt?.receiptId});setActiveMission(null);setPage('labs');setToast(`${String(mode||'adaptive').toUpperCase()} mission sealed // ${score} XP`)}
   const completeWebLab=async event=>{await store.record(event);setActiveWebLab(null);setPage('webforge');setToast(`Web Forge sealed // +${event.score} XP`)}
   const completeEnterpriseLab=async event=>{await store.record({...event,type:'enterpriseLab'});setActiveEnterpriseLab(null);setPage('enterprise');setToast(`Enterprise Forge sealed // +${event.score} XP`)}
-  const completeLesson=async completedLesson=>{await store.record({type:'lesson',id:completedLesson.id,title:completedLesson.title,minutes:completedLesson.minutes,practicalScore:completedLesson.practicalScore});setLesson(null);setToast(`Lesson mastered // practical ${completedLesson.practicalScore}% recorded`)}
+  const completeLesson=async completedLesson=>{await store.record({type:'lesson',id:completedLesson.id,title:completedLesson.title,minutes:completedLesson.minutes,practicalScore:completedLesson.practicalScore});setLesson(null);if(completedLesson.nextPage){setModule(null);setPage(completedLesson.nextPage)}setToast(`Lesson mastered // practical ${completedLesson.practicalScore}% recorded`)}
+  const closeGuide=async destination=>{setGuideState({handle:operator.handle,forced:false,dismissed:true});await store.updateSettings({...store.data.settings,academyGuideComplete:true});if(destination){setModule(null);setPage(destination)}}
   const completeCapstone=async event=>{await store.record(event);setActiveCapstone(null);setPage('mastery');setToast(event.score>=80?`Capstone sealed // ${event.score}% verified mastery`:`Attempt logged // ${event.score}% // adaptive path updated`)}
   if(activeMission)return <LabSimulation mission={activeMission} onExit={()=>setActiveMission(null)} onComplete={completeMission}/>
   if(activeWebLab)return <WebLabRunner lab={activeWebLab} onExit={()=>setActiveWebLab(null)} onComplete={completeWebLab}/>
@@ -305,5 +308,5 @@ export default function App() {
   else current=<SettingsPage data={store.data} {...licenseProps} onUpdate={store.updateSettings} onExport={store.exportData} onReset={store.reset}/>
   const platform={win32:'WINDOWS',linux:'LINUX',darwin:'MACOS'}[window.daemoncore?.platform]||'WEB PREVIEW'
   const version=window.daemoncore?.version||'6.0 PREVIEW'
-  return <div className="app-shell"><Sidebar page={page} setPage={p=>{setPage(p);setModule(null)}} collapsed={navigationCollapsed} setCollapsed={setCollapsed} profile={operator}/><main><Topbar title={title} profile={operator}/>{current}<footer className="app-footer"><span>DAEMONCORE ACADEMY // MISSION OS</span><span><i/> LICENSED LOCAL-FIRST PLATFORM</span><span>V{version} // {platform}</span></footer></main>{mission&&<MissionModal mission={mission} onClose={()=>setMission(null)} onLaunch={({mode})=>{setActiveMission({...mission,mode});setMission(null)}}/>}{quiz&&<QuizModal drill={quiz} onClose={()=>setQuiz(null)} onComplete={completeQuiz}/>} {toast&&<Toast message={toast}/>}</div>
+  return <div className="app-shell"><Sidebar page={page} setPage={p=>{setPage(p);setModule(null)}} collapsed={navigationCollapsed} setCollapsed={setCollapsed} profile={operator}/><main><Topbar title={title} profile={operator}/><WorkflowDock page={page} profile={operator} onNavigate={destination=>{setModule(null);setPage(destination)}} onOpenGuide={()=>setGuideState({handle:operator.handle,forced:true,dismissed:false})}/>{current}<footer className="app-footer"><span>DAEMONCORE ACADEMY // MISSION OS</span><span><i/> LICENSED LOCAL-FIRST PLATFORM</span><span>V{version} // {platform}</span></footer></main>{guideOpen&&<AcademyWorkflowGuide onClose={()=>closeGuide()} onNavigate={closeGuide}/>} {mission&&<MissionModal mission={mission} defaultMode={operator.completedMissions?.length?'assisted':'guided'} onClose={()=>setMission(null)} onLaunch={({mode})=>{setActiveMission({...mission,mode});setMission(null)}}/>}{quiz&&<QuizModal drill={quiz} onClose={()=>setQuiz(null)} onComplete={completeQuiz}/>} {toast&&<Toast message={toast}/>}</div>
 }

@@ -30,7 +30,7 @@ const cleanState = () => ({
     createdAt: null,
     missionOS: { assessment: null, selectedPathway: null, selectedAt: null },
   },
-  settings: { reduceMotion: false, compactMode: false, uiScale: 1.25 },
+  settings: { reduceMotion: false, compactMode: false, uiScale: 1.25, academyGuideComplete: false },
 })
 
 const dateKey = date => date.toISOString().slice(0, 10)
@@ -238,6 +238,7 @@ class DataStore {
       reduceMotion: Boolean(next?.reduceMotion),
       compactMode: Boolean(next?.compactMode),
       uiScale: Math.max(1, Math.min(1.4, Number(next?.uiScale) || 1.25)),
+      academyGuideComplete: Boolean(next?.academyGuideComplete),
     }
     await this.persist()
     return this.snapshot()
