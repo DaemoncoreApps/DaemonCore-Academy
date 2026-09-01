@@ -62,7 +62,15 @@ The stable Windows release carries the complete Mission OS 6 experience. Linux r
 - **Sealed completion receipt** — mode, seed, elapsed time, guidance use, score, and the complete evidence chain are bound into a tamper-evident result retained with the operator attempt.
 - **Reliable in-app windows** — close controls now use a 48-pixel hit target, stronger pointer feedback, keyboard focus treatment, and global Escape-to-close behavior.
 
-### FieldOps Workbench // next
+### FieldOps War Room // 6.0
+
+![FieldOps War Room commercial campaign](docs/marketing/fieldops-war-room/fieldops-war-room-hero.png)
+
+- **Live operations command deck** — the selected engagement now opens with real permit-window state, signed operator identity, evidence-chain integrity, surface coverage, active campaigns, priority findings, and latest ledger activity.
+- **Authorized surface matrix** — pinned targets visibly move from awaiting signal to observed as real captures enter the case file. No simulated targets or decorative readiness numbers are used.
+- **Operational module deck** — Diagnostics, Campaigns, Evidence, and Findings are promoted into a clear Acquire → Orchestrate → Preserve → Report workflow instead of being buried below a static product hero.
+- **Premium commercial gate** — the locked view now previews the complete professional workflow and explains the value of signed operations, verified evidence, assessment orchestration, and client-ready reporting.
+- **Field-readable telemetry** — FieldOps labels, controls, notices, receipts, and command-deck state have a larger typography floor for long sessions on ordinary Windows and Linux displays.
 
 - **DaemonCore Trust Authority** — a protected Ed25519 operator identity signs every new operation permit and audit receipt with the operator’s name, organization, role, device-key fingerprint, and timestamp.
 - **Signed operation permits** — new engagements cryptographically bind the operator, approving authority, client, ROE reference, Observe/Validate/Stress policy, exact targets, ports, network boundary, and validity window. Editing any bound field invalidates execution.

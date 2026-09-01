@@ -24,6 +24,30 @@ small {
   font-size: 9px;
 }
 
+/* FieldOps is an operator workstation, so its telemetry must remain readable without zooming in. */
+.fieldops-page label,
+.fieldops-page button,
+.fieldops-page small,
+.fieldops-tabs button,
+.engagement-list > header,
+.engagement-list > button small,
+.engagement-brief span,
+.scope-strip span,
+.diagnostic-console > header,
+.audit-log > header,
+.audit-log > div,
+.fieldops-war-room span,
+.fieldops-war-room small,
+.fieldops-war-room button {
+  font-size: 10px !important;
+}
+
+.fieldops-page p,
+.diagnostic-notice,
+.scope-closed span {
+  font-size: 11px !important;
+}
+
 .scale-setting {
   min-height: 84px;
   border-bottom: 1px solid #1e2125;
