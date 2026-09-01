@@ -1,0 +1,37 @@
+{
+  "store": {
+    "name": "DaemonCore",
+    "id": 230368
+  },
+  "product": {
+    "name": "DaemonCore FieldOps Pro",
+    "status": "published",
+    "category": "Desktop security assessment software"
+  },
+  "variant": {
+    "name": "One-Time License / 1 Active Device",
+    "id": 2062439,
+    "currency": "USD",
+    "price": 199.00,
+    "billing": "one_time",
+    "licenseKeysEnabled": true,
+    "licenseActivationLimit": 1,
+    "licenseLength": "unlimited"
+  },
+  "delivery": {
+    "type": "license_key",
+    "windowsInstaller": "https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/latest/download/DaemonCore-Academy-Setup.exe",
+    "windowsChecksum": "https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/latest/download/SHA256SUMS-windows.txt",
+    "releasePage": "https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/latest",
+    "support": "https://academy.daemoncore.app/support",
+    "eula": "https://github.com/DaemoncoreApps/DaemonCore-Academy/blob/main/EULA.md"
+  },
+  "applicationPolicy": {
+    "academyRequiresLicense": false,
+    "fieldOpsEntitlement": "fieldops",
+    "offlineGraceDays": 14,
+    "supportedStablePlatform": "Windows x64",
+    "linuxStatus": "6.0 beta"
+  },
+  "checkoutUrl": "https://daemoncore.lemonsqueezy.com/checkout/buy/17b86570-b95c-49fa-a987-e8fa904d3f34"
+}
