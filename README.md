@@ -10,7 +10,7 @@ Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 
 **[Download DaemonCore Academy 6 for Windows](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/latest/download/DaemonCore-Academy-Setup.exe)** · **[Download the Linux beta](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/tag/v6.0.0-beta.3)** · [FieldOps Manual](output/pdf/DaemonCore-FieldOps-Operator-Manual-v6.0.0-beta.1.pdf) · [Academy Guide](output/pdf/DaemonCore-Academy-Mission-OS-Guide-v6.0.0-beta.1.pdf) · [Release notes](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases)
 
-> **Windows signing notice:** The 6.0.0 installer is not yet Authenticode-signed, so Windows may display **Unknown Publisher**. Download it only from this repository and verify `SHA256SUMS-windows.txt` on the release page before running it.
+> **Windows signing notice:** The 6.0.1 installer is not yet Authenticode-signed, so Windows may display **Unknown Publisher**. Download it only from this repository and verify `SHA256SUMS-windows.txt` on the release page before running it.
 
 ## Inside DaemonCore
 
