@@ -8,7 +8,9 @@ DaemonCore is the course I wanted instead: learn the mental model, validate it, 
 
 Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 
-**[Download the stable Windows installer](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/latest/download/DaemonCore-Academy-Setup.exe)** · **[Try Mission OS 6.0 beta on Windows or Linux](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/tag/v6.0.0-beta.3)** · [FieldOps Manual](output/pdf/DaemonCore-FieldOps-Operator-Manual-v6.0.0-beta.1.pdf) · [Academy Guide](output/pdf/DaemonCore-Academy-Mission-OS-Guide-v6.0.0-beta.1.pdf) · [Release notes](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases)
+**[Download DaemonCore Academy 6 for Windows](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/latest/download/DaemonCore-Academy-Setup.exe)** · **[Download the Linux beta](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/tag/v6.0.0-beta.3)** · [FieldOps Manual](output/pdf/DaemonCore-FieldOps-Operator-Manual-v6.0.0-beta.1.pdf) · [Academy Guide](output/pdf/DaemonCore-Academy-Mission-OS-Guide-v6.0.0-beta.1.pdf) · [Release notes](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases)
+
+> **Windows signing notice:** The 6.0.0 installer is not yet Authenticode-signed, so Windows may display **Unknown Publisher**. Download it only from this repository and verify `SHA256SUMS-windows.txt` on the release page before running it.
 
 ## Inside DaemonCore
 
@@ -26,7 +28,7 @@ Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 
 ## What ships
 
-### Mission OS // 6.0 beta
+### Mission OS // 6.0
 
 - **Community-requested guided start** — a new first-run walkthrough explains the complete Learn → Practice → Launch → Prove loop before a new operator enters the curriculum.
 - **No more command ambiguity** — every lesson identifies its current activity, labels command blocks as worked examples, and states plainly when there is no live target. Live execution begins only after a sealed Docker range reports containment verified and displays a `root@dc-` prompt.
@@ -39,9 +41,9 @@ Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 - **After-action reviews** — completed ranges grade evidence coverage, independence, method discipline, and time discipline, then assign a concrete remediation and next action.
 - **Visible build identity** — the footer reports the exact app version and platform so support, screenshots, and operator records stop being ambiguous.
 
-The 6.0 beta ships separately from the stable channel while cross-platform field certification continues. Stable download links remain pinned to the latest production release.
+The stable Windows release carries the complete Mission OS 6 experience. Linux remains on the separately labeled beta channel while cross-platform certification continues.
 
-### Linux beta // 5.5
+### Linux beta // 6.0
 
 - **First-class desktop packages** — the same Academy, sealed ranges, FieldOps workspace, licensing, local records, and exports ship as an x64 AppImage and Debian package.
 - **Native Linux toolchain** — DaemonCore uses the host Docker Engine and Nmap directly, retains the pinned Docker Nmap fallback, and preserves the same exact-target and declared-port boundary.

@@ -6,6 +6,7 @@ const installer=await readFile(new URL('../build/installer.nsh',import.meta.url)
 const main=await readFile(new URL('../electron/main.cjs',import.meta.url),'utf8')
 
 assert.equal(manifest.build.appId,'academy.daemoncore.desktop')
+assert.match(manifest.scripts['package:win'],/electron-builder --win nsis --publish never/)
 assert.equal(manifest.build.win.artifactName,'DaemonCore-Academy-Setup.${ext}')
 assert.equal(manifest.build.nsis.oneClick,false)
 assert.equal(manifest.build.nsis.allowToChangeInstallationDirectory,false)

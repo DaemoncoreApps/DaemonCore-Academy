@@ -4,9 +4,14 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Existing release tag, for example v6.0.0-beta.3
+        description: Existing release tag, for example v6.0.0
         required: true
         type: string
+      allow_unsigned:
+        description: Publish without Authenticode signing and show an unsigned-build warning
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -53,8 +58,12 @@ jobs:
             Write-Host "Windows signing certificate detected."
           }
           else {
+            if ("${{ inputs.allow_unsigned }}" -ne "true") {
+              throw "No Windows signing certificate is configured. Set allow_unsigned only for an explicitly approved unsigned release."
+            }
+
             "enabled=false" >> $env:GITHUB_OUTPUT
-            Write-Host "No Windows signing certificate configured. Building unsigned beta installer."
+            Write-Warning "No Windows signing certificate configured. Building an explicitly approved unsigned installer."
           }
 
       - name: Build signed Windows installer
@@ -90,12 +99,21 @@ jobs:
             Write-Host "Authenticode signature verified."
           }
           else {
-            Write-Host "Unsigned beta installer detected. Skipping Authenticode requirement."
+            $signature = Get-AuthenticodeSignature -LiteralPath $installer.FullName
+
+            if ($signature.Status -ne "NotSigned") {
+              throw "Expected an unsigned installer, but Authenticode status is $($signature.Status)"
+            }
+
+            Write-Warning "Installer is not Authenticode-signed. Customers may see Unknown Publisher."
           }
 
           $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $installer.FullName).Hash
+          $checksum = Join-Path $installer.DirectoryName "SHA256SUMS-windows.txt"
+          "$($hash.ToLowerInvariant())  $($installer.Name)" | Set-Content -LiteralPath $checksum -Encoding utf8NoBOM
 
           "installer=$($installer.FullName)" >> $env:GITHUB_OUTPUT
+          "checksum=$checksum" >> $env:GITHUB_OUTPUT
           "sha256=$hash" >> $env:GITHUB_OUTPUT
           "SHA-256: $hash" >> $env:GITHUB_STEP_SUMMARY
 
@@ -104,7 +122,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         shell: pwsh
         run: |
-          gh release upload "${{ inputs.tag }}" "${{ steps.installer.outputs.installer }}" --clobber
+          gh release upload "${{ inputs.tag }}" "${{ steps.installer.outputs.installer }}" "${{ steps.installer.outputs.checksum }}" --clobber
 
       - name: Remove certificate material
         if: always()
