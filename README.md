@@ -10,7 +10,26 @@ Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 
 **[Download DaemonCore Academy 6 for Windows](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/latest/download/DaemonCore-Academy-Setup.exe)** · **[Download the Linux beta](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/tag/v6.0.0-beta.3)** · [FieldOps Manual](output/pdf/DaemonCore-FieldOps-Operator-Manual-v6.0.0-beta.1.pdf) · [Academy Guide](output/pdf/DaemonCore-Academy-Mission-OS-Guide-v6.0.0-beta.1.pdf) · [Release notes](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases)
 
-> **Windows signing notice:** The 6.0.1 installer is not yet Authenticode-signed, so Windows may display **Unknown Publisher**. Download it only from this repository and verify `SHA256SUMS-windows.txt` on the release page before running it.
+> [!CAUTION]
+> **Temporary unsigned Windows build:** DaemonCore 6.0.1 is not yet Authenticode-signed, so Windows may display **Unknown Publisher**. Until the signing certificate is in place, install and evaluate the Windows build inside a disposable Windows 10/11 virtual machine—not on a production workstation. Download it only from this repository, verify the published SHA-256 checksum, and take a VM snapshot before installation. If the file hash does not match, do not run it.
+
+## Temporary VM-first installation
+
+This guidance applies only while the Windows installer is unsigned. It will be replaced with the normal signed-installation instructions after the certificate-backed release is published.
+
+1. Create a clean Windows 10/11 VM in Hyper-V, VMware Workstation, or VirtualBox and install current Windows security updates.
+2. Take a snapshot or checkpoint so the machine can be returned to its clean state.
+3. Inside the VM, download `DaemonCore-Academy-Setup.exe` from the official link above and download `SHA256SUMS-windows.txt` from the same GitHub release.
+4. Open PowerShell in the download folder and calculate the installer hash:
+
+   ```powershell
+   (Get-FileHash .\DaemonCore-Academy-Setup.exe -Algorithm SHA256).Hash
+   ```
+
+5. Compare the complete result with the value in `SHA256SUMS-windows.txt`. Continue only when every character matches.
+6. Install and run DaemonCore as a standard Windows user. An **Unknown Publisher** notice is expected for this temporary build; any unexpected filename, source, or hash is a reason to stop.
+
+The Academy lessons and non-Docker workbenches run normally in a VM. Live Docker ranges additionally require nested virtualization and a supported hypervisor configuration. If nested virtualization is unavailable, DaemonCore will leave those ranges unavailable rather than pretending they are live.
 
 ## Inside DaemonCore
 
