@@ -2,7 +2,7 @@
   "name": "daemoncore-academy",
   "private": true,
   "type": "module",
-  "version": "6.0.1",
+  "version": "6.0.2",
   "description": "A sealed cyber range and operator training desktop platform.",
   "desktopName": "daemoncore-academy.desktop",
   "main": "electron/main.cjs",

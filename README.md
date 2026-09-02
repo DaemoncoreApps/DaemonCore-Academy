@@ -11,7 +11,7 @@ Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 **[Download DaemonCore Academy 6 for Windows](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/latest/download/DaemonCore-Academy-Setup.exe)** · **[Download the Linux beta](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/tag/v6.0.0-beta.3)** · [FieldOps Manual](output/pdf/DaemonCore-FieldOps-Operator-Manual-v6.0.0-beta.1.pdf) · [Academy Guide](output/pdf/DaemonCore-Academy-Mission-OS-Guide-v6.0.0-beta.1.pdf) · [Release notes](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases)
 
 > [!CAUTION]
-> **Temporary unsigned Windows build:** DaemonCore 6.0.1 is not yet Authenticode-signed, so Windows may display **Unknown Publisher**. Until the signing certificate is in place, install and evaluate the Windows build inside a disposable Windows 10/11 virtual machine—not on a production workstation. Download it only from this repository, verify the published SHA-256 checksum, and take a VM snapshot before installation. If the file hash does not match, do not run it.
+> **Temporary unsigned Windows build:** DaemonCore 6.0.2 is not yet Authenticode-signed, so Windows may display **Unknown Publisher**. Until the signing certificate is in place, install and evaluate the Windows build inside a disposable Windows 10/11 virtual machine—not on a production workstation. Download it only from this repository, verify the published SHA-256 checksum, and take a VM snapshot before installation. If the file hash does not match, do not run it.
 
 ## Temporary VM-first installation
 
@@ -90,6 +90,8 @@ The stable Windows release carries the complete Mission OS 6 experience. Linux r
 - **Operational module deck** — Diagnostics, Campaigns, Evidence, and Findings are promoted into a clear Acquire → Orchestrate → Preserve → Report workflow instead of being buried below a static product hero.
 - **Premium commercial gate** — the locked view now previews the complete professional workflow and explains the value of signed operations, verified evidence, assessment orchestration, and client-ready reporting.
 - **Field-readable telemetry** — FieldOps labels, controls, notices, receipts, and command-deck state have a larger typography floor for long sessions on ordinary Windows and Linux displays.
+- **War Room Refresh // 6.0.2** — a brief reduced-motion-aware command-deck boot, real operator/permit/window/evidence readiness rail, contextual next-action control, three-stage empty-state route, and complete five-module launcher make the first FieldOps screen immediately legible and operational.
+- **No decorative readiness theater** — every status on the refreshed deck is derived from the protected operator identity, selected signed engagement, actual validity window, capture and audit integrity, or persisted case records.
 
 - **DaemonCore Trust Authority** — a protected Ed25519 operator identity signs every new operation permit and audit receipt with the operator’s name, organization, role, device-key fingerprint, and timestamp.
 - **Signed operation permits** — new engagements cryptographically bind the operator, approving authority, client, ROE reference, Observe/Validate/Stress policy, exact targets, ports, network boundary, and validity window. Editing any bound field invalidates execution.
