@@ -11,7 +11,7 @@ Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 **[Download DaemonCore Academy 6 for Windows](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/latest/download/DaemonCore-Academy-Setup.exe)** · **[Download the Linux beta](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/tag/v6.0.0-beta.3)** · [FieldOps Manual](output/pdf/DaemonCore-FieldOps-Operator-Manual-v6.0.0-beta.1.pdf) · [Academy Guide](output/pdf/DaemonCore-Academy-Mission-OS-Guide-v6.0.0-beta.1.pdf) · [Release notes](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases)
 
 > [!CAUTION]
-> **Temporary unsigned Windows build:** DaemonCore 6.0.2 is not yet Authenticode-signed, so Windows may display **Unknown Publisher**. Until the signing certificate is in place, install and evaluate the Windows build inside a disposable Windows 10/11 virtual machine—not on a production workstation. Download it only from this repository, verify the published SHA-256 checksum, and take a VM snapshot before installation. If the file hash does not match, do not run it.
+> **Temporary unsigned Windows build:** DaemonCore 6.1.0 is not yet Authenticode-signed, so Windows may display **Unknown Publisher**. Until the signing certificate is in place, install and evaluate the Windows build inside a disposable Windows 10/11 virtual machine—not on a production workstation. Download it only from this repository, verify the published SHA-256 checksum, and take a VM snapshot before installation. If the file hash does not match, do not run it.
 
 ## Temporary VM-first installation
 
@@ -61,6 +61,15 @@ The Academy lessons and non-Docker workbenches run normally in a VM. Live Docker
 - **Visible build identity** — the footer reports the exact app version and platform so support, screenshots, and operator records stop being ambiguous.
 
 The stable Windows release carries the complete Mission OS 6 experience. Linux remains on the separately labeled beta channel while cross-platform certification continues.
+
+### DCCO Candidate Control // 6.1
+
+- **Evidence-gated candidacy** — DaemonCore evaluates practical lesson scores, sealed independent missions, live web ranges, enterprise cases, drills, and principal capstones against one published policy.
+- **Protected candidate identity** — eligibility requires the existing OS-protected Ed25519 operator identity, binding the candidate name, device-key fingerprint, evidence references, policy version, and application version into one dossier.
+- **Signed candidate dossiers** — eligible operators can export a canonical, digest-sealed and signed review bundle. Editing any bound claim invalidates verification.
+- **No self-awarded certificates** — the desktop application cannot issue DCCO credentials. A signed dossier is an application for independent review, not a certificate.
+- **Minimal public verification contract** — the included Supabase migration keeps submissions private and exposes only credential identity, holder, dates, status, policy version, and issuer key ID through a narrow verification function.
+- **Published governance** — the candidate handbook and credential operations runbook define requirements, independent review, appeals, revocation, two-year validity, issuer-key separation, privacy, and launch prerequisites.
 
 ### Linux beta // 6.0
 
@@ -250,7 +259,7 @@ npm run dev
 npm test
 ```
 
-That command lints the UI, exercises operator-record persistence and recovery, verifies licensing and offline grace, attacks the FieldOps scope boundary, enforces the practical-lesson quality contract, validates the range contract and containment-sensitive Compose settings, then builds the production bundle.
+That command lints the UI, exercises operator-record persistence and recovery, verifies licensing and offline grace, attacks the FieldOps scope boundary, enforces the practical-lesson quality contract, validates candidate eligibility and signed-dossier tamper rejection, validates the range contract and containment-sensitive Compose settings, then builds the production bundle.
 
 Build the Windows installer with:
 
@@ -278,6 +287,7 @@ electron/data-store.cjs       atomic local operator record
 electron/license-manager.cjs  Lemon Squeezy + protected key storage
 electron/secure-storage.cjs   DPAPI, GNOME Keyring, KWallet enforcement
 electron/trust-authority.cjs  protected operator keys + signed operation permits
+electron/certification-policy.cjs  DCCO eligibility + signed dossier verification
 electron/engagement-store.cjs scope enforcement + external diagnostics
 electron/range-orchestrator.cjs
 electron/range-integrity.cjs    full-tree fingerprints + receipt verification
@@ -298,6 +308,7 @@ src/lesson-practicals.js      workshops, commands, output, exercises, references
 src/phase2.jsx                range console, lessons, and operator record UI
 src/ChaosEngine.jsx           experiment composer + live resilience telemetry
 src/CampaignControl.jsx       durable multi-target campaign control room
+src/CertificationCenter.jsx  evidence-gated DCCO candidate control
 src/RangeChaosLab.jsx         sealed-range breakpoint laboratory
 scripts/verify-data-store.mjs persistence/recovery contract
 scripts/verify-phase4.mjs     licensing and scope-boundary contract
@@ -308,6 +319,7 @@ scripts/verify-phase8.mjs     Chaos Engine caps, abort, recovery, and audit cont
 scripts/verify-fieldops-workspace.mjs  captures, findings, retests, and persistence
 scripts/verify-campaign-engine.mjs     campaign scope, lifecycle, and recovery contract
 scripts/verify-trust-authority.mjs     operator keys, permits, attribution, and tamper contract
+scripts/verify-certification.mjs       eligibility, identity, dossier, and registry contract
 scripts/verify-phase13.mjs    Web curriculum + live-range quality contract
 scripts/verify-phase14.mjs    enterprise depth + containment contract
 scripts/verify-phase15.mjs    identity range + pack tamper-rejection contract

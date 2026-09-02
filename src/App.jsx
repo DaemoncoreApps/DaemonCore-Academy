@@ -22,6 +22,7 @@ import { RangeFabric } from './RangeFabric.jsx'
 import { ModalClose } from './ModalClose.jsx'
 import { MissionOSPage } from './MissionOS.jsx'
 import { AcademyWorkflowGuide, WorkflowDock } from './AcademyGuide.jsx'
+import { CertificationCenter } from './CertificationCenter.jsx'
 import missionOSData from '../shared/mission-os.json'
 
 const nav = [
@@ -31,6 +32,7 @@ const nav = [
   { id: 'webforge', label: 'Web Forge', icon: Braces },
   { id: 'enterprise', label: 'Enterprise Forge', icon: Layers3 },
   { id: 'mastery', label: 'Mastery', icon: BrainCircuit },
+  { id: 'certification', label: 'Certification', icon: Award },
   { id: 'labs', label: 'Lab Range', icon: Terminal },
   { id: 'fieldops', label: 'FieldOps', icon: ShieldCheck },
   { id: 'drills', label: 'Drills', icon: Crosshair },
@@ -301,6 +303,7 @@ export default function App() {
   else if(page==='webforge')current=<WebForgePage profile={operator} onLaunch={setActiveWebLab}/>
   else if(page==='enterprise')current=<EnterpriseForgePage profile={operator} onLaunch={setActiveEnterpriseLab}/>
   else if(page==='mastery')current=<MasteryPage profile={operator} onStart={setActiveCapstone} onOpenLesson={setLesson}/>
+  else if(page==='certification')current=<CertificationCenter profile={operator} identity={fieldOps.identity} onEnrollIdentity={fieldOps.enrollIdentity} onNavigate={setPage}/>
   else if(page==='labs')current=<LabsPage launchMission={setMission} completedMissions={operator.completedMissions}/>
   else if(page==='fieldops')current=<FieldOpsPage license={licensing.license} data={fieldOps.data} identity={fieldOps.identity} onEnrollIdentity={fieldOps.enrollIdentity} onCreate={fieldOps.create} onRun={fieldOps.run} onCampaignStart={fieldOps.startCampaign} onCampaignPause={fieldOps.pauseCampaign} onCampaignResume={fieldOps.resumeCampaign} onCampaignCancel={fieldOps.cancelCampaign} onCreateFinding={fieldOps.createFinding} onUpdateFinding={fieldOps.updateFinding} onRetestFinding={fieldOps.retestFinding} onChaosStart={fieldOps.startChaos} onChaosAbort={fieldOps.abortChaos} onRefresh={fieldOps.refresh} onClose={fieldOps.close} onExport={fieldOps.exportEvidence} onReport={fieldOps.exportReport} onSettings={()=>setPage('settings')}/>
   else if(page==='drills')current=<DrillsPage startQuiz={setQuiz} profile={operator}/>

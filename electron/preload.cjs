@@ -35,6 +35,10 @@ contextBridge.exposeInMainWorld('daemoncore', {
     reset: () => ipcRenderer.invoke('data:reset'),
     export: () => ipcRenderer.invoke('data:export'),
   }),
+  certification: Object.freeze({
+    snapshot: () => ipcRenderer.invoke('certification:snapshot'),
+    exportCandidate: () => ipcRenderer.invoke('certification:export-candidate'),
+  }),
   license: Object.freeze({
     snapshot: () => ipcRenderer.invoke('license:snapshot'),
     activate: input => ipcRenderer.invoke('license:activate', input),

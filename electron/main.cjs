@@ -9,6 +9,7 @@ const { DataStore } = require('./data-store.cjs')
 const { LicenseManager } = require('./license-manager.cjs')
 const { EngagementStore } = require('./engagement-store.cjs')
 const { TrustAuthority } = require('./trust-authority.cjs')
+const { createCandidateDossier, evaluateEligibility } = require('./certification-policy.cjs')
 
 // Keep every release on one durable record path even if the display name changes.
 app.setPath('userData', path.join(app.getPath('appData'), 'daemoncore-academy'))
@@ -103,6 +104,24 @@ ipcMain.handle('data:export', rangeHandler(async () => {
   if (result.canceled || !result.filePath) return { canceled: true }
   await writeFile(result.filePath, `${JSON.stringify(dataStore.snapshot(), null, 2)}\n`, 'utf8')
   return { canceled: false, filePath: result.filePath }
+}))
+ipcMain.handle('certification:snapshot', rangeHandler(() => ({
+  ...evaluateEligibility(dataStore.snapshot().profile),
+  identity: trustAuthority.snapshot(),
+  issuance: { mode: 'independent-review', localIssuance: false, verificationBaseUrl: 'https://academy.daemoncore.app/verify/' },
+})))
+ipcMain.handle('certification:export-candidate', rangeHandler(async () => {
+  const identity = trustAuthority.assertReady()
+  const dossier = createCandidateDossier(dataStore.snapshot().profile, identity, app.getVersion())
+  const bundle = { bundleVersion: 1, dossier, attestation: trustAuthority.sign('dccov1-candidate-dossier', dossier) }
+  const result = await dialog.showSaveDialog({
+    title: 'Export DCCO candidate dossier',
+    defaultPath: `${dossier.dossierId.toLowerCase()}.json`,
+    filters: [{ name: 'Signed DaemonCore candidate dossier', extensions: ['json'] }],
+  })
+  if (result.canceled || !result.filePath) return { canceled: true }
+  await writeFile(result.filePath, `${JSON.stringify(bundle, null, 2)}\n`, 'utf8')
+  return { canceled: false, filePath: result.filePath, dossierId: dossier.dossierId, digest: dossier.dossierDigest }
 }))
 ipcMain.handle('license:snapshot', rangeHandler(() => licenseManager.snapshot()))
 ipcMain.handle('license:activate', rangeHandler(input => licenseManager.activate({ ...input, instanceName: input?.instanceName || os.hostname() })))
