@@ -97,6 +97,17 @@
       "icon": "build/icon.ico",
       "artifactName": "DaemonCore-Academy-Setup.${ext}"
     },
+    "msix": {
+      "identityName": "DaemonCore.DaemoncoreAcademy-CyberSecurity",
+      "publisher": "CN=B7B53B09-651D-4171-90BE-4E9E1F5738BA",
+      "publisherDisplayName": "DaemonCore",
+      "displayName": "DaemonCore Academy",
+      "languages": [
+        "en-US"
+      ],
+      "createMsixupload": true,
+      "artifactName": "DaemonCore-Academy-${version}.${ext}"
+    },
     "linux": {
       "target": [
         "AppImage",
