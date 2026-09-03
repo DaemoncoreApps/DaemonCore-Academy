@@ -102,6 +102,7 @@
       "publisher": "CN=B7B53B09-651D-4171-90BE-4E9E1F5738BA",
       "publisherDisplayName": "DaemonCore",
       "displayName": "DaemonCore Academy",
+      "applicationId": "DaemonCoreAcademy",
       "languages": [
         "en-US"
       ],
