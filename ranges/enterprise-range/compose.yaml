@@ -10,8 +10,8 @@ services:
     networks: [range]
     read_only: true
     tmpfs:
-      - /tmp:size=64m,noexec,nosuid
-      - /workspace:size=32m,nosuid
+      - /tmp
+      - /workspace
     cap_drop: [ALL]
     security_opt: [no-new-privileges:true]
     pids_limit: 128
@@ -27,7 +27,7 @@ services:
     networks: [range]
     read_only: true
     tmpfs:
-      - /tmp:size=32m,noexec,nosuid
+      - /tmp
     cap_drop: [ALL]
     security_opt: [no-new-privileges:true]
     pids_limit: 64

@@ -104,55 +104,55 @@
       "totalBytes": 3752
     },
     {
-      "id": "enterprise-range",
-      "title": "Enterprise Forge",
-      "engine": "docker",
-      "digest": "5ac7706306d2a77a8c1457199f1bc619a8128004702f07e7bace0c6976ee2c9c",
-      "files": [
-        {
-          "path": "cases.json",
-          "bytes": 61435,
-          "digest": "5ac7706306d2a77a8c1457199f1bc619a8128004702f07e7bace0c6976ee2c9c"
-        },
-        {
-          "path": "compose.yaml",
-          "bytes": 1066,
-          "digest": "4f4045491c30aa4b90574adcca2cfeb1978fe0e619d599608ed33e313ffad375"
-        },
-        {
-          "path": "operator/dc-case",
-          "bytes": 486,
-          "digest": "3b9972651f699da813980645ce2262d240fe05f8f5b1aa354115fda09ce917e1"
-        },
-        {
-          "path": "operator/dc-submit",
-          "bytes": 241,
-          "digest": "38040796b79ab0821b961fafe77990a06cf196f9ca6e4d34b2bb72ebc7c7b8a8"
-        },
-        {
-          "path": "operator/Dockerfile",
-          "bytes": 311,
-          "digest": "b369de740e1dbccf8bdf50fd0ed390890210ebaac4df956e8bfacf6652d3c178"
-        },
-        {
-          "path": "scenario.json",
-          "bytes": 546,
-          "digest": "82feb3194e049a64d3b40399d3127e50941d4e90334412255196f496c462a431"
-        },
-        {
-          "path": "target/Dockerfile",
-          "bytes": 203,
-          "digest": "9eb34e4a4a10baab0d7ab52b153a60f105169fe20e81c397b40facb75635c264"
-        },
-        {
-          "path": "target/server.mjs",
-          "bytes": 1795,
-          "digest": "acb796ee1bb6ed29251b5c67e30c654df7a19554dc6f0d7c9d83d1a4c21b2129"
-        }
-      ],
-      "fileCount": 8,
-      "totalBytes": 66083
+  "id": "enterprise-range",
+  "title": "Enterprise Forge",
+  "engine": "docker",
+  "digest": "72c51af3edae186bf5c4e1487e872ffb30320930d21b6903ca19b761a672aa50",
+  "files": [
+    {
+      "path": "cases.json",
+      "bytes": 61435,
+      "digest": "07d3c0a42946732fc1b0134bcb13b7968f8f798da2d6be244191d5f3e771aca0"
     },
+    {
+      "path": "compose.yaml",
+      "bytes": 988,
+      "digest": "214fd81f75bbdd2f137c75c119d1f7c3fd472b3d6a2d61905283b3b4acf19368"
+    },
+    {
+      "path": "operator/dc-case",
+      "bytes": 486,
+      "digest": "3b9972651f699da813980645ce2262d240fe05f8f5b1aa354115fda09ce917e1"
+    },
+    {
+      "path": "operator/dc-submit",
+      "bytes": 241,
+      "digest": "38040796b79ab0821b961fafe77990a06cf196f9ca6e4d34b2bb72ebc7c7b8a8"
+    },
+    {
+      "path": "operator/Dockerfile",
+      "bytes": 311,
+      "digest": "b369de740e1dbccf8bdf50fd0ed390890210ebaac4df956e8bfacf6652d3c178"
+    },
+    {
+      "path": "scenario.json",
+      "bytes": 546,
+      "digest": "82feb3194e049a64d3b40399d3127e50941d4e90334412255196f496c462a431"
+    },
+    {
+      "path": "target/Dockerfile",
+      "bytes": 203,
+      "digest": "9eb34e4a4a10baab0d7ab52b153a60f105169fe20e81c397b40facb75635c264"
+    },
+    {
+      "path": "target/server.mjs",
+      "bytes": 1795,
+      "digest": "acb796ee1bb6ed29251b5c67e30c654df7a19554dc6f0d7c9d83d1a4c21b2129"
+    }
+  ],
+  "fileCount": 8,
+  "totalBytes": 66005
+},
     {
       "id": "ghost-port",
       "title": "The Ghost Port",
