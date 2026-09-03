@@ -1,4 +1,5 @@
 name: daemoncore-enterprise-range
+
 services:
   operator:
     build:
@@ -9,14 +10,15 @@ services:
     networks: [range]
     read_only: true
     tmpfs:
-      - /tmp:size=64m,noexec,nosuid,nodev
-      - /workspace:size=32m,nosuid,nodev
+      - /tmp:size=64m,noexec,nosuid
+      - /workspace:size=32m,nosuid
     cap_drop: [ALL]
     security_opt: [no-new-privileges:true]
     pids_limit: 128
     mem_limit: 384m
     cpus: 0.75
     restart: "no"
+
   target:
     build:
       context: .
@@ -25,7 +27,7 @@ services:
     networks: [range]
     read_only: true
     tmpfs:
-      - /tmp:size=32m,noexec,nosuid,nodev
+      - /tmp:size=32m,noexec,nosuid
     cap_drop: [ALL]
     security_opt: [no-new-privileges:true]
     pids_limit: 64
@@ -38,6 +40,7 @@ services:
       timeout: 1s
       retries: 20
       start_period: 2s
+
 networks:
   range:
     name: dc-enterprise-range

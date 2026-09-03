@@ -107,12 +107,12 @@
       "id": "enterprise-range",
       "title": "Enterprise Forge",
       "engine": "docker",
-      "digest": "600d4f34946049f119d1c408ee22341a025eb2f47202ad81527abd3d8088a4ee",
+      "digest": "5ac7706306d2a77a8c1457199f1bc619a8128004702f07e7bace0c6976ee2c9c",
       "files": [
         {
           "path": "cases.json",
           "bytes": 61435,
-          "digest": "07d3c0a42946732fc1b0134bcb13b7968f8f798da2d6be244191d5f3e771aca0"
+          "digest": "5ac7706306d2a77a8c1457199f1bc619a8128004702f07e7bace0c6976ee2c9c"
         },
         {
           "path": "compose.yaml",
