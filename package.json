@@ -19,7 +19,7 @@
     "preview": "vite preview",
     "desktop": "npm run build && electron .",
     "package:win": "npm run build && electron-builder --win nsis --publish never",
-    "package:store": "npm run build && electron-builder --win msix --publish never",
+    "package:store": "npm run build && electron-builder --win appx --publish never",
     "package:win:from-unpacked": "node scripts/prepare-unpacked.mjs && electron-builder --win nsis --prepackaged release/win-unpacked",
     "package:linux": "npm run icon && npm run build && electron-builder --linux AppImage deb --publish never",
     "icon": "node scripts/generate-icon.mjs",
@@ -97,7 +97,7 @@
       "icon": "build/icon.ico",
       "artifactName": "DaemonCore-Academy-Setup.${ext}"
     },
-    "msix": {
+    "appx": {
       "identityName": "DaemonCore.DaemoncoreAcademy-CyberSecurity",
       "publisher": "CN=B7B53B09-651D-4171-90BE-4E9E1F5738BA",
       "publisherDisplayName": "DaemonCore",
@@ -105,7 +105,6 @@
       "languages": [
         "en-US"
       ],
-      "createMsixupload": true,
       "artifactName": "DaemonCore-Academy-${version}.${ext}"
     },
     "linux": {
