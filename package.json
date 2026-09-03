@@ -19,6 +19,7 @@
     "preview": "vite preview",
     "desktop": "npm run build && electron .",
     "package:win": "npm run build && electron-builder --win nsis --publish never",
+    "package:store": "npm run build && electron-builder --win msix --publish never",
     "package:win:from-unpacked": "node scripts/prepare-unpacked.mjs && electron-builder --win nsis --prepackaged release/win-unpacked",
     "package:linux": "npm run icon && npm run build && electron-builder --linux AppImage deb --publish never",
     "icon": "node scripts/generate-icon.mjs",
