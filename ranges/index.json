@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "algorithm": "sha256-tree-v1",
-  "generatedAt": "2026-09-03T19:51:49.962Z",
+  "generatedAt": "2026-09-03T20:09:53.303Z",
   "packs": [
     {
       "id": "artifact-zero",
@@ -107,7 +107,7 @@
       "id": "enterprise-range",
       "title": "Enterprise Forge",
       "engine": "docker",
-      "digest": "93b3b79d7b26f1ce94c6e9dccc858000affbf3a7022534f1fa22c087bba643d4",
+      "digest": "600d4f34946049f119d1c408ee22341a025eb2f47202ad81527abd3d8088a4ee",
       "files": [
         {
           "path": "cases.json",
@@ -116,8 +116,8 @@
         },
         {
           "path": "compose.yaml",
-          "bytes": 1047,
-          "digest": "0fe60c44211e3481843f6d977b315d00fc0cd2260a9a959608d8345b145349d4"
+          "bytes": 1066,
+          "digest": "4f4045491c30aa4b90574adcca2cfeb1978fe0e619d599608ed33e313ffad375"
         },
         {
           "path": "operator/dc-case",
@@ -151,7 +151,7 @@
         }
       ],
       "fileCount": 8,
-      "totalBytes": 66064
+      "totalBytes": 66083
     },
     {
       "id": "ghost-port",
