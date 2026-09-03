@@ -2,6 +2,16 @@ const { execFile } = require('child_process')
 
 const NMAP_IMAGE = 'instrumentisto/nmap:7.98-r2'
 
+const TOOL_CATALOG = Object.freeze([
+  { id: 'nmap', label: 'Nmap', category: 'Discovery', command: 'nmap', versionArgs: ['--version'], integration: 'native', purpose: 'Service and version inventory' },
+  { id: 'docker', label: 'Docker Engine', category: 'Runtime', command: 'docker', versionArgs: ['version', '--format', '{{.Server.Version}}'], integration: 'native', purpose: 'Contained adapters and Academy ranges' },
+  { id: 'nuclei', label: 'Nuclei', category: 'Validation', command: 'nuclei', versionArgs: ['-version'], integration: 'evidence', purpose: 'Template-driven assessment evidence' },
+  { id: 'k6', label: 'Grafana k6', category: 'Resilience', command: 'k6', versionArgs: ['version'], integration: 'evidence', purpose: 'Customer-managed performance evidence' },
+  { id: 'locust', label: 'Locust', category: 'Resilience', command: 'locust', versionArgs: ['--version'], integration: 'evidence', purpose: 'Customer-managed workload evidence' },
+  { id: 'tshark', label: 'Wireshark / TShark', category: 'Network', command: 'tshark', versionArgs: ['--version'], integration: 'evidence', purpose: 'Packet and protocol evidence' },
+  { id: 'hashcat', label: 'Hashcat', category: 'Credential audit', command: 'hashcat', versionArgs: ['--version'], integration: 'evidence', purpose: 'Offline credential-audit evidence' },
+])
+
 function execute(file, args, timeoutMs) {
   return new Promise((resolve, reject) => {
     execFile(file, args, { windowsHide: true, timeout: timeoutMs, maxBuffer: 8 * 1024 * 1024 }, (error, stdout, stderr) => {
@@ -58,9 +68,9 @@ function parseNmapXml(xml) {
   }
 }
 
-function nmapArguments(address, ports) {
+function nmapArguments(address, ports, maxPorts = 128) {
   if (!/^[0-9a-f:.]+$/i.test(address)) throw new Error('Tool Bridge requires a pinned IP address')
-  if (!Array.isArray(ports) || !ports.length || ports.length > 128 || ports.some(port => !Number.isInteger(port) || port < 1 || port > 65535)) throw new Error('Tool Bridge requires 1 to 128 authorized ports')
+  if (!Array.isArray(ports) || !ports.length || ports.length > maxPorts || ports.some(port => !Number.isInteger(port) || port < 1 || port > 65535)) throw new Error(`Tool Bridge requires 1 to ${maxPorts} authorized ports`)
   return ['-sT', '-Pn', '-n', '--reason', '-sV', '--version-all', '--max-retries', '2', '--host-timeout', '5m', '-p', [...new Set(ports)].sort((a, b) => a - b).join(','), '-oX', '-', address]
 }
 
@@ -68,6 +78,7 @@ class ToolBridge {
   constructor(options = {}) {
     this.execute = options.execute || execute
     this.image = options.image || NMAP_IMAGE
+    this.capabilityCache = null
   }
 
   async selectEngine() {
@@ -83,10 +94,27 @@ class ToolBridge {
     }
   }
 
-  async inventory({ address, ports }) {
-    const engine = await this.selectEngine(), args = nmapArguments(address, ports)
+  async capabilities(options = {}) {
+    const now = Date.now()
+    if (!options.refresh && this.capabilityCache && now - this.capabilityCache.checkedAtMs < 60_000) return this.capabilityCache.value
+    const tools = await Promise.all(TOOL_CATALOG.map(async tool => {
+      try {
+        const result = await this.execute(tool.command, tool.versionArgs, 10_000)
+        const version = `${result.stdout || ''}\n${result.stderr || ''}`.trim().split(/\r?\n/).find(Boolean) || 'Available'
+        return { id: tool.id, label: tool.label, category: tool.category, purpose: tool.purpose, integration: tool.integration, available: true, version: version.slice(0, 180) }
+      } catch {
+        return { id: tool.id, label: tool.label, category: tool.category, purpose: tool.purpose, integration: tool.integration, available: false, version: null }
+      }
+    }))
+    const value = { checkedAt: new Date().toISOString(), tools, available: tools.filter(tool => tool.available).length, total: tools.length }
+    this.capabilityCache = { checkedAtMs: now, value }
+    return value
+  }
+
+  async inventory({ address, ports, maxPorts = 128, timeoutMs = 360_000 }) {
+    const engine = await this.selectEngine(), args = nmapArguments(address, ports, maxPorts)
     try {
-      const result = await this.execute(engine.file, [...engine.prefix, ...args], 360_000)
+      const result = await this.execute(engine.file, [...engine.prefix, ...args], timeoutMs)
       const parsed = parseNmapXml(result.stdout)
       if (!parsed.ports.length && !/<nmaprun\b/.test(result.stdout)) throw new Error('The engine returned no Nmap XML')
       return { engine: engine.kind, engineVersion: engine.version, profile: 'deep-service-version', invocation: { scan: 'TCP connect', hostDiscovery: 'disabled', dns: 'disabled', serviceDetection: 'all probes', retries: 2, timeout: '5m' }, ...parsed }
@@ -97,4 +125,4 @@ class ToolBridge {
   }
 }
 
-module.exports = { ToolBridge, NMAP_IMAGE, nmapArguments, parseNmapXml }
+module.exports = { ToolBridge, TOOL_CATALOG, NMAP_IMAGE, nmapArguments, parseNmapXml }

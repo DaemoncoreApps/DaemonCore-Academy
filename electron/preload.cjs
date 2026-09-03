@@ -48,6 +48,7 @@ contextBridge.exposeInMainWorld('daemoncore', {
   }),
   fieldops: Object.freeze({
     snapshot: () => ipcRenderer.invoke('fieldops:snapshot'),
+    capabilities: refresh => ipcRenderer.invoke('fieldops:capabilities', refresh),
     identity: () => ipcRenderer.invoke('fieldops:identity'),
     enrollIdentity: input => ipcRenderer.invoke('fieldops:identity-enroll', input),
     create: input => ipcRenderer.invoke('fieldops:create', input),
@@ -61,6 +62,8 @@ contextBridge.exposeInMainWorld('daemoncore', {
     retestFinding: (id, input) => ipcRenderer.invoke('fieldops:finding-retest', { id, input }),
     startChaos: input => ipcRenderer.invoke('fieldops:chaos-start', input),
     abortChaos: id => ipcRenderer.invoke('fieldops:chaos-abort', id),
+    exportExecutionManifest: input => ipcRenderer.invoke('fieldops:execution-manifest', input),
+    importEvidence: input => ipcRenderer.invoke('fieldops:evidence-import', input),
     close: id => ipcRenderer.invoke('fieldops:close', id),
     export: id => ipcRenderer.invoke('fieldops:export', id),
     report: id => ipcRenderer.invoke('fieldops:report', id),

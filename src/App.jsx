@@ -112,11 +112,14 @@ function useFieldOps() {
   const retestFinding=async(id,input)=>{if(!api)throw new Error('FieldOps requires the desktop build');const next=await api.retestFinding(id,input);setData(next);return next}
   const startChaos=async input=>{if(!api)throw new Error('Chaos Engine requires the desktop build');const next=await api.startChaos(input);setData(next);return next}
   const abortChaos=async id=>{if(!api)throw new Error('Chaos Engine requires the desktop build');const next=await api.abortChaos(id);setData(next);return next}
+  const capabilities=refresh=>{if(!api)throw new Error('Execution Fabric requires the desktop build');return api.capabilities(refresh)}
+  const exportExecutionManifest=input=>{if(!api)throw new Error('Execution Fabric requires the desktop build');return api.exportExecutionManifest(input)}
+  const importEvidence=async input=>{if(!api)throw new Error('Execution Fabric requires the desktop build');const result=await api.importEvidence(input);if(!result.canceled)setData(await api.snapshot());return result}
   const refresh=async()=>{if(!api)return data;const next=await api.snapshot();setData(next);return next}
   const close=async id=>{if(!api)throw new Error('FieldOps requires the desktop build');const next=await api.close(id);setData(next);return next}
   const exportEvidence=id=>api?.export(id)
   const exportReport=id=>api?.report(id)
-  return {data,identity,enrollIdentity,create,run,startCampaign:input=>campaignAction('startCampaign',input),pauseCampaign:id=>campaignAction('pauseCampaign',id),resumeCampaign:id=>campaignAction('resumeCampaign',id),cancelCampaign:id=>campaignAction('cancelCampaign',id),createFinding,updateFinding,retestFinding,startChaos,abortChaos,refresh,close,exportEvidence,exportReport}
+  return {data,identity,enrollIdentity,create,run,startCampaign:input=>campaignAction('startCampaign',input),pauseCampaign:id=>campaignAction('pauseCampaign',id),resumeCampaign:id=>campaignAction('resumeCampaign',id),cancelCampaign:id=>campaignAction('cancelCampaign',id),createFinding,updateFinding,retestFinding,startChaos,abortChaos,capabilities,exportExecutionManifest,importEvidence,refresh,close,exportEvidence,exportReport}
 }
 
 function Brand({ compact = false }) {
@@ -305,7 +308,7 @@ export default function App() {
   else if(page==='mastery')current=<MasteryPage profile={operator} onStart={setActiveCapstone} onOpenLesson={setLesson}/>
   else if(page==='certification')current=<CertificationCenter profile={operator} identity={fieldOps.identity} onEnrollIdentity={fieldOps.enrollIdentity} onNavigate={setPage}/>
   else if(page==='labs')current=<LabsPage launchMission={setMission} completedMissions={operator.completedMissions}/>
-  else if(page==='fieldops')current=<FieldOpsPage license={licensing.license} data={fieldOps.data} identity={fieldOps.identity} onEnrollIdentity={fieldOps.enrollIdentity} onCreate={fieldOps.create} onRun={fieldOps.run} onCampaignStart={fieldOps.startCampaign} onCampaignPause={fieldOps.pauseCampaign} onCampaignResume={fieldOps.resumeCampaign} onCampaignCancel={fieldOps.cancelCampaign} onCreateFinding={fieldOps.createFinding} onUpdateFinding={fieldOps.updateFinding} onRetestFinding={fieldOps.retestFinding} onChaosStart={fieldOps.startChaos} onChaosAbort={fieldOps.abortChaos} onRefresh={fieldOps.refresh} onClose={fieldOps.close} onExport={fieldOps.exportEvidence} onReport={fieldOps.exportReport} onSettings={()=>setPage('settings')}/>
+  else if(page==='fieldops')current=<FieldOpsPage license={licensing.license} data={fieldOps.data} identity={fieldOps.identity} onEnrollIdentity={fieldOps.enrollIdentity} onCreate={fieldOps.create} onRun={fieldOps.run} onCampaignStart={fieldOps.startCampaign} onCampaignPause={fieldOps.pauseCampaign} onCampaignResume={fieldOps.resumeCampaign} onCampaignCancel={fieldOps.cancelCampaign} onCreateFinding={fieldOps.createFinding} onUpdateFinding={fieldOps.updateFinding} onRetestFinding={fieldOps.retestFinding} onChaosStart={fieldOps.startChaos} onChaosAbort={fieldOps.abortChaos} onCapabilities={fieldOps.capabilities} onExportManifest={fieldOps.exportExecutionManifest} onImportEvidence={fieldOps.importEvidence} onRefresh={fieldOps.refresh} onClose={fieldOps.close} onExport={fieldOps.exportEvidence} onReport={fieldOps.exportReport} onSettings={()=>setPage('settings')}/>
   else if(page==='drills')current=<DrillsPage startQuiz={setQuiz} profile={operator}/>
   else if(page==='intel')current=<IntelPage onOpen={setArticle}/>
   else if(page==='operator')current=<OperatorPage profile={operator}/>

@@ -1,5 +1,6 @@
 const { app, BrowserWindow, dialog, ipcMain, safeStorage, shell } = require('electron')
-const { writeFile } = require('fs/promises')
+const { readFile, stat, writeFile } = require('fs/promises')
+const { createHash } = require('crypto')
 const os = require('os')
 const path = require('path')
 const { pathToFileURL } = require('url')
@@ -134,6 +135,7 @@ ipcMain.handle('license:checkout', rangeHandler(async () => {
   return { opened: true }
 }))
 ipcMain.handle('fieldops:snapshot', rangeHandler(() => engagementStore.snapshot()))
+ipcMain.handle('fieldops:capabilities', rangeHandler(refresh => engagementStore.capabilities(Boolean(refresh))))
 ipcMain.handle('fieldops:identity', rangeHandler(() => trustAuthority.snapshot()))
 ipcMain.handle('fieldops:identity-enroll', rangeHandler(input => trustAuthority.enroll(input)))
 ipcMain.handle('fieldops:create', rangeHandler(input => engagementStore.create(input)))
@@ -147,12 +149,32 @@ ipcMain.handle('fieldops:finding-update', rangeHandler(({ id, input }) => engage
 ipcMain.handle('fieldops:finding-retest', rangeHandler(({ id, input }) => engagementStore.retestFinding(id, input)))
 ipcMain.handle('fieldops:chaos-start', rangeHandler(input => engagementStore.startChaos(input)))
 ipcMain.handle('fieldops:chaos-abort', rangeHandler(id => engagementStore.abortChaos(id)))
+ipcMain.handle('fieldops:execution-manifest', rangeHandler(async input => {
+  const bundle=await engagementStore.createExecutionManifest(input)
+  const result=await dialog.showSaveDialog({title:'Export signed execution manifest',defaultPath:`daemoncore-execution-${bundle.manifest.tool.id}-${bundle.manifest.manifestId}.json`,filters:[{name:'Signed DaemonCore execution manifest',extensions:['json']}]})
+  if(result.canceled||!result.filePath)return{canceled:true}
+  await writeFile(result.filePath,`${JSON.stringify(bundle,null,2)}\n`,'utf8')
+  return{canceled:false,filePath:result.filePath,manifestId:bundle.manifest.manifestId}
+}))
+ipcMain.handle('fieldops:evidence-import', rangeHandler(async input => {
+  const result=await dialog.showOpenDialog({title:'Import assessment evidence',properties:['openFile'],filters:[{name:'JSON and SARIF evidence',extensions:['json','sarif']}]})
+  if(result.canceled||!result.filePaths[0])return{canceled:true}
+  const filePath=result.filePaths[0],fileStat=await stat(filePath)
+  if(fileStat.size>2*1024*1024)throw new Error('Evidence files are limited to 2 MB')
+  const source=await readFile(filePath,'utf8')
+  let document
+  try{document=JSON.parse(source)}catch{throw new Error('Evidence file is not valid JSON')}
+  const format=filePath.toLowerCase().endsWith('.sarif')||document?.version==='2.1.0'&&Array.isArray(document?.runs)?'sarif':'json'
+  const sourceDigest=createHash('sha256').update(source).digest('hex')
+  const capture=await engagementStore.importToolEvidence({...input,fileName:path.basename(filePath),format,document,sourceDigest})
+  return{canceled:false,captureId:capture.id,digest:capture.digest,fileName:path.basename(filePath)}
+}))
 ipcMain.handle('fieldops:close', rangeHandler(id => engagementStore.close(id)))
 ipcMain.handle('fieldops:export', rangeHandler(async id => {
   const snapshot = engagementStore.snapshot()
   const engagement = snapshot.engagements.find(item => item.id === id)
   if (!engagement) throw new Error('Engagement not found')
-  const bundle = { schemaVersion: 6, exportedAt: new Date().toISOString(), auditIntegrity: snapshot.auditIntegrity, captureIntegrity: snapshot.captureIntegrity, signatureIntegrity: snapshot.signatureIntegrity, operatorIdentity: trustAuthority.snapshot(), engagement, campaigns: snapshot.campaigns.filter(item => item.engagementId === id), captures: snapshot.captures.filter(item => item.engagementId === id), findings: snapshot.findings.filter(item => item.engagementId === id), chaosRuns: snapshot.chaosRuns.filter(item => item.engagementId === id), audit: snapshot.audit.filter(item => item.engagementId === id) }
+  const bundle = { schemaVersion: 7, exportedAt: new Date().toISOString(), auditIntegrity: snapshot.auditIntegrity, captureIntegrity: snapshot.captureIntegrity, signatureIntegrity: snapshot.signatureIntegrity, operatorIdentity: trustAuthority.snapshot(), engagement, campaigns: snapshot.campaigns.filter(item => item.engagementId === id), captures: snapshot.captures.filter(item => item.engagementId === id), findings: snapshot.findings.filter(item => item.engagementId === id), chaosRuns: snapshot.chaosRuns.filter(item => item.engagementId === id), audit: snapshot.audit.filter(item => item.engagementId === id) }
   const result = await dialog.showSaveDialog({ title: 'Export FieldOps evidence ledger', defaultPath: `daemoncore-fieldops-${engagement.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}.json`, filters: [{ name: 'JSON evidence bundle', extensions: ['json'] }] })
   if (result.canceled || !result.filePath) return { canceled: true }
   await writeFile(result.filePath, `${JSON.stringify(bundle, null, 2)}\n`, 'utf8')
