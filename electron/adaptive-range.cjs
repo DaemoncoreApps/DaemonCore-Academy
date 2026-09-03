@@ -78,6 +78,67 @@ const CONTRACTS = Object.freeze({
       objective('Submit the bounded identity finding', 'The range accepted the designated delegation finding.', [/finding accepted/i, /daemoncore\.lab sealed/i], 'Do not infer domain-wide control from the lab group name.'),
     ],
   },
+    'web-range': {
+    baseScore: 1100,
+    tools: ['HTTP client', 'response comparison', 'scenario inspection', 'finding submission'],
+    objectives: [
+      objective(
+        'Read the selected scenario contract',
+        'The operator retrieved the selected Web Forge lab brief.',
+        [/boundary["':\s]+SEALED_DOCKER_ONLY/i, /stopCondition["':\s]+one controlled comparison/i],
+        'Retrieve the selected lab brief from the sealed web target before testing it.'
+      ),
+      objective(
+        'Establish the positive control',
+        'The expected behavior or normal request path is preserved as baseline evidence.',
+        [/200|accepted|authorized|expected|guide|training operator|approved-public-mock/i],
+        'Run the normal or documented request first and preserve the response.'
+      ),
+      objective(
+        'Run the designated security comparison',
+        'A controlled comparison produces the lab-specific security signal.',
+        [/DC_|false|true|BOUNDARY|synthetic|unauthenticated|49|tenant|algorithmPinned|fieldAuthorization|invariantEnforced|atomic|workUnitsAllocated/i],
+        'Change only the variable identified by the selected lab and preserve the resulting difference.'
+      ),
+      objective(
+        'Submit the evidence-backed condition',
+        'The sealed target accepted the Web Forge finding.',
+        [/FINDING ACCEPTED/i, /evidenceThreshold["':\s]+SATISFIED/i, /scope["':\s]+SEALED/i],
+        'Submit the exact condition from the selected lab contract without adding untested impact.'
+      ),
+    ],
+  },
+
+  'enterprise-range': {
+    baseScore: 1400,
+    tools: ['case inspection', 'control comparison', 'JSON analysis', 'finding submission'],
+    objectives: [
+      objective(
+        'Read the selected enterprise case contract',
+        'The operator retrieved the selected Enterprise Forge scope.',
+        [/classification["':\s]+SYNTHETIC ENTERPRISE EVIDENCE/i, /stopCondition["':\s]+one effective-control difference/i],
+        'Inspect the selected case scope before evaluating any control evidence.'
+      ),
+      objective(
+        'Establish the documented positive control',
+        'The baseline identifies the documented expected allow decision.',
+        [/phase["':\s]+baseline/i, /EXPECTED_ALLOW/i, /confidence["':\s]+DIRECT/i],
+        'Use dc-case with the baseline phase and preserve the documented decision.'
+      ),
+      objective(
+        'Calculate the designated effective-control comparison',
+        'The comparison identifies the bounded control difference.',
+        [/phase["':\s]+compare/i, /BOUNDARY_DIFFERENCE/i, /confidence["':\s]+DIRECT/i],
+        'Use dc-case with the compare phase and preserve only the designated difference.'
+      ),
+      objective(
+        'Submit the evidence-calibrated condition',
+        'The sealed target accepted the Enterprise Forge finding.',
+        [/FINDING ACCEPTED/i, /evidenceThreshold["':\s]+SATISFIED/i, /scope["':\s]+SEALED/i],
+        'Submit the exact effective-control condition defined by the selected case.'
+      ),
+    ],
+  },
 })
 
 const FLAGSHIP_VARIANTS = Object.freeze({
