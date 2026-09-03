@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "algorithm": "sha256-tree-v1",
-  "generatedAt": "2026-08-30T03:53:03.753Z",
+  "generatedAt": "2026-09-03T19:51:49.962Z",
   "packs": [
     {
       "id": "artifact-zero",
@@ -107,7 +107,7 @@
       "id": "enterprise-range",
       "title": "Enterprise Forge",
       "engine": "docker",
-      "digest": "c33464fbd4e56395ab46c7c0fc25d8ef2cd6ce991348b207db5c3946534b9592",
+      "digest": "93b3b79d7b26f1ce94c6e9dccc858000affbf3a7022534f1fa22c087bba643d4",
       "files": [
         {
           "path": "cases.json",
@@ -142,7 +142,7 @@
         {
           "path": "target/Dockerfile",
           "bytes": 203,
-          "digest": "e72e9d7962a7a5c57ae47a0db64bad48cc730ef98be6b946f8896a73b515bf83"
+          "digest": "9eb34e4a4a10baab0d7ab52b153a60f105169fe20e81c397b40facb75635c264"
         },
         {
           "path": "target/server.mjs",
@@ -392,7 +392,7 @@
       "id": "web-range",
       "title": "Web Forge",
       "engine": "docker",
-      "digest": "fe2748b54a03ed022bd2b51138c0f629cab2c1f0ce4a3c0f447f9c1d57fa63da",
+      "digest": "0901b9ea7166a49cd6c8faae1c4f67e24fbcb53d9e7de05dc1b22615fcd71ac5",
       "files": [
         {
           "path": "compose.yaml",
@@ -437,7 +437,7 @@
         {
           "path": "target/Dockerfile",
           "bytes": 266,
-          "digest": "28714c376f21782cffc62e1e11f40a7966a6aa89c6c823f6d36981bbd80f5b05"
+          "digest": "c6c1cbd813975b4e9b2dea15dcd8d4b315f905228e02f2121ca3e7c5019829bb"
         },
         {
           "path": "target/server.mjs",
