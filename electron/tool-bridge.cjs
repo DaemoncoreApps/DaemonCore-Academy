@@ -1,4 +1,5 @@
-const { execFile } = require('child_process')
+const { execFile, spawn } = require('child_process')
+const { randomBytes } = require('crypto')
 
 const NMAP_IMAGE = 'instrumentisto/nmap:7.98-r2'
 
@@ -24,6 +25,52 @@ function execute(file, args, timeoutMs) {
       resolve({ stdout: String(stdout), stderr: String(stderr) })
     })
   })
+}
+
+function spawnExecution(file, args, options = {}) {
+  const child = spawn(file, args, { windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] })
+  let stdout = '', stderr = '', settled = false, timeout
+  const maxBytes = options.maxBytes || 8 * 1024 * 1024
+  const append = (channel, chunk) => {
+    const text = String(chunk)
+    if (channel === 'stdout') stdout = (stdout + text).slice(-maxBytes)
+    else stderr = (stderr + text).slice(-maxBytes)
+    options.onOutput?.({ channel, text, at: new Date().toISOString() })
+  }
+  child.stdout.on('data', chunk => append('stdout', chunk))
+  child.stderr.on('data', chunk => append('stderr', chunk))
+  const completion = new Promise((resolve, reject) => {
+    child.once('error', error => {
+      settled = true
+      clearTimeout(timeout)
+      reject(error)
+    })
+    child.once('close', (code, signal) => {
+      if (settled) return
+      settled = true
+      clearTimeout(timeout)
+      if (code === 0) resolve({ stdout, stderr, code, signal })
+      else {
+        const error = new Error(signal ? `Tool process stopped by ${signal}` : `Tool process exited with code ${code}`)
+        error.stdout = stdout
+        error.stderr = stderr
+        error.code = code
+        error.signal = signal
+        reject(error)
+      }
+    })
+  })
+  if (options.timeoutMs) timeout = setTimeout(() => child.kill('SIGTERM'), options.timeoutMs)
+  return {
+    pid: child.pid,
+    completion,
+    cancel: () => {
+      if (settled) return false
+      child.kill('SIGTERM')
+      setTimeout(() => { if (!settled) child.kill('SIGKILL') }, 2_000).unref()
+      return true
+    },
+  }
 }
 
 const decodeXml = value => String(value || '')
@@ -77,6 +124,7 @@ function nmapArguments(address, ports, maxPorts = 128) {
 class ToolBridge {
   constructor(options = {}) {
     this.execute = options.execute || execute
+    this.spawnExecution = options.spawnExecution || spawnExecution
     this.image = options.image || NMAP_IMAGE
     this.capabilityCache = null
   }
@@ -123,6 +171,35 @@ class ToolBridge {
       throw new Error(`Nmap Tool Bridge failed: ${detail}`)
     }
   }
+
+  async startInventory({ address, ports, maxPorts = 128, timeoutMs = 360_000, onOutput }) {
+    const engine = await this.selectEngine()
+    const args = nmapArguments(address, ports, maxPorts)
+    const containerName = engine.kind === 'docker-nmap' ? `daemoncore-nmap-${randomBytes(8).toString('hex')}` : null
+    const command = containerName ? ['run', '--rm', '--name', containerName, this.image, '--stats-every', '2s', ...args] : ['--stats-every', '2s', ...args]
+    const execution = this.spawnExecution(engine.file, command, { timeoutMs: containerName ? 0 : timeoutMs, onOutput })
+    let timedOut = false
+    const cancel = containerName ? () => {
+      this.execute('docker', ['stop', '--time', '2', containerName], 10_000).catch(() => {}).finally(() => execution.cancel())
+      return true
+    } : execution.cancel
+    const timeout = containerName ? setTimeout(() => { timedOut = true; cancel() }, timeoutMs) : null
+    const completion = execution.completion.finally(() => clearTimeout(timeout)).catch(error => {
+      if (timedOut) throw new Error('Nmap Tool Bridge exceeded the signed execution timeout')
+      throw error
+    })
+    return {
+      engine: engine.kind,
+      engineVersion: engine.version,
+      pid: execution.pid,
+      cancel,
+      completion: completion.then(result => {
+        const parsed = parseNmapXml(result.stdout)
+        if (!parsed.ports.length && !/<nmaprun\b/.test(result.stdout)) throw new Error('The engine returned no Nmap XML')
+        return { engine: engine.kind, engineVersion: engine.version, profile: 'deep-service-version', invocation: { scan: 'TCP connect', hostDiscovery: 'disabled', dns: 'disabled', serviceDetection: 'all probes', retries: 2, timeout: '5m' }, ...parsed }
+      }),
+    }
+  }
 }
 
-module.exports = { ToolBridge, TOOL_CATALOG, NMAP_IMAGE, nmapArguments, parseNmapXml }
+module.exports = { ToolBridge, TOOL_CATALOG, NMAP_IMAGE, nmapArguments, parseNmapXml, spawnExecution }

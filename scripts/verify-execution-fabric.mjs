@@ -87,7 +87,9 @@ try {
   ])
   assert.match(main, /fieldops:evidence-import/)
   assert.match(preload, /exportExecutionManifest/)
-  assert.match(ui, /customer-controlled runners/)
+  assert.match(main, /fieldops:tool-job-start/)
+  assert.match(preload, /startToolJob/)
+  assert.match(ui, /MANAGED NATIVE EXECUTION/)
 
   console.log('Execution Fabric verified // professional capacity, tool discovery, signed manifests, evidence intake, tamper rejection, and exact-scope enforcement')
 } finally {

@@ -140,6 +140,8 @@ ipcMain.handle('fieldops:identity', rangeHandler(() => trustAuthority.snapshot()
 ipcMain.handle('fieldops:identity-enroll', rangeHandler(input => trustAuthority.enroll(input)))
 ipcMain.handle('fieldops:create', rangeHandler(input => engagementStore.create(input)))
 ipcMain.handle('fieldops:run', rangeHandler(input => engagementStore.run(input)))
+ipcMain.handle('fieldops:tool-job-start', rangeHandler(input => engagementStore.startToolJob(input)))
+ipcMain.handle('fieldops:tool-job-cancel', rangeHandler(id => engagementStore.cancelToolJob(id)))
 ipcMain.handle('fieldops:campaign-start', rangeHandler(input => engagementStore.startCampaign(input)))
 ipcMain.handle('fieldops:campaign-pause', rangeHandler(id => engagementStore.pauseCampaign(id)))
 ipcMain.handle('fieldops:campaign-resume', rangeHandler(id => engagementStore.resumeCampaign(id)))
@@ -174,7 +176,7 @@ ipcMain.handle('fieldops:export', rangeHandler(async id => {
   const snapshot = engagementStore.snapshot()
   const engagement = snapshot.engagements.find(item => item.id === id)
   if (!engagement) throw new Error('Engagement not found')
-  const bundle = { schemaVersion: 7, exportedAt: new Date().toISOString(), auditIntegrity: snapshot.auditIntegrity, captureIntegrity: snapshot.captureIntegrity, signatureIntegrity: snapshot.signatureIntegrity, operatorIdentity: trustAuthority.snapshot(), engagement, campaigns: snapshot.campaigns.filter(item => item.engagementId === id), captures: snapshot.captures.filter(item => item.engagementId === id), findings: snapshot.findings.filter(item => item.engagementId === id), chaosRuns: snapshot.chaosRuns.filter(item => item.engagementId === id), audit: snapshot.audit.filter(item => item.engagementId === id) }
+  const bundle = { schemaVersion: 8, exportedAt: new Date().toISOString(), auditIntegrity: snapshot.auditIntegrity, captureIntegrity: snapshot.captureIntegrity, signatureIntegrity: snapshot.signatureIntegrity, operatorIdentity: trustAuthority.snapshot(), engagement, operatorJobs: snapshot.operatorJobs.filter(item => item.engagementId === id), campaigns: snapshot.campaigns.filter(item => item.engagementId === id), captures: snapshot.captures.filter(item => item.engagementId === id), findings: snapshot.findings.filter(item => item.engagementId === id), chaosRuns: snapshot.chaosRuns.filter(item => item.engagementId === id), audit: snapshot.audit.filter(item => item.engagementId === id) }
   const result = await dialog.showSaveDialog({ title: 'Export FieldOps evidence ledger', defaultPath: `daemoncore-fieldops-${engagement.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}.json`, filters: [{ name: 'JSON evidence bundle', extensions: ['json'] }] })
   if (result.canceled || !result.filePath) return { canceled: true }
   await writeFile(result.filePath, `${JSON.stringify(bundle, null, 2)}\n`, 'utf8')
@@ -243,5 +245,5 @@ app.on('before-quit', event => {
   if (cleanupStarted) return
   event.preventDefault()
   cleanupStarted = true
-  range.stop().catch(() => {}).finally(() => app.exit(0))
+  Promise.allSettled([range.stop(),engagementStore?.shutdown()]).finally(() => app.exit(0))
 })

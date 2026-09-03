@@ -101,7 +101,7 @@ function useLicense() {
 
 function useFieldOps() {
   const api=window.daemoncore?.fieldops
-  const [data,setData]=useState(api?null:{schemaVersion:6,engagements:[],campaigns:[],chaosRuns:[],captures:[],findings:[],audit:[]}),[identity,setIdentity]=useState(api?null:{configured:false,status:'preview',identity:null})
+  const [data,setData]=useState(api?null:{schemaVersion:8,engagements:[],operatorJobs:[],campaigns:[],chaosRuns:[],captures:[],findings:[],audit:[]}),[identity,setIdentity]=useState(api?null:{configured:false,status:'preview',identity:null})
   useEffect(()=>{if(api){api.snapshot().then(setData);api.identity().then(setIdentity)}},[api])
   const enrollIdentity=async input=>{if(!api)throw new Error('Operator identity requires the desktop build');const next=await api.enrollIdentity(input);setIdentity(next);return next}
   const create=async input=>{if(!api)throw new Error('FieldOps requires the desktop build');const next=await api.create(input);setData(next);return next}
@@ -115,11 +115,13 @@ function useFieldOps() {
   const capabilities=refresh=>{if(!api)throw new Error('Execution Fabric requires the desktop build');return api.capabilities(refresh)}
   const exportExecutionManifest=input=>{if(!api)throw new Error('Execution Fabric requires the desktop build');return api.exportExecutionManifest(input)}
   const importEvidence=async input=>{if(!api)throw new Error('Execution Fabric requires the desktop build');const result=await api.importEvidence(input);if(!result.canceled)setData(await api.snapshot());return result}
+  const startToolJob=async input=>{if(!api)throw new Error('Native execution requires the desktop build');const next=await api.startToolJob(input);setData(next);return next}
+  const cancelToolJob=async id=>{if(!api)throw new Error('Native execution requires the desktop build');const next=await api.cancelToolJob(id);setData(next);return next}
   const refresh=async()=>{if(!api)return data;const next=await api.snapshot();setData(next);return next}
   const close=async id=>{if(!api)throw new Error('FieldOps requires the desktop build');const next=await api.close(id);setData(next);return next}
   const exportEvidence=id=>api?.export(id)
   const exportReport=id=>api?.report(id)
-  return {data,identity,enrollIdentity,create,run,startCampaign:input=>campaignAction('startCampaign',input),pauseCampaign:id=>campaignAction('pauseCampaign',id),resumeCampaign:id=>campaignAction('resumeCampaign',id),cancelCampaign:id=>campaignAction('cancelCampaign',id),createFinding,updateFinding,retestFinding,startChaos,abortChaos,capabilities,exportExecutionManifest,importEvidence,refresh,close,exportEvidence,exportReport}
+  return {data,identity,enrollIdentity,create,run,startCampaign:input=>campaignAction('startCampaign',input),pauseCampaign:id=>campaignAction('pauseCampaign',id),resumeCampaign:id=>campaignAction('resumeCampaign',id),cancelCampaign:id=>campaignAction('cancelCampaign',id),createFinding,updateFinding,retestFinding,startChaos,abortChaos,capabilities,exportExecutionManifest,importEvidence,startToolJob,cancelToolJob,refresh,close,exportEvidence,exportReport}
 }
 
 function Brand({ compact = false }) {
@@ -308,7 +310,7 @@ export default function App() {
   else if(page==='mastery')current=<MasteryPage profile={operator} onStart={setActiveCapstone} onOpenLesson={setLesson}/>
   else if(page==='certification')current=<CertificationCenter profile={operator} identity={fieldOps.identity} onEnrollIdentity={fieldOps.enrollIdentity} onNavigate={setPage}/>
   else if(page==='labs')current=<LabsPage launchMission={setMission} completedMissions={operator.completedMissions}/>
-  else if(page==='fieldops')current=<FieldOpsPage license={licensing.license} data={fieldOps.data} identity={fieldOps.identity} onEnrollIdentity={fieldOps.enrollIdentity} onCreate={fieldOps.create} onRun={fieldOps.run} onCampaignStart={fieldOps.startCampaign} onCampaignPause={fieldOps.pauseCampaign} onCampaignResume={fieldOps.resumeCampaign} onCampaignCancel={fieldOps.cancelCampaign} onCreateFinding={fieldOps.createFinding} onUpdateFinding={fieldOps.updateFinding} onRetestFinding={fieldOps.retestFinding} onChaosStart={fieldOps.startChaos} onChaosAbort={fieldOps.abortChaos} onCapabilities={fieldOps.capabilities} onExportManifest={fieldOps.exportExecutionManifest} onImportEvidence={fieldOps.importEvidence} onRefresh={fieldOps.refresh} onClose={fieldOps.close} onExport={fieldOps.exportEvidence} onReport={fieldOps.exportReport} onSettings={()=>setPage('settings')}/>
+  else if(page==='fieldops')current=<FieldOpsPage license={licensing.license} data={fieldOps.data} identity={fieldOps.identity} onEnrollIdentity={fieldOps.enrollIdentity} onCreate={fieldOps.create} onRun={fieldOps.run} onCampaignStart={fieldOps.startCampaign} onCampaignPause={fieldOps.pauseCampaign} onCampaignResume={fieldOps.resumeCampaign} onCampaignCancel={fieldOps.cancelCampaign} onCreateFinding={fieldOps.createFinding} onUpdateFinding={fieldOps.updateFinding} onRetestFinding={fieldOps.retestFinding} onChaosStart={fieldOps.startChaos} onChaosAbort={fieldOps.abortChaos} onCapabilities={fieldOps.capabilities} onExportManifest={fieldOps.exportExecutionManifest} onImportEvidence={fieldOps.importEvidence} onStartToolJob={fieldOps.startToolJob} onCancelToolJob={fieldOps.cancelToolJob} onRefresh={fieldOps.refresh} onClose={fieldOps.close} onExport={fieldOps.exportEvidence} onReport={fieldOps.exportReport} onSettings={()=>setPage('settings')}/>
   else if(page==='drills')current=<DrillsPage startQuiz={setQuiz} profile={operator}/>
   else if(page==='intel')current=<IntelPage onOpen={setArticle}/>
   else if(page==='operator')current=<OperatorPage profile={operator}/>

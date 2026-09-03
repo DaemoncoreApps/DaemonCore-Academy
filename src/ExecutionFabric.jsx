@@ -1,13 +1,20 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Activity, ArrowRight, Check, Database, Download, FileInput, Gauge, Network, RefreshCw, ShieldCheck, TerminalSquare, Wrench } from 'lucide-react'
+import { Activity, ArrowRight, Check, Database, Download, FileInput, Gauge, Network, Play, RefreshCw, ShieldCheck, Square, TerminalSquare, Wrench } from 'lucide-react'
 
-export function ExecutionFabric({ engagement, onCapabilities, onExportManifest, onImportEvidence }) {
+const activeStatuses = new Set(['queued', 'starting', 'running', 'cancelling'])
+
+export function ExecutionFabric({ engagement, jobs = [], onCapabilities, onExportManifest, onImportEvidence, onStartJob, onCancelJob, onRefresh }) {
   const [capabilities, setCapabilities] = useState(null)
   const [selectedTool, setSelectedTool] = useState('nmap')
   const [target, setTarget] = useState(engagement.targets[0])
   const [busy, setBusy] = useState('')
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const [attested, setAttested] = useState(false)
+  const latestJob = jobs[0]
+  const activeJob = jobs.find(job => activeStatuses.has(job.status))
+  const hasActiveJob = Boolean(activeJob)
+  const runnerAvailable = capabilities?.tools?.some(tool => ['nmap', 'docker'].includes(tool.id) && tool.available)
 
   const load = async refresh => {
     setBusy('refresh')
@@ -28,6 +35,12 @@ export function ExecutionFabric({ engagement, onCapabilities, onExportManifest, 
       .catch(caught => { if (active) setError(caught.message) })
     return () => { active = false }
   }, [onCapabilities])
+
+  useEffect(() => {
+    if (!hasActiveJob) return undefined
+    const timer = setInterval(() => onRefresh().catch(() => {}), 800)
+    return () => clearInterval(timer)
+  }, [hasActiveJob, onRefresh])
 
   const profile = useMemo(
     () => capabilities?.profiles?.find(item => item.id === engagement.executionProfile) || engagement.executionCapacity,
@@ -50,12 +63,38 @@ export function ExecutionFabric({ engagement, onCapabilities, onExportManifest, 
     }
   }
 
+  const startNative = async () => {
+    setBusy('run')
+    setError('')
+    setMessage('')
+    try {
+      await onStartJob({ engagementId: engagement.id, toolId: 'nmap', target, attested })
+      setAttested(false)
+      setMessage('Managed Nmap job queued. Live process output is streaming below.')
+    } catch (caught) {
+      setError(caught.message)
+    } finally {
+      setBusy('')
+    }
+  }
+
+  const cancelNative = async () => {
+    if (!activeJob) return
+    setError('')
+    try {
+      await onCancelJob(activeJob.id)
+      setMessage('Stop requested. DaemonCore is terminating the managed process.')
+    } catch (caught) {
+      setError(caught.message)
+    }
+  }
+
   return <section className="execution-fabric">
     <header className="fabric-hero">
       <div>
         <span>FIELDOPS // EXECUTION FABRIC</span>
         <h2>Your tools.<br/><em>One signed operation.</em></h2>
-        <p>Discover the workstation toolchain, export machine-readable scope for customer-controlled runners, and seal third-party JSON or SARIF output into the engagement evidence chain.</p>
+        <p>Execute supported tools as managed background jobs, watch process output live, stop safely, and seal successful results into the engagement evidence chain.</p>
       </div>
       <div className="fabric-profile">
         <Gauge/>
@@ -71,6 +110,21 @@ export function ExecutionFabric({ engagement, onCapabilities, onExportManifest, 
       <div><Network/><span>SCOPE</span><strong>{engagement.targets.length} × {engagement.ports.length}</strong></div>
       <button disabled={busy === 'refresh'} onClick={() => load(true)}><RefreshCw/> Rescan workstation</button>
     </div>
+
+    <section className="native-console">
+      <header><div><TerminalSquare/><span>MANAGED NATIVE EXECUTION</span><h3>Nmap service inventory</h3></div><strong className={activeJob ? 'live' : ''}>{activeJob ? activeJob.status.toUpperCase() : 'READY'}</strong></header>
+      <div className="native-controls">
+        <label>PINNED AUTHORIZED TARGET<select value={target} onChange={event => setTarget(event.target.value)}>{engagement.targets.map(item => <option key={item}>{item}</option>)}</select></label>
+        <div><span>DECLARED PORT SET</span><strong>{engagement.ports.length} PORTS</strong><small>{engagement.ports.slice(0, 18).join(', ')}{engagement.ports.length > 18 ? '…' : ''}</small></div>
+        <label className="native-attest"><input type="checkbox" checked={attested} onChange={event => setAttested(event.target.checked)}/><span>{attested && <Check/>}</span><p>This run is authorized by the active signed permit.</p></label>
+        {activeJob ? <button className="stop" onClick={cancelNative} disabled={activeJob.status === 'cancelling'}><Square/> {activeJob.status === 'cancelling' ? 'STOPPING' : 'STOP JOB'}</button> : <button onClick={startNative} disabled={!attested || busy === 'run' || !runnerAvailable}><Play/> {busy === 'run' ? 'QUEUING' : 'RUN NMAP'}</button>}
+      </div>
+      <div className="native-output">
+        <div><span>{latestJob ? `${latestJob.toolLabel.toUpperCase()} // ${latestJob.target} → ${latestJob.address}` : 'NO JOB SELECTED'}</span><strong>{latestJob?.engine?.toUpperCase() || 'WAITING'}</strong><em>{latestJob?.outcome || 'Start an authorized run to open the live process channel.'}</em></div>
+        <pre>{latestJob?.output || '$ DaemonCore native runner ready.\n$ Scope and permit checks will run before process launch.'}</pre>
+        {latestJob?.captureId && <footer><ShieldCheck/> RESULT SEALED // CAPTURE {latestJob.captureId.slice(0, 8)}</footer>}
+      </div>
+    </section>
 
     <div className="fabric-grid">
       {(capabilities?.tools || []).map(tool => <article className={tool.available ? 'available' : ''} key={tool.id}>
@@ -95,6 +149,6 @@ export function ExecutionFabric({ engagement, onCapabilities, onExportManifest, 
 
     {error && <div className="fabric-message error">BLOCKED // {error}</div>}
     {message && <div className="fabric-message"><Activity/> {message}</div>}
-    <footer><ShieldCheck/><p><strong>Professional freedom stays attributable.</strong> Execution manifests carry the exact signed targets, ports, policy, capacity, operator fingerprint, and validity window. High-intensity workloads remain the responsibility of the customer-controlled runner and its approved test plan.</p></footer>
+    <footer><ShieldCheck/><p><strong>Native execution is permit-bound and attributable.</strong> DaemonCore passes a fixed argument array directly to the tool—never through a command shell—pins resolved destinations, retains job history, and seals completed output as evidence. External workload testing remains governed by the approved test plan.</p></footer>
   </section>
 }

@@ -11,7 +11,7 @@ const { ToolBridge, TOOL_CATALOG } = require('./tool-bridge.cjs')
 const { TrustAuthority } = require('./trust-authority.cjs')
 const { executionPolicy, publicExecutionProfiles } = require('./execution-policy.cjs')
 
-const cleanState = () => ({ schemaVersion: 7, engagements: [], campaigns: [], chaosRuns: [], captures: [], findings: [], audit: [] })
+const cleanState = () => ({ schemaVersion: 8, engagements: [], operatorJobs: [], campaigns: [], chaosRuns: [], captures: [], findings: [], audit: [] })
 const clone = value => JSON.parse(JSON.stringify(value))
 const captureDigest = capture => { const { digest: _digest, ...unsigned }=capture;return createHash('sha256').update(JSON.stringify(unsigned)).digest('hex') }
 const hostnamePattern = /^(?=.{1,253}$)(?!-)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)*[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/
@@ -53,6 +53,7 @@ const webPorts=new Set([80,443,3000,5000,8000,8080,8081,8443,8888,9443])
 const serviceByPort={21:'ftp',22:'ssh',25:'smtp',53:'dns',80:'http',110:'pop3',143:'imap',389:'ldap',443:'https',445:'smb',465:'smtps',587:'smtp-submission',636:'ldaps',993:'imaps',995:'pop3s',1433:'mssql',1521:'oracle',2049:'nfs',2375:'docker',2376:'docker-tls',3000:'http-alt',3306:'mysql',3389:'rdp',5000:'http-alt',5432:'postgresql',5672:'amqp',6379:'redis',8000:'http-alt',8080:'http-alt',8081:'http-alt',8443:'https-alt',8888:'http-alt',9200:'elasticsearch',9443:'https-alt',27017:'mongodb'}
 const campaignProfiles={inventory:['deep-inventory'],surface:['dns-profile','surface'],complete:['dns-profile','deep-inventory','surface']}
 const activeCampaignStatuses=new Set(['queued','running','pause-requested','paused','cancelling'])
+const activeJobStatuses=new Set(['queued','starting','running','cancelling'])
 const observedOperations=new Set(['dns','tcp','http','tls','http-posture','service-profile'])
 const safeExecutionPolicy=value=>{try{return executionPolicy(value)}catch{return executionPolicy('guarded')}}
 
@@ -73,10 +74,11 @@ class EngagementStore {
     this.chaosAbort=new Set()
     this.campaignAbort=new Set()
     this.campaignPause=new Set()
+    this.jobControls=new Map()
     this.writeQueue=Promise.resolve()
   }
 
-  async initialize(){await mkdir(this.directory,{recursive:true});try{this.state={...cleanState(),...JSON.parse(await readFile(this.file,'utf8')),schemaVersion:7};this.state.campaigns||=[];this.state.chaosRuns||=[];this.state.captures||=[];this.state.findings||=[];for(const engagement of this.state.engagements){engagement.networkMode||='external';engagement.policyLevel||=engagement.permit?.policyLevel||'legacy';const policy=safeExecutionPolicy(engagement.executionProfile||engagement.permit?.executionProfile);engagement.executionProfile=policy.id;engagement.executionCapacity||={...policy}}for(const campaign of this.state.campaigns){if(activeCampaignStatuses.has(campaign.status)){campaign.status='interrupted';campaign.finishedAt=this.now().toISOString();campaign.outcome='The desktop process ended before the campaign completed. Resume to continue pending work.';for(const task of campaign.tasks||[])if(task.status==='running')task.status='pending'}}for(const run of this.state.chaosRuns){if(['queued','running','recovering','aborting'].includes(run.status)){run.status='interrupted';run.finishedAt=this.now().toISOString();run.outcome='The desktop process ended before the experiment completed.'}}}catch{this.state=cleanState()}await this.persist();return this.snapshot()}
+  async initialize(){await mkdir(this.directory,{recursive:true});try{this.state={...cleanState(),...JSON.parse(await readFile(this.file,'utf8')),schemaVersion:8};this.state.operatorJobs||=[];this.state.campaigns||=[];this.state.chaosRuns||=[];this.state.captures||=[];this.state.findings||=[];for(const engagement of this.state.engagements){engagement.networkMode||='external';engagement.policyLevel||=engagement.permit?.policyLevel||'legacy';const policy=safeExecutionPolicy(engagement.executionProfile||engagement.permit?.executionProfile);engagement.executionProfile=policy.id;engagement.executionCapacity||={...policy}}for(const job of this.state.operatorJobs){if(activeJobStatuses.has(job.status)){job.status='interrupted';job.finishedAt=this.now().toISOString();job.outcome='The desktop process ended before the native tool completed.'}}for(const campaign of this.state.campaigns){if(activeCampaignStatuses.has(campaign.status)){campaign.status='interrupted';campaign.finishedAt=this.now().toISOString();campaign.outcome='The desktop process ended before the campaign completed. Resume to continue pending work.';for(const task of campaign.tasks||[])if(task.status==='running')task.status='pending'}}for(const run of this.state.chaosRuns){if(['queued','running','recovering','aborting'].includes(run.status)){run.status='interrupted';run.finishedAt=this.now().toISOString();run.outcome='The desktop process ended before the experiment completed.'}}}catch{this.state=cleanState()}await this.persist();return this.snapshot()}
   snapshot(){return {...clone(this.state),auditIntegrity:this.verifyAudit(),captureIntegrity:this.verifyCaptures(),signatureIntegrity:this.verifySignatures()}}
   assertEntitled(){if(!this.entitlement().fieldOps)throw new Error('FieldOps Pro entitlement required')}
 
@@ -107,6 +109,7 @@ class EngagementStore {
     if(!engagement||engagement.status!=='active')throw new Error('Active engagement not found')
     if(this.state.chaosRuns.some(item=>item.engagementId===id&&['queued','running','recovering','aborting'].includes(item.status)))throw new Error('Stop the active Chaos Engine experiment before closing its authorization boundary')
     if(this.state.campaigns.some(item=>item.engagementId===id&&activeCampaignStatuses.has(item.status)))throw new Error('Stop the active assessment campaign before closing its authorization boundary')
+    if(this.state.operatorJobs.some(item=>item.engagementId===id&&activeJobStatuses.has(item.status)))throw new Error('Stop the active native tool job before closing its authorization boundary')
     engagement.status='closed';engagement.closedAt=this.now().toISOString();this.audit(id,'engagement','closed','Authorization boundary closed by operator');await this.persist();return this.snapshot()
   }
 
@@ -169,6 +172,70 @@ class EngagementStore {
     return capture
   }
 
+  appendJobOutput(job, event){
+    const text=String(event?.text||'').replace(/\u0000/g,'')
+    if(!text)return
+    job.output=(job.output||'')+text
+    if(job.output.length>60_000)job.output=`[earlier output truncated]\n${job.output.slice(-50_000)}`
+    job.lastOutputAt=event?.at||this.now().toISOString()
+  }
+
+  async startToolJob(input){
+    const engagement=this.getActive(input?.engagementId)
+    this.assertOperation(engagement,'validate')
+    if(String(input?.toolId||'')!=='nmap')throw new Error('This release executes Nmap natively. Other discovered tools remain evidence bridges.')
+    if(input?.attested!==true)throw new Error('Confirm this native execution remains inside the signed engagement')
+    if(this.running)throw new Error('Wait for the active FieldOps diagnostic to finish')
+    if(this.state.operatorJobs.some(item=>activeJobStatuses.has(item.status)))throw new Error('Another native tool job is already active')
+    if(this.state.campaigns.some(item=>activeCampaignStatuses.has(item.status)))throw new Error('Stop the active assessment campaign first')
+    if(this.state.chaosRuns.some(item=>['queued','running','recovering','aborting'].includes(item.status)))throw new Error('Stop the active Chaos Engine experiment first')
+    const target=normalizeTarget(input?.target)
+    if(!engagement.targets.includes(target))throw new Error('Target is outside the signed engagement allowlist')
+    const policy=executionPolicy(engagement.executionProfile),addresses=await this.resolveAuthorized(target,engagement.networkMode||'external'),address=addresses[0].address,now=this.now().toISOString()
+    const job={id:randomUUID(),engagementId:engagement.id,toolId:'nmap',toolLabel:'Nmap',target,address,ports:[...engagement.ports],status:'queued',pid:null,engine:null,engineVersion:null,output:'',lastOutputAt:null,createdAt:now,startedAt:null,finishedAt:null,captureId:null,outcome:'Native execution queued inside the signed scope.',authorizationReference:engagement.authorizationReference,permitId:engagement.permit?.id||null}
+    this.state.operatorJobs.unshift(job);this.state.operatorJobs=this.state.operatorJobs.slice(0,100)
+    this.audit(engagement.id,'native-tool','queued',`Nmap // ${target} (${address}) // ${job.ports.length} ports`,{jobId:job.id,permitId:job.permitId});await this.persist()
+    this.executeToolJob(job.id,policy).catch(()=>{})
+    return this.snapshot()
+  }
+
+  async executeToolJob(id,policy){
+    const job=this.state.operatorJobs.find(item=>item.id===id)
+    if(!job)return
+    try{
+      job.status='starting';job.startedAt=this.now().toISOString();job.outcome='Starting the native adapter.';await this.persist()
+      const execution=await this.toolBridge.startInventory({address:job.address,ports:job.ports,maxPorts:policy.maxPorts,timeoutMs:policy.nmapTimeoutMs,onOutput:event=>this.appendJobOutput(job,event)})
+      this.jobControls.set(id,execution);job.pid=execution.pid||null;job.engine=execution.engine;job.engineVersion=execution.engineVersion
+      if(job.status==='cancelling')execution.cancel()
+      else{job.status='running';job.outcome='Native tool is running. Output is streaming below.'}
+      await this.persist()
+      const result=await execution.completion
+      const capture={id:randomUUID(),engagementId:job.engagementId,networkMode:this.state.engagements.find(item=>item.id===job.engagementId)?.networkMode||'external',executionProfile:this.state.engagements.find(item=>item.id===job.engagementId)?.executionProfile||'guarded',type:'native-tool-run',target:job.target,port:null,path:null,addresses:[{address:job.address}],durationMs:Date.parse(this.now().toISOString())-Date.parse(job.startedAt),result:{tool:{id:'nmap',label:'Nmap'},jobId:job.id,source:'managed-native-execution',...result},at:this.now().toISOString()}
+      capture.digest=captureDigest(capture);this.state.captures.unshift(capture);this.state.captures=this.state.captures.slice(0,2000)
+      job.status='completed';job.captureId=capture.id;job.finishedAt=this.now().toISOString();job.outcome=`Completed and sealed ${result.summary?.open||0} open service(s) into evidence.`
+      this.audit(job.engagementId,'native-tool','completed',`Nmap // ${job.target} // ${result.summary?.open||0} open`,{jobId:job.id,captureId:capture.id,engine:job.engine});await this.persist()
+    }catch(error){
+      const interrupted=job.status==='interrupted',cancelled=job.status==='cancelling';job.status=interrupted?'interrupted':cancelled?'cancelled':'failed';job.finishedAt=this.now().toISOString();job.outcome=interrupted?job.outcome:cancelled?'Stopped by the operator. Partial output was retained but not sealed as evidence.':String(error.stderr||error.message||'Native tool failed').trim().slice(0,700);this.audit(job.engagementId,'native-tool',job.status,job.outcome,{jobId:job.id});await this.persist().catch(()=>{})
+    }finally{this.jobControls.delete(id)}
+  }
+
+  async cancelToolJob(id){
+    this.assertEntitled()
+    const job=this.state.operatorJobs.find(item=>item.id===id)
+    if(!job||!activeJobStatuses.has(job.status))throw new Error('Active native tool job not found')
+    job.status='cancelling';job.outcome='Stop requested. Terminating the managed process.';this.audit(job.engagementId,'native-tool','cancel-requested',`${job.toolLabel} // ${job.target}`,{jobId:id});this.jobControls.get(id)?.cancel();await this.persist();return this.snapshot()
+  }
+
+  async shutdown(){
+    for(const [id,execution] of this.jobControls){
+      execution.cancel()
+      const job=this.state.operatorJobs.find(item=>item.id===id)
+      if(job&&activeJobStatuses.has(job.status)){job.status='interrupted';job.finishedAt=this.now().toISOString();job.outcome='DaemonCore closed before the native tool completed. The managed process was terminated.'}
+    }
+    this.jobControls.clear()
+    await this.persist()
+  }
+
   getActive(id){
     this.assertEntitled();const engagement=this.state.engagements.find(item=>item.id===id)
     if(!engagement||engagement.status!=='active')throw new Error('Active engagement not found')
@@ -195,6 +262,7 @@ class EngagementStore {
 
   async run(input,context={}){
     if(this.running)throw new Error('Another diagnostic is already running')
+    if(this.state.operatorJobs.some(item=>activeJobStatuses.has(item.status)))throw new Error('A native tool job is active')
     if(this.state.chaosRuns.some(item=>['queued','running','recovering','aborting'].includes(item.status)))throw new Error('A Chaos Engine experiment is active')
     const activeCampaign=this.state.campaigns.find(item=>activeCampaignStatuses.has(item.status));if(activeCampaign&&activeCampaign.id!==context.campaignId)throw new Error('An assessment campaign is active')
     this.running=true

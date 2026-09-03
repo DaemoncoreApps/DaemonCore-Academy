@@ -53,6 +53,8 @@ contextBridge.exposeInMainWorld('daemoncore', {
     enrollIdentity: input => ipcRenderer.invoke('fieldops:identity-enroll', input),
     create: input => ipcRenderer.invoke('fieldops:create', input),
     run: input => ipcRenderer.invoke('fieldops:run', input),
+    startToolJob: input => ipcRenderer.invoke('fieldops:tool-job-start', input),
+    cancelToolJob: id => ipcRenderer.invoke('fieldops:tool-job-cancel', id),
     startCampaign: input => ipcRenderer.invoke('fieldops:campaign-start', input),
     pauseCampaign: id => ipcRenderer.invoke('fieldops:campaign-pause', id),
     resumeCampaign: id => ipcRenderer.invoke('fieldops:campaign-resume', id),
