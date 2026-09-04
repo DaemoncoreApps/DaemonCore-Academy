@@ -151,6 +151,7 @@ ipcMain.handle('fieldops:finding-update', rangeHandler(({ id, input }) => engage
 ipcMain.handle('fieldops:finding-retest', rangeHandler(({ id, input }) => engagementStore.retestFinding(id, input)))
 ipcMain.handle('fieldops:chaos-start', rangeHandler(input => engagementStore.startChaos(input)))
 ipcMain.handle('fieldops:chaos-abort', rangeHandler(id => engagementStore.abortChaos(id)))
+ipcMain.handle('fieldops:capacity-verify', rangeHandler(input => engagementStore.verifyCapacityGrant(input)))
 ipcMain.handle('fieldops:execution-manifest', rangeHandler(async input => {
   const bundle=await engagementStore.createExecutionManifest(input)
   const result=await dialog.showSaveDialog({title:'Export signed execution manifest',defaultPath:`daemoncore-execution-${bundle.manifest.tool.id}-${bundle.manifest.manifestId}.json`,filters:[{name:'Signed DaemonCore execution manifest',extensions:['json']}]})

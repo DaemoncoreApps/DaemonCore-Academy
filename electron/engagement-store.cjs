@@ -114,7 +114,7 @@ class EngagementStore {
     const validFrom=new Date(input.validFrom),validUntil=new Date(input.validUntil),now=this.now()
     if(Number.isNaN(validFrom.getTime())||Number.isNaN(validUntil.getTime())||validUntil<=validFrom)throw new Error('Enter a valid testing window')
     if(validUntil.getTime()-validFrom.getTime()>366*86_400_000)throw new Error('Testing windows cannot exceed one year')
-    const policyLevel=String(input?.policyLevel||'validate').toLowerCase(),engagement={id:randomUUID(),name,client,authorizationReference,networkMode,targets,ports,policyLevel,executionProfile:policy.id,executionCapacity:capacity,validFrom:validFrom.toISOString(),validUntil:validUntil.toISOString(),attestedAt:now.toISOString(),status:'active',createdAt:now.toISOString()}
+    const policyLevel=String(input?.policyLevel||'validate').toLowerCase(),engagement={id:randomUUID(),name,client,authorizationReference,networkMode,targets,ports,policyLevel,executionProfile:policy.id,executionCapacity:capacity,capacityChallenge:randomUUID(),capacityGrants:[],validFrom:validFrom.toISOString(),validUntil:validUntil.toISOString(),attestedAt:now.toISOString(),status:'active',createdAt:now.toISOString()}
     if(this.trust){const approverName=String(input?.approverName||'').trim().replace(/\s+/g,' ').slice(0,100),approverEmail=String(input?.approverEmail||'').trim().toLowerCase().slice(0,160);if(approverName.length<3||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(approverEmail))throw new Error('Add the approving authority name and professional email');engagement.permit=this.trust.issuePermit({...engagement,approverName,approverEmail})}
     this.state.engagements.unshift(engagement);this.audit(engagement.id,'engagement','created',`${networkMode.toUpperCase()} ${policyLevel.toUpperCase()} ${policy.label.toUpperCase()} authorization boundary recorded`,{permitId:engagement.permit?.id||null,executionProfile:policy.id,executionCapacity:engagement.executionCapacity});await this.persist();return this.snapshot()
   }
@@ -141,6 +141,8 @@ class EngagementStore {
     const tool=TOOL_CATALOG.find(item=>item.id===String(input?.toolId||''))
     if(!tool)throw new Error('Choose a supported execution capability')
     const policy=engagement.executionCapacity||executionPolicy(engagement.executionProfile)
+    const workloadTool=['k6','locust'].includes(tool.id)
+    const workload=workloadTool?this.authorizedWorkload(engagement,input):null
     const issuedAt=this.now().toISOString()
     const manifest={
       schemaVersion:1,
@@ -155,9 +157,41 @@ class EngagementStore {
       validUntil:engagement.validUntil,
       instructions:'A customer-controlled runner must independently enforce this exact signed scope and return its output for evidence sealing.',
     }
+    if(workload)manifest.workload=workload
     const bundle={bundleVersion:1,manifest,attestation:this.trust.sign('fieldops-execution-manifest',manifest)}
     this.audit(engagement.id,'execution-manifest','exported',`${tool.label} // ${policy.label} // ${engagement.targets.length} targets`,{manifestId:manifest.manifestId,toolId:tool.id,executionProfile:policy.id});await this.persist()
     return bundle
+  }
+
+  authorizedWorkload(engagement,input){
+    const target=normalizeTarget(input?.target)
+    const grant=(engagement.capacityGrants||[]).find(item=>item.target===target&&Date.parse(item.validUntil)>=this.now().getTime())
+    if(!grant)throw new Error('Verify a current target-issued capacity grant before exporting a workload plan')
+    const requestsPerSecond=Math.round(Number(input?.requestsPerSecond)),durationSeconds=Math.round(Number(input?.durationSeconds)),concurrency=Math.round(Number(input?.concurrency))
+    if(!Number.isInteger(requestsPerSecond)||requestsPerSecond<1||requestsPerSecond>grant.maxRequestsPerSecond)throw new Error(`Arrival rate must be between 1 and the verified ${grant.maxRequestsPerSecond} req/s grant`)
+    if(!Number.isInteger(durationSeconds)||durationSeconds<10||durationSeconds>grant.maxDurationSeconds)throw new Error(`Duration must be between 10 and the verified ${grant.maxDurationSeconds} second grant`)
+    if(!Number.isInteger(concurrency)||concurrency<1||concurrency>grant.maxConcurrency)throw new Error(`Concurrency must be between 1 and the verified ${grant.maxConcurrency} worker grant`)
+    return {mode:'customer-controlled-load',target,path:normalizeHttpPath(input?.path),secure:Boolean(input?.secure),requestsPerSecond,durationSeconds,concurrency,emergencyStopRequired:true,capacityGrant:{id:grant.id,digest:grant.digest,verifiedAt:grant.verifiedAt,validUntil:grant.validUntil}}
+  }
+
+  async verifyCapacityGrant(input){
+    const engagement=this.getActive(input?.engagementId),target=normalizeTarget(input?.target),port=Number(input?.port),secure=Boolean(input?.secure)
+    this.assertOperation(engagement,'resilience')
+    if(!engagement.capacityChallenge)throw new Error('Reissue this engagement to create a target-verification challenge')
+    if(!engagement.targets.includes(target)||!engagement.ports.includes(port))throw new Error('Capacity verification must use an exact permitted target and port')
+    if(engagement.networkMode==='external'&&!secure)throw new Error('External capacity grants must be retrieved over verified TLS')
+    const addresses=await this.resolveAuthorized(target,engagement.networkMode||'external')
+    const requestPath=`/.well-known/daemoncore-capacity/${encodeURIComponent(engagement.capacityChallenge)}.json`
+    const document=await this.getJson(target,addresses[0].address,port,secure,requestPath)
+    const maxRequestsPerSecond=Math.round(Number(document?.maxRequestsPerSecond)),maxDurationSeconds=Math.round(Number(document?.maxDurationSeconds)),maxConcurrency=Math.round(Number(document?.maxConcurrency)),validUntil=new Date(document?.validUntil)
+    if(document?.challenge!==engagement.capacityChallenge||normalizeTarget(document?.target)!==target||document?.authorizationReference!==engagement.authorizationReference)throw new Error('Target-issued grant does not match this signed engagement challenge')
+    if(!Number.isInteger(maxRequestsPerSecond)||maxRequestsPerSecond<1||!Number.isInteger(maxDurationSeconds)||maxDurationSeconds<10||!Number.isInteger(maxConcurrency)||maxConcurrency<1)throw new Error('Capacity grant limits are missing or invalid')
+    if(Number.isNaN(validUntil.getTime())||validUntil<=this.now()||validUntil>Date.parse(engagement.validUntil))throw new Error('Capacity grant validity must end inside the signed engagement window')
+    const normalized={id:randomUUID(),target,port,secure,requestPath,maxRequestsPerSecond,maxDurationSeconds,maxConcurrency,validUntil:validUntil.toISOString(),verifiedAt:this.now().toISOString(),sourceAddress:addresses[0].address,authorizationReference:engagement.authorizationReference}
+    normalized.digest=createHash('sha256').update(JSON.stringify(normalized)).digest('hex')
+    engagement.capacityGrants=[normalized,...(engagement.capacityGrants||[]).filter(item=>item.target!==target)].slice(0,engagement.targets.length)
+    this.audit(engagement.id,'capacity-grant','verified',`${target} // ${maxRequestsPerSecond} req/s // ${maxConcurrency} workers // ${maxDurationSeconds}s`,{grantId:normalized.id,digest:normalized.digest});await this.persist()
+    return this.snapshot()
   }
 
   async importToolEvidence(input){
@@ -259,7 +293,7 @@ class EngagementStore {
     return engagement
   }
 
-  assertOperation(engagement,requiredOperation){if(!this.trust)return;if(!engagement.permit)throw new Error('This engagement must be reissued with a signed operation permit');const permit=this.trust.assertPermit(engagement.permit,requiredOperation),permitProfile=permit.executionProfile||'guarded',bound=permit.engagementId===engagement.id&&permit.client===engagement.client&&permit.authorizationReference===engagement.authorizationReference&&permit.networkMode===engagement.networkMode&&permit.policyLevel===engagement.policyLevel&&permitProfile===(engagement.executionProfile||'guarded')&&permit.validFrom===engagement.validFrom&&permit.validUntil===engagement.validUntil&&JSON.stringify(permit.targets)===JSON.stringify(engagement.targets)&&JSON.stringify(permit.ports)===JSON.stringify(engagement.ports)&&JSON.stringify(permit.executionCapacity||null)===JSON.stringify(engagement.executionCapacity||null);if(!bound)throw new Error('Engagement record no longer matches its signed operation permit')}
+  assertOperation(engagement,requiredOperation){if(!this.trust)return;if(!engagement.permit)throw new Error('This engagement must be reissued with a signed operation permit');const permit=this.trust.assertPermit(engagement.permit,requiredOperation),permitProfile=permit.executionProfile||'guarded',bound=permit.engagementId===engagement.id&&permit.client===engagement.client&&permit.authorizationReference===engagement.authorizationReference&&permit.networkMode===engagement.networkMode&&permit.policyLevel===engagement.policyLevel&&permitProfile===(engagement.executionProfile||'guarded')&&permit.validFrom===engagement.validFrom&&permit.validUntil===engagement.validUntil&&permit.capacityChallenge===(engagement.capacityChallenge||null)&&JSON.stringify(permit.targets)===JSON.stringify(engagement.targets)&&JSON.stringify(permit.ports)===JSON.stringify(engagement.ports)&&JSON.stringify(permit.executionCapacity||null)===JSON.stringify(engagement.executionCapacity||null);if(!bound)throw new Error('Engagement record no longer matches its signed operation permit')}
 
   async resolvePublic(target){
     if(net.isIP(target)){if(!isPublicAddress(target))throw new Error('FieldOps external mode blocks private, loopback, link-local, and reserved addresses');return [{address:target,family:net.isIPv4(target)?4:6}]}
@@ -464,6 +498,7 @@ class EngagementStore {
   }
 
   head(target,address,port,secure,requestPath='/'){return new Promise((resolve,reject)=>{const client=secure?https:http,request=client.request({method:'HEAD',host:address,port,path:requestPath,servername:secure&&!net.isIP(target)?target:undefined,headers:{Host:target,'User-Agent':'DaemonCore-FieldOps/1.1'},timeout:7000,rejectUnauthorized:true},response=>{const headers=Object.fromEntries(Object.entries(response.headers).slice(0,30).map(([key,value])=>[key,String(value).slice(0,500)]));response.resume();resolve({statusCode:response.statusCode,statusMessage:response.statusMessage,headers})});request.once('timeout',()=>request.destroy(new Error('HTTP request timed out')));request.once('error',error=>reject(new Error(`HTTP HEAD failed: ${error.message}`)));request.end()})}
+  getJson(target,address,port,secure,requestPath){return new Promise((resolve,reject)=>{const client=secure?https:http,request=client.request({method:'GET',host:address,port,path:requestPath,servername:secure&&!net.isIP(target)?target:undefined,headers:{Host:target,Accept:'application/json','User-Agent':'DaemonCore-FieldOps/1.1'},timeout:7000,rejectUnauthorized:true},response=>{if(response.statusCode!==200){response.resume();reject(new Error(`Capacity endpoint returned HTTP ${response.statusCode}`));return}let body='';response.setEncoding('utf8');response.on('data',chunk=>{body+=chunk;if(body.length>16_384)request.destroy(new Error('Capacity grant exceeds 16 KB'))});response.on('end',()=>{try{resolve(JSON.parse(body))}catch{reject(new Error('Capacity endpoint did not return valid JSON'))}})});request.once('timeout',()=>request.destroy(new Error('Capacity verification timed out')));request.once('error',error=>reject(new Error(`Capacity verification failed: ${error.message}`)));request.end()})}
 
   async baseline(target,address,port,secure,requestPath){const samples=[];for(let index=0;index<10;index+=1){const started=Date.now();try{const response=await this.head(target,address,port,secure,requestPath);samples.push({sequence:index+1,statusCode:response.statusCode,durationMs:Date.now()-started})}catch(error){samples.push({sequence:index+1,error:error.message,durationMs:Date.now()-started})}if(index<9)await this.pause(500)}const successful=samples.filter(item=>item.statusCode),durations=successful.map(item=>item.durationMs);return{mode:'bounded-head-baseline',requestCount:10,concurrency:1,minimumIntervalMs:500,successful:successful.length,averageMs:durations.length?Math.round(durations.reduce((sum,value)=>sum+value,0)/durations.length):null,samples}}
 

@@ -42,7 +42,7 @@ try {
     authorizationReference: 'SOW-EXEC-204',
     approverName: 'Jordan Rivera',
     approverEmail: 'jordan@example.com',
-    policyLevel: 'validate',
+    policyLevel: 'stress',
     executionProfile: 'professional',
     networkMode: 'external',
     targets: 'app.example.com',
@@ -56,6 +56,23 @@ try {
   assert.equal(engagement.ports.length, 129)
   assert.equal(engagement.permit.executionProfile, 'professional')
   assert.equal(engagement.permit.executionCapacity.maxPorts, 129)
+  assert.equal(engagement.permit.capacityChallenge, engagement.capacityChallenge)
+
+  fieldops.resolveAuthorized = async () => [{ address: '93.184.216.34', family: 4 }]
+  fieldops.getJson = async () => ({
+    challenge: engagement.capacityChallenge,
+    target: 'app.example.com',
+    authorizationReference: 'SOW-EXEC-204',
+    maxRequestsPerSecond: 500,
+    maxDurationSeconds: 900,
+    maxConcurrency: 80,
+    validUntil: '2026-09-03T16:00:00.000Z',
+  })
+  await fieldops.verifyCapacityGrant({ engagementId: engagement.id, target: 'app.example.com', port: 80, secure: true })
+  const loadBundle = await fieldops.createExecutionManifest({ engagementId: engagement.id, toolId: 'k6', target: 'app.example.com', path: '/health', secure: true, requestsPerSecond: 500, durationSeconds: 900, concurrency: 80 })
+  assert.equal(loadBundle.manifest.workload.capacityGrant.digest.length, 64)
+  assert.equal(loadBundle.manifest.workload.emergencyStopRequired, true)
+  await assert.rejects(() => fieldops.createExecutionManifest({ engagementId: engagement.id, toolId: 'k6', target: 'app.example.com', path: '/', secure: true, requestsPerSecond: 501, durationSeconds: 60, concurrency: 20 }), /verified 500 req\/s grant/)
 
   const capabilities = await fieldops.capabilities()
   assert.equal(capabilities.tools.length, 7)
@@ -89,7 +106,9 @@ try {
   assert.match(preload, /exportExecutionManifest/)
   assert.match(main, /fieldops:tool-job-start/)
   assert.match(preload, /startToolJob/)
+  assert.match(preload, /verifyCapacityGrant/)
   assert.match(ui, /MANAGED NATIVE EXECUTION/)
+  assert.match(ui, /VERIFIED LOAD AUTHORITY/)
 
   console.log('Execution Fabric verified // professional capacity, tool discovery, signed manifests, evidence intake, tamper rejection, and exact-scope enforcement')
 } finally {

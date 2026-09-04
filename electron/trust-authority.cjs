@@ -118,6 +118,7 @@ class TrustAuthority {
       policyLevel,
       executionProfile: input.executionProfile || 'guarded',
       executionCapacity: input.executionCapacity || null,
+      capacityChallenge: input.capacityChallenge || null,
       allowedOperations: [...policyOperations[policyLevel]],
       approvingAuthority: { name: input.approverName, email: input.approverEmail },
       validFrom: input.validFrom,

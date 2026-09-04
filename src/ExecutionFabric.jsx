@@ -11,6 +11,8 @@ export function ExecutionFabric({ engagement, jobs = [], onCapabilities, onExpor
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [attested, setAttested] = useState(false)
+  const [workload, setWorkload] = useState({ target: engagement.targets[0], port: engagement.ports.includes(443) ? 443 : engagement.ports[0], path: '/', secure: engagement.ports.includes(443), requestsPerSecond: 100, durationSeconds: 60, concurrency: 20 })
+  const [capacityGrant, setCapacityGrant] = useState((engagement.capacityGrants || []).find(item => item.target === engagement.targets[0]) || null)
   const latestJob = jobs[0]
   const activeJob = jobs.find(job => activeStatuses.has(job.status))
   const hasActiveJob = Boolean(activeJob)
@@ -89,6 +91,17 @@ export function ExecutionFabric({ engagement, jobs = [], onCapabilities, onExpor
     }
   }
 
+  const verifyCapacity = async () => {
+    setBusy('capacity'); setError(''); setMessage('')
+    try {
+      const next = await window.daemoncore.fieldops.verifyCapacityGrant({ engagementId: engagement.id, target: workload.target, port: workload.port, secure: workload.secure })
+      const updated = next.engagements.find(item => item.id === engagement.id)
+      const grant = (updated?.capacityGrants || []).find(item => item.target === workload.target)
+      setCapacityGrant(grant)
+      setMessage(`Target-issued capacity verified // ${grant.maxRequestsPerSecond} req/s // ${grant.maxConcurrency} workers`)
+    } catch (caught) { setError(caught.message) } finally { setBusy('') }
+  }
+
   return <section className="execution-fabric">
     <header className="fabric-hero">
       <div>
@@ -126,6 +139,23 @@ export function ExecutionFabric({ engagement, jobs = [], onCapabilities, onExpor
       </div>
     </section>
 
+    <section className="capacity-control">
+      <div className="capacity-head"><div><ShieldCheck/><span>VERIFIED LOAD AUTHORITY</span><h3>Customer-controlled pressure testing</h3><p>The target must publish a capacity grant at the exact challenge path before DaemonCore will sign a k6 or Locust workload. The grant—not the desktop app—sets the approved rate, concurrency, duration, and expiration.</p></div><strong className={capacityGrant ? 'verified' : ''}>{capacityGrant ? 'TARGET VERIFIED' : 'GRANT REQUIRED'}</strong></div>
+      <code>/.well-known/daemoncore-capacity/{engagement.capacityChallenge || 'REISSUE-ENGAGEMENT'}.json</code>
+      <details><summary>VIEW TARGET GRANT TEMPLATE</summary><pre>{JSON.stringify({ challenge: engagement.capacityChallenge || 'reissue-engagement', target: workload.target, authorizationReference: engagement.authorizationReference, maxRequestsPerSecond: 500, maxDurationSeconds: 900, maxConcurrency: 80, validUntil: engagement.validUntil }, null, 2)}</pre></details>
+      <div className="capacity-fields">
+        <label>TARGET<select value={workload.target} onChange={event => { setWorkload(current => ({ ...current, target: event.target.value })); setCapacityGrant(null) }}>{engagement.targets.map(item => <option key={item}>{item}</option>)}</select></label>
+        <label>PORT<select value={workload.port} onChange={event => setWorkload(current => ({ ...current, port: Number(event.target.value) }))}>{engagement.ports.map(item => <option key={item}>{item}</option>)}</select></label>
+        <label>PATH<input value={workload.path} onChange={event => setWorkload(current => ({ ...current, path: event.target.value }))}/></label>
+        <label>REQ/S<input type="number" min="1" max={capacityGrant?.maxRequestsPerSecond || 1} value={workload.requestsPerSecond} onChange={event => setWorkload(current => ({ ...current, requestsPerSecond: Number(event.target.value) }))}/></label>
+        <label>DURATION // SEC<input type="number" min="10" max={capacityGrant?.maxDurationSeconds || 10} value={workload.durationSeconds} onChange={event => setWorkload(current => ({ ...current, durationSeconds: Number(event.target.value) }))}/></label>
+        <label>CONCURRENCY<input type="number" min="1" max={capacityGrant?.maxConcurrency || 1} value={workload.concurrency} onChange={event => setWorkload(current => ({ ...current, concurrency: Number(event.target.value) }))}/></label>
+      </div>
+      <label className="capacity-tls"><input type="checkbox" checked={workload.secure} onChange={event => setWorkload(current => ({ ...current, secure: event.target.checked }))}/> Verified TLS endpoint</label>
+      <button disabled={busy === 'capacity' || !engagement.capacityChallenge} onClick={verifyCapacity}><ShieldCheck/> {busy === 'capacity' ? 'VERIFYING TARGET' : 'VERIFY TARGET CAPACITY'}</button>
+      {capacityGrant && <small>GRANT {capacityGrant.digest.slice(0, 12)} // EXPIRES {new Date(capacityGrant.validUntil).toLocaleString()} // EMERGENCY STOP REQUIRED</small>}
+    </section>
+
     <div className="fabric-grid">
       {(capabilities?.tools || []).map(tool => <article className={tool.available ? 'available' : ''} key={tool.id}>
         <div className="fabric-tool-mark">{tool.available ? <Check/> : <Wrench/>}</div>
@@ -135,7 +165,7 @@ export function ExecutionFabric({ engagement, jobs = [], onCapabilities, onExpor
         <small>{tool.available ? tool.version : 'NOT DISCOVERED ON THIS WORKSTATION'}</small>
         <button onClick={() => {
           setSelectedTool(tool.id)
-          runAction('manifest', () => onExportManifest({ engagementId: engagement.id, toolId: tool.id }))
+          runAction('manifest', () => onExportManifest({ engagementId: engagement.id, toolId: tool.id, ...(['k6', 'locust'].includes(tool.id) ? workload : {}) }))
         }} disabled={Boolean(busy)}><Download/> Export signed scope</button>
       </article>)}
     </div>

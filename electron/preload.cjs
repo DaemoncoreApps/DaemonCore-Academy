@@ -64,6 +64,7 @@ contextBridge.exposeInMainWorld('daemoncore', {
     retestFinding: (id, input) => ipcRenderer.invoke('fieldops:finding-retest', { id, input }),
     startChaos: input => ipcRenderer.invoke('fieldops:chaos-start', input),
     abortChaos: id => ipcRenderer.invoke('fieldops:chaos-abort', id),
+    verifyCapacityGrant: input => ipcRenderer.invoke('fieldops:capacity-verify', input),
     exportExecutionManifest: input => ipcRenderer.invoke('fieldops:execution-manifest', input),
     importEvidence: input => ipcRenderer.invoke('fieldops:evidence-import', input),
     close: id => ipcRenderer.invoke('fieldops:close', id),
