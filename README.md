@@ -8,10 +8,10 @@ DaemonCore is the course I wanted instead: learn the mental model, validate it, 
 
 Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 
-**[Download DaemonCore Academy 6.3.1 for Windows](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/latest/download/DaemonCore-Academy-Setup.exe)** · **[Download the Linux beta](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/tag/v6.0.0-beta.3)** · [FieldOps Manual](output/pdf/DaemonCore-FieldOps-Operator-Manual.pdf) · [Academy Guide](output/pdf/DaemonCore-Academy-Mission-OS-Guide.pdf) · [6.3.1 release notes](docs/RELEASE-V6.3.1.md) · [All releases](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases)
+**[Download DaemonCore Academy 6.4.0 for Windows](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/latest/download/DaemonCore-Academy-Setup.exe)** · **[Download the Linux beta](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/tag/v6.0.0-beta.3)** · [FieldOps Manual](output/pdf/DaemonCore-FieldOps-Operator-Manual.pdf) · [Academy Guide](output/pdf/DaemonCore-Academy-Mission-OS-Guide.pdf) · [6.4.0 release notes](docs/RELEASE-V6.4.0.md) · [All releases](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases)
 
 > [!CAUTION]
-> **Temporary unsigned Windows build:** DaemonCore 6.3.1 is not yet Authenticode-signed, so Windows may display **Unknown Publisher**. Until the signing certificate is in place, install and evaluate the Windows build inside a disposable Windows 10/11 virtual machine—not on a production workstation. Download it only from this repository, verify the published SHA-256 checksum, and take a VM snapshot before installation. If the file hash does not match, do not run it.
+> **Temporary unsigned Windows build:** DaemonCore 6.4.0 is not yet Authenticode-signed, so Windows may display **Unknown Publisher**. Until the signing certificate is in place, install and evaluate the Windows build inside a disposable Windows 10/11 virtual machine—not on a production workstation. Download it only from this repository, verify the published SHA-256 checksum, and take a VM snapshot before installation. If the file hash does not match, do not run it.
 
 ## Temporary VM-first installation
 
@@ -47,7 +47,13 @@ The Academy lessons and non-Docker workbenches run normally in a VM. Live Docker
 
 ## What ships
 
-### Current release // 6.3.1
+### Current release // 6.4.0
+
+- **Verified Load Authority** — FieldOps now requires the exact target to publish a challenge-bound capacity grant before it will sign a k6 or Locust workload manifest.
+- **Customer-defined capacity** — the verified target grant sets approved request rate, concurrency, duration, expiration, endpoint, and emergency-stop requirement.
+- **Auditable pressure testing** — capacity grants are bound to the signed engagement, hashed, time-limited, and recorded in the tamper-evident activity ledger.
+
+### Previous release // 6.3.1
 
 - **One truthful release identity** — 6.3.1 is the required identity for package metadata, desktop version reporting, installer metadata, documentation, tag, and GitHub release. It supersedes the incorrectly numbered 6.0.4 public release, whose source already carried the 6.3 product version.
 - **Docker launch corrections** — Web Forge and Enterprise Forge fixture permissions now preserve readable, traversable trees for their non-root operators, and Enterprise Forge uses corrected temporary mount declarations. Docker Desktop smoke testing remains a release-acceptance requirement.
