@@ -13,11 +13,16 @@ const EXECUTION_PROFILES = Object.freeze({
     id: 'professional',
     label: 'Professional',
     description: 'Expanded signed scope for experienced assessment teams.',
-    maxTargets: 500,
-    maxPorts: 1024,
+    // Professional capacity is defined by the signed engagement itself.
+    // There is no product-wide target/port cardinality ceiling; workstation
+    // safety controls remain explicit and are signed into the permit.
+    maxTargets: null,
+    maxPorts: null,
     portConcurrency: 16,
     diagnosticCooldownMs: 250,
     nmapTimeoutMs: 900_000,
+    maxPortConcurrency: 64,
+    maxNmapTimeoutMs: 3_600_000,
   }),
 })
 

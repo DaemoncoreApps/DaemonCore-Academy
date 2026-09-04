@@ -56,6 +56,19 @@ const activeCampaignStatuses=new Set(['queued','running','pause-requested','paus
 const activeJobStatuses=new Set(['queued','starting','running','cancelling'])
 const observedOperations=new Set(['dns','tcp','http','tls','http-posture','service-profile'])
 const safeExecutionPolicy=value=>{try{return executionPolicy(value)}catch{return executionPolicy('guarded')}}
+const executionCapacity=(profile,input,targets,ports)=>{
+  const policy=executionPolicy(profile)
+  const requested=input&&typeof input==='object'?input:{}
+  const professional=policy.id==='professional'
+  const maxTargets=professional?targets.length:policy.maxTargets
+  const maxPorts=professional?ports.length:policy.maxPorts
+  const workers=Number(requested.portConcurrency??policy.portConcurrency)
+  const timeoutMs=Number(requested.nmapTimeoutMs??policy.nmapTimeoutMs)
+  const maxWorkers=professional?64:8,maxTimeout=professional?3_600_000:900_000
+  if(!Number.isInteger(workers)||workers<1||workers>maxWorkers)throw new Error(`Port survey workers must be between 1 and ${maxWorkers}`)
+  if(!Number.isInteger(timeoutMs)||timeoutMs<60_000||timeoutMs>maxTimeout)throw new Error(`Native tool window must be between 1 and ${maxTimeout/60_000} minutes`)
+  return {...policy,maxTargets,maxPorts,portConcurrency:workers,nmapTimeoutMs:timeoutMs,maxPortConcurrency:maxWorkers,maxNmapTimeoutMs:maxTimeout}
+}
 
 class EngagementStore {
   constructor(directory, options={}) {
@@ -90,15 +103,18 @@ class EngagementStore {
     if(input?.attested!==true)throw new Error('Explicit authorization attestation is required')
     const networkMode=String(input?.networkMode||'external').toLowerCase()
     if(!['external','internal'].includes(networkMode))throw new Error('Choose external or internal network authorization')
-    const policy=executionPolicy(input?.executionProfile||'guarded')
+    const profile=input?.executionProfile||'guarded',policy=executionPolicy(profile)
     const targets=[...new Set(String(input.targets||'').split(/[\s,]+/).filter(Boolean).map(normalizeTarget))]
     const ports=[...new Set(String(input.ports||'').split(/[\s,]+/).filter(Boolean).map(Number))].sort((a,b)=>a-b)
-    if(!targets.length||targets.length>policy.maxTargets)throw new Error(`Add between 1 and ${policy.maxTargets} exact targets`)
-    if(!ports.length||ports.length>policy.maxPorts||ports.some(port=>!Number.isInteger(port)||port<1||port>65535))throw new Error(`Add between 1 and ${policy.maxPorts} valid TCP ports`)
+    if(!targets.length)throw new Error('Add at least one exact target')
+    if(!ports.length||ports.some(port=>!Number.isInteger(port)||port<1||port>65535))throw new Error('Add at least one valid TCP port')
+    if(policy.id==='guarded'&&targets.length>policy.maxTargets)throw new Error(`Add between 1 and ${policy.maxTargets} exact targets`)
+    if(policy.id==='guarded'&&ports.length>policy.maxPorts)throw new Error(`Add between 1 and ${policy.maxPorts} valid TCP ports`)
+    const capacity=executionCapacity(profile,input?.executionCapacity,targets,ports)
     const validFrom=new Date(input.validFrom),validUntil=new Date(input.validUntil),now=this.now()
     if(Number.isNaN(validFrom.getTime())||Number.isNaN(validUntil.getTime())||validUntil<=validFrom)throw new Error('Enter a valid testing window')
     if(validUntil.getTime()-validFrom.getTime()>366*86_400_000)throw new Error('Testing windows cannot exceed one year')
-    const policyLevel=String(input?.policyLevel||'validate').toLowerCase(),engagement={id:randomUUID(),name,client,authorizationReference,networkMode,targets,ports,policyLevel,executionProfile:policy.id,executionCapacity:{...policy},validFrom:validFrom.toISOString(),validUntil:validUntil.toISOString(),attestedAt:now.toISOString(),status:'active',createdAt:now.toISOString()}
+    const policyLevel=String(input?.policyLevel||'validate').toLowerCase(),engagement={id:randomUUID(),name,client,authorizationReference,networkMode,targets,ports,policyLevel,executionProfile:policy.id,executionCapacity:capacity,validFrom:validFrom.toISOString(),validUntil:validUntil.toISOString(),attestedAt:now.toISOString(),status:'active',createdAt:now.toISOString()}
     if(this.trust){const approverName=String(input?.approverName||'').trim().replace(/\s+/g,' ').slice(0,100),approverEmail=String(input?.approverEmail||'').trim().toLowerCase().slice(0,160);if(approverName.length<3||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(approverEmail))throw new Error('Add the approving authority name and professional email');engagement.permit=this.trust.issuePermit({...engagement,approverName,approverEmail})}
     this.state.engagements.unshift(engagement);this.audit(engagement.id,'engagement','created',`${networkMode.toUpperCase()} ${policyLevel.toUpperCase()} ${policy.label.toUpperCase()} authorization boundary recorded`,{permitId:engagement.permit?.id||null,executionProfile:policy.id,executionCapacity:engagement.executionCapacity});await this.persist();return this.snapshot()
   }
@@ -124,7 +140,7 @@ class EngagementStore {
     if(!this.trust)throw new Error('A protected operator identity is required to export an execution manifest')
     const tool=TOOL_CATALOG.find(item=>item.id===String(input?.toolId||''))
     if(!tool)throw new Error('Choose a supported execution capability')
-    const policy=executionPolicy(engagement.executionProfile)
+    const policy=engagement.executionCapacity||executionPolicy(engagement.executionProfile)
     const issuedAt=this.now().toISOString()
     const manifest={
       schemaVersion:1,
@@ -133,7 +149,7 @@ class EngagementStore {
       tool:{id:tool.id,label:tool.label,integration:tool.integration},
       engagement:{id:engagement.id,name:engagement.name,client:engagement.client,authorizationReference:engagement.authorizationReference},
       scope:{networkMode:engagement.networkMode,targets:[...engagement.targets],ports:[...engagement.ports]},
-      execution:{profile:policy.id,capacity:{maxTargets:policy.maxTargets,maxPorts:policy.maxPorts,portConcurrency:policy.portConcurrency}},
+      execution:{profile:policy.id,capacity:{...engagement.executionCapacity}},
       permit:{id:engagement.permit?.id||null,policyLevel:engagement.policyLevel,operatorFingerprint:engagement.permit?.attestation?.operator?.fingerprint||null},
       issuedAt,
       validUntil:engagement.validUntil,
@@ -191,7 +207,7 @@ class EngagementStore {
     if(this.state.chaosRuns.some(item=>['queued','running','recovering','aborting'].includes(item.status)))throw new Error('Stop the active Chaos Engine experiment first')
     const target=normalizeTarget(input?.target)
     if(!engagement.targets.includes(target))throw new Error('Target is outside the signed engagement allowlist')
-    const policy=executionPolicy(engagement.executionProfile),addresses=await this.resolveAuthorized(target,engagement.networkMode||'external'),address=addresses[0].address,now=this.now().toISOString()
+    const policy=engagement.executionCapacity||executionPolicy(engagement.executionProfile),addresses=await this.resolveAuthorized(target,engagement.networkMode||'external'),address=addresses[0].address,now=this.now().toISOString()
     const job={id:randomUUID(),engagementId:engagement.id,toolId:'nmap',toolLabel:'Nmap',target,address,ports:[...engagement.ports],status:'queued',pid:null,engine:null,engineVersion:null,output:'',lastOutputAt:null,createdAt:now,startedAt:null,finishedAt:null,captureId:null,outcome:'Native execution queued inside the signed scope.',authorizationReference:engagement.authorizationReference,permitId:engagement.permit?.id||null}
     this.state.operatorJobs.unshift(job);this.state.operatorJobs=this.state.operatorJobs.slice(0,100)
     this.audit(engagement.id,'native-tool','queued',`Nmap // ${target} (${address}) // ${job.ports.length} ports`,{jobId:job.id,permitId:job.permitId});await this.persist()
@@ -243,7 +259,7 @@ class EngagementStore {
     return engagement
   }
 
-  assertOperation(engagement,requiredOperation){if(!this.trust)return;if(!engagement.permit)throw new Error('This engagement must be reissued with a signed operation permit');const permit=this.trust.assertPermit(engagement.permit,requiredOperation),permitProfile=permit.executionProfile||'guarded',bound=permit.engagementId===engagement.id&&permit.client===engagement.client&&permit.authorizationReference===engagement.authorizationReference&&permit.networkMode===engagement.networkMode&&permit.policyLevel===engagement.policyLevel&&permitProfile===(engagement.executionProfile||'guarded')&&permit.validFrom===engagement.validFrom&&permit.validUntil===engagement.validUntil&&JSON.stringify(permit.targets)===JSON.stringify(engagement.targets)&&JSON.stringify(permit.ports)===JSON.stringify(engagement.ports);if(!bound)throw new Error('Engagement record no longer matches its signed operation permit')}
+  assertOperation(engagement,requiredOperation){if(!this.trust)return;if(!engagement.permit)throw new Error('This engagement must be reissued with a signed operation permit');const permit=this.trust.assertPermit(engagement.permit,requiredOperation),permitProfile=permit.executionProfile||'guarded',bound=permit.engagementId===engagement.id&&permit.client===engagement.client&&permit.authorizationReference===engagement.authorizationReference&&permit.networkMode===engagement.networkMode&&permit.policyLevel===engagement.policyLevel&&permitProfile===(engagement.executionProfile||'guarded')&&permit.validFrom===engagement.validFrom&&permit.validUntil===engagement.validUntil&&JSON.stringify(permit.targets)===JSON.stringify(engagement.targets)&&JSON.stringify(permit.ports)===JSON.stringify(engagement.ports)&&JSON.stringify(permit.executionCapacity||null)===JSON.stringify(engagement.executionCapacity||null);if(!bound)throw new Error('Engagement record no longer matches its signed operation permit')}
 
   async resolvePublic(target){
     if(net.isIP(target)){if(!isPublicAddress(target))throw new Error('FieldOps external mode blocks private, loopback, link-local, and reserved addresses');return [{address:target,family:net.isIPv4(target)?4:6}]}
@@ -269,7 +285,7 @@ class EngagementStore {
     let engagement,target,type,port,requestPath,previousSurface
     try{
       engagement=this.getActive(input?.engagementId);target=normalizeTarget(input?.target);type=String(input?.type||'')
-      const policy=executionPolicy(engagement.executionProfile)
+      const policy=engagement.executionCapacity||executionPolicy(engagement.executionProfile)
       const wait=policy.diagnosticCooldownMs-(Date.now()-this.lastRunAt);if(!context.campaignId&&wait>0)throw new Error('FieldOps rate limit: wait before the next diagnostic');this.lastRunAt=Date.now()
       if(!engagement.targets.includes(target))throw new Error('Target is outside the signed engagement allowlist')
       const targetOnly=['dns','dns-profile','ports','surface','deep-inventory'].includes(type)
@@ -338,7 +354,7 @@ class EngagementStore {
   async portSurvey(address,ports,concurrency=4,maxPorts=128){const observations=[];for(let index=0;index<ports.length;index+=concurrency){const batch=ports.slice(index,index+concurrency),results=await Promise.all(batch.map(async port=>{const started=Date.now();try{const result=await this.tcp(address,port,1500);return{port,state:'open',latencyMs:result.latencyMs}}catch(error){return{port,state:error.message.includes('timed out')?'filtered-or-unresponsive':'closed-or-rejected',latencyMs:Date.now()-started}}}));observations.push(...results);if(index+concurrency<ports.length)await this.pause(100)}return{tested:observations.length,hardCap:maxPorts,concurrency,observations}}
 
   async deepInventory(target,address,engagement){
-    const policy=executionPolicy(engagement.executionProfile)
+    const policy=engagement.executionCapacity||executionPolicy(engagement.executionProfile)
     try{return await this.toolBridge.inventory({target,address,ports:engagement.ports,maxPorts:policy.maxPorts,timeoutMs:policy.nmapTimeoutMs})}catch(toolError){
       const survey=await this.portSurvey(address,engagement.ports,policy.portConcurrency,policy.maxPorts),open=survey.observations.filter(item=>item.state==='open'),services=[]
       for(let index=0;index<open.length;index+=policy.portConcurrency){const batch=open.slice(index,index+policy.portConcurrency),profiles=await Promise.all(batch.map(async item=>{const secure=[443,465,636,993,995,2376,8443,9443].includes(item.port);try{return{port:item.port,state:item.state,...await this.serviceProfile(target,address,item.port,secure)}}catch(error){return{port:item.port,state:item.state,error:error.message}}}));services.push(...profiles)}
@@ -363,8 +379,8 @@ class EngagementStore {
     const profile=String(input?.profile||'complete'),modules=campaignProfiles[profile]
     if(!modules)throw new Error('Choose a supported campaign profile')
     const requested=Array.isArray(input?.targets)?input.targets:engagement.targets,targets=[...new Set(requested.map(normalizeTarget))]
-    const policy=executionPolicy(engagement.executionProfile)
-    if(!targets.length||targets.length>policy.maxTargets||targets.some(target=>!engagement.targets.includes(target)))throw new Error('Campaign targets must be inside the engagement allowlist')
+    const policy=engagement.executionCapacity||executionPolicy(engagement.executionProfile)
+    if(!targets.length||((policy.maxTargets!=null)&&targets.length>policy.maxTargets)||targets.some(target=>!engagement.targets.includes(target)))throw new Error('Campaign targets must be inside the engagement allowlist')
     const tasks=targets.flatMap(target=>modules.map(module=>({id:randomUUID(),target,module,status:'pending',captureId:null,startedAt:null,finishedAt:null,error:null})))
     const now=this.now().toISOString(),campaign={id:randomUUID(),engagementId:engagement.id,name:String(input?.name||`${engagement.name} campaign`).trim().slice(0,120),profile,modules:[...modules],targets,status:'queued',tasks,summary:null,createdAt:now,startedAt:null,finishedAt:null,outcome:'Campaign queued inside the signed authorization boundary.'}
     if(campaign.name.length<3)throw new Error('Add a campaign name')
@@ -417,7 +433,7 @@ class EngagementStore {
   async httpPosture(target,address,port,secure,requestPath){const response=await this.head(target,address,port,secure,requestPath);return{response,posture:this.analyzeHttp(response,secure)}}
 
   async surfaceBaseline(target,address,engagement,addresses){
-    const policy=executionPolicy(engagement.executionProfile),dns=await this.dnsProfile(target,addresses),portSurvey=await this.portSurvey(address,engagement.ports,policy.portConcurrency,policy.maxPorts),open=portSurvey.observations.filter(item=>item.state==='open'),observedWebPorts=open.filter(item=>webPorts.has(item.port)).slice(0,8),web=[]
+    const policy=engagement.executionCapacity||executionPolicy(engagement.executionProfile),dns=await this.dnsProfile(target,addresses),portSurvey=await this.portSurvey(address,engagement.ports,policy.portConcurrency,policy.maxPorts),open=portSurvey.observations.filter(item=>item.state==='open'),observedWebPorts=open.filter(item=>webPorts.has(item.port)).slice(0,8),web=[]
     for(const item of observedWebPorts){const secure=[443,8443,9443].includes(item.port);try{const service={port:item.port,secure,...await this.httpPosture(target,address,item.port,secure,'/')};if(secure){try{service.tls=await this.certificate(target,address,item.port)}catch(error){service.tls={error:error.message}}}web.push(service)}catch(error){web.push({port:item.port,secure,error:error.message})}}
     return{dns,portSurvey,web,summary:{authorizedPorts:engagement.ports.length,openPorts:open.map(item=>item.port),webServicesTested:web.length},hardCaps:{ports:policy.maxPorts,portConcurrency:policy.portConcurrency,webServices:8,tlsHandshakes:8,redirects:0}}
   }

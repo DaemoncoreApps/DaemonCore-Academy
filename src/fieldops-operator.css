@@ -53,3 +53,29 @@
   align-items: center;
   color: #68cc98;
 }
+
+.capacity-contract {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: -5px 0 18px;
+  padding: 12px 14px;
+  border: 1px solid #285b45;
+  background: #0c1712;
+  color: #75d4a3;
+}
+
+.capacity-contract svg {
+  width: 17px;
+  flex: 0 0 auto;
+}
+
+.capacity-contract p {
+  margin: 0;
+  color: #7f998b;
+  font: 500 8px/1.55 var(--mono);
+}
+
+.capacity-contract strong {
+  color: #bce9d1;
+}

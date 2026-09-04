@@ -2,9 +2,9 @@
 
 ## Mission OS Operator Guide
 
-Version 6.0.0-beta.1
-Public beta edition
-31 August 2026
+Version 6.3.1
+Production release edition
+4 September 2026
 
 DaemonCore Academy is a local-first cyber operator training platform. Mission OS turns its practical lessons, disposable ranges, evidence-led web and enterprise work, and mastery capstones into a deliberate professional route.
 
@@ -17,14 +17,14 @@ DaemonCore Academy is a local-first cyber operator training platform. Mission OS
 | Field | Value |
 | --- | --- |
 | Document | DaemonCore Academy Mission OS Operator Guide |
-| Product release | DaemonCore Academy 6.0.0-beta.1 |
-| Edition | Public beta |
-| Platforms | Windows 64-bit; x64 Ubuntu and Debian-family Linux |
+| Product release | DaemonCore Academy 6.3.1 |
+| Edition | Production release |
+| Platforms | Windows 64-bit (6.3.1); x64 Ubuntu and Debian-family Linux (6.0.0-beta.3) |
 | Publisher | DaemonCore Apps |
 | Classification | Customer training documentation |
-| Last revised | 31 August 2026 |
+| Last revised | 4 September 2026 |
 
-This guide covers the functionality shipped in `6.0.0-beta.1`. Product behavior is authoritative when it differs from the guide. Preserve a progress export before upgrading a workstation used for active study.
+This guide covers the functionality shipped in `6.3.1`. Product behavior is authoritative when it differs from the guide. Preserve a progress export before upgrading a workstation used for active study.
 
 ## Intended audience
 
@@ -46,7 +46,7 @@ This guide covers the functionality shipped in `6.0.0-beta.1`. Product behavior 
 # Contents
 
 1. Academy at a glance
-2. Install and verify the beta
+2. Install and verify the release
 3. Prepare Docker and protected storage
 4. Understand the curriculum map
 5. Establish a Mission OS baseline
@@ -66,12 +66,12 @@ This guide covers the functionality shipped in `6.0.0-beta.1`. Product behavior 
 
 # 1. Academy at a glance
 
-Academy is organized around proof of work. Instruction introduces a method; an interactive workbench checks the decision; a range or case makes the operator gather evidence; a review explains what the result proves and what remains uncertain.
+Academy is organized around proof of work. Instruction introduces a method; an interactive workbench checks the decision; a range or case makes the operator gather evidence; a review explains what the result proves and what remains uncertain. Catalog counts describe separate surfaces that may overlap conceptually and must not be added into an invented lesson total.
 
 ## Core workflow
 
 1. Install the official build and confirm the visible version and platform.
-2. Export any existing local progress before a beta upgrade.
+2. Export any existing local progress before a production upgrade.
 3. Use the first-run guide to understand the Learn, Practice, Launch, and Prove stages.
 4. Start in Academy or complete the 12-scenario Mission OS diagnostic to build a route.
 5. Select one of six professional routes.
@@ -105,31 +105,29 @@ The first mission defaults to Guided mode and exposes the exact runbook. After a
 | Mastery | Complete three principal capstones | Free Academy |
 | FieldOps | Operate authorized diagnostics, campaigns, evidence, findings, and reports | FieldOps Pro license |
 
-> Catalog counts describe separate surfaces and may overlap conceptually. They must not be added together as a single invented “lesson total.”
-
 ---
 
-# 2. Install and verify the beta
+# 2. Install and verify the release
 
 ## Windows
 
-1. Download `DaemonCore-Academy-Setup.exe` from the tagged `v6.0.0-beta.1` GitHub release.
+1. Download `DaemonCore-Academy-Setup.exe` from the official Latest GitHub release.
 2. Verify the installer against `SHA256SUMS-windows.txt`.
 3. Close any running DaemonCore Academy window.
 4. Run the installer. It uses the stable application identity and should replace the prior installed version.
-5. Launch the app and confirm the footer shows `6.0.0-beta.1` and `WINDOWS`.
+5. Launch the app and confirm the footer shows `6.3.1` and `WINDOWS`.
 
-The beta installer is not Authenticode-signed. Windows may show **Unknown Publisher**. That warning is expected for this beta but is not a reason to skip checksum verification. Do not distribute it through a managed production fleet as a trusted signed package.
+The current installer is not Authenticode-signed. Windows may show **Unknown Publisher**. That warning is expected for this release but is not a reason to skip checksum verification. Do not distribute it through a managed production fleet as a trusted signed package.
 
 ## Linux
 
 Use the AppImage for a portable file or the Debian package for an installed desktop entry.
 
-1. Download `DaemonCore-Academy-6.0.0-beta.1.AppImage` or `DaemonCore-Academy-6.0.0-beta.1.deb`.
-2. Verify the selected package against `SHA256SUMS.txt`.
-3. For AppImage: run `chmod +x DaemonCore-Academy-6.0.0-beta.1.AppImage`, then launch it as the desktop user.
-4. For Debian: run `sudo apt install ./DaemonCore-Academy-6.0.0-beta.1.deb`.
-5. Confirm the footer shows `6.0.0-beta.1` and `LINUX`.
+1. Download the AppImage or Debian package attached to the separate `v6.0.0-beta.3` Linux release.
+2. Verify the selected package against that release's `SHA256SUMS-linux.txt`.
+3. For AppImage: run `chmod +x` on the downloaded file, then launch it as the desktop user.
+4. For Debian: run `sudo apt install ./<downloaded-package>.deb`.
+5. Confirm the footer shows `6.0.0-beta.3` and `LINUX`.
 
 The supported beta matrix covers x64 Ubuntu and Debian-family desktops. Compatible derivatives may run, but they are outside the first beta support matrix.
 
@@ -140,6 +138,10 @@ The supported beta matrix covers x64 Ubuntu and Debian-family desktops. Compatib
 - Keep the prior installer or AppImage until the new build opens the record successfully.
 - Do not delete the per-user application-data directory during a normal upgrade.
 - A newer Debian package upgrades in place; AppImage users replace the old file manually.
+
+The installer replaces program files but retains the version-independent per-user record. Windows stores the durable record beneath `%APPDATA%\daemoncore-academy`; Linux uses the `daemoncore-academy` directory beneath the desktop user's configuration root. Do not remove that directory during an upgrade.
+
+Release 6.3.1 also keeps a recovery mirror. If an affected earlier package recorded progress through browser fallback storage and no durable profile exists, the app migrates that recovery record into the native desktop store on first launch. An existing durable profile always remains authoritative.
 
 ---
 
@@ -423,7 +425,7 @@ DaemonCore is local-first. It does not automatically synchronize progress to a D
 4. Export important mission receipts separately when another reviewer needs their digests.
 5. Install or upgrade the new build, then confirm the record opens and route progress is intact.
 
-Existing records migrate to schema version 6 without intentionally discarding earlier completion. An export is still required before beta upgrades because it is the supported recovery point.
+Existing records migrate to schema version 6 without intentionally discarding earlier completion. An export is still required before production upgrades because it is the supported recovery point.
 
 ## Receipt interpretation
 
@@ -455,9 +457,17 @@ Academy progress should remain usable. FieldOps activation and operator identity
 
 Confirm the footer version, finish the current exercise through its completion control, return to Mission OS, and review the selected route. Imported or migrated data should be checked against the pre-upgrade export.
 
+## The app asks for an operator name after restart
+
+1. Confirm the footer shows `6.3.1` or newer.
+2. Close the app and reopen the installed Start menu or desktop shortcut, not the setup executable in Downloads.
+3. Confirm the per-user application-data directory still exists and was not removed by a cleanup tool.
+4. If an earlier fallback record exists and the durable record is empty, allow the first 6.3.1 launch to complete its automatic migration.
+5. If the profile still does not appear, preserve the application-data directory and any prior Settings export before reinstalling or importing.
+
 ## A mission completed after only copying text
 
-Use the latest `6.0.0-beta.1` build, restart the mission, and complete its objective submissions and after-action review. Help text is reference material. Report any route that records completion without accepted objective evidence, including the mission name, platform, version, and exact sequence.
+Use the latest `6.3.1` build, restart the mission, and complete its objective submissions and after-action review. Help text is reference material. Report any route that records completion without accepted objective evidence, including the mission name, platform, version, and exact sequence.
 
 ## Support package
 
@@ -501,7 +511,7 @@ Provide the visible app version, platform/distribution, package type, Docker ver
 
 DaemonCore Academy teaches and records work in synthetic, local-first environments. It does not provide access to external targets, replace written authorization, verify professional identity, guarantee employment, or create an industry certification. Mission OS signals are derived only from recorded work on the current device.
 
-FieldOps is the place for authorization-bound assessment operations. Its license unlocks the workspace; a signed engagement authorizes the target. Chaos Engine is bounded resilience sampling, not a DDoS tool.
+FieldOps is the place for authorization-bound assessment operations. Its license unlocks the workspace; a signed engagement authorizes the target. Professional capacity is defined by exact signed target and port lists, with a named approving authority and operator attestation required. Chaos Engine is bounded resilience sampling, not a DDoS tool.
 
 ## Quick reference
 
@@ -524,14 +534,14 @@ FieldOps is the place for authorization-bound assessment operations. Its license
 
 ## Release links
 
-- Release page: `https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/tag/v6.0.0-beta.1`
-- Windows installer: `DaemonCore-Academy-Setup.exe`
-- Linux AppImage: `DaemonCore-Academy-6.0.0-beta.1.AppImage`
-- Linux Debian package: `DaemonCore-Academy-6.0.0-beta.1.deb`
+- Release page: `https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/latest`
+- Windows installer: `https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/latest/download/DaemonCore-Academy-Setup.exe`
+- Linux AppImage: use the AppImage attached to `v6.0.0-beta.3`
+- Linux Debian package: use the `.deb` attached to `v6.0.0-beta.3`
 - Product site: `https://academy.daemoncore.app`
 
 ---
 
 DaemonCore Academy
-Mission OS Operator Guide - Version 6.0.0-beta.1
+Mission OS Operator Guide - Version 6.3.1
 Copyright 2026 DaemonCore Apps. All rights reserved.

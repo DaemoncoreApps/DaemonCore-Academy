@@ -2,11 +2,11 @@
 
 ## Operator Manual
 
-Version 6.0.0-beta.1
-Public beta edition
-30 August 2026
+Version 6.3.1
+Production release edition
+4 September 2026
 
-FieldOps is an authorization-bound assessment control plane for Windows and supported x64 Linux desktops. It combines scoped diagnostics, multi-target assessment campaigns, evidence preservation, findings management, bounded resilience experiments, and professional exports in one local-first workspace.
+FieldOps is an authorization-bound assessment control plane for Windows and supported x64 Linux desktops. This edition documents Windows 6.3.1 and identifies the separately released Linux 6.0.0-beta.3 package where platform behavior differs. It combines scoped diagnostics, multi-target assessment campaigns, evidence preservation, findings management, bounded resilience experiments, and professional exports in one local-first workspace.
 
 > A FieldOps Pro license unlocks the tool. It does not authorize a target. The operator remains responsible for obtaining and preserving valid written authorization.
 
@@ -17,14 +17,14 @@ FieldOps is an authorization-bound assessment control plane for Windows and supp
 | Field | Value |
 | --- | --- |
 | Document | DaemonCore FieldOps Operator Manual |
-| Product release | DaemonCore Academy 6.0.0-beta.1 |
-| Edition | Public beta |
-| Platform | Windows 64-bit; x64 Ubuntu and Debian-family Linux |
+| Product release | DaemonCore Academy 6.3.1 |
+| Edition | Production release |
+| Platform | Windows 64-bit (6.3.1); x64 Ubuntu and Debian-family Linux (6.0.0-beta.3) |
 | Publisher | DaemonCore Apps |
 | Classification | Customer documentation |
-| Last revised | 30 August 2026 |
+| Last revised | 4 September 2026 |
 
-This manual describes the FieldOps functionality shipped with DaemonCore Academy 6.0.0-beta.1. Product behavior is authoritative when it differs from this document. This is an opt-in beta: preserve an export before upgrading a production workstation and verify release artifacts against the published SHA-256 files.
+This manual describes the FieldOps functionality shipped with DaemonCore Academy 6.3.1. Product behavior is authoritative when it differs from this document. Preserve an export before upgrading a production workstation and verify release artifacts against the published SHA-256 files.
 
 The product is proprietary commercial software. Possession of this manual or source access does not grant permission to bypass licensing, copy, redistribute, modify, or resell the software. Refer to the license and end-user agreement distributed with the application.
 
@@ -117,27 +117,27 @@ The built-in passive profiler remains available when neither Nmap nor Docker is 
 2. Close any running DaemonCore Academy window.
 3. Run the installer and follow the Windows prompts.
 4. Launch **DaemonCore Academy** from the Start menu or desktop shortcut.
-5. Confirm the footer displays `6.0.0-beta.1` and `WINDOWS` before starting paid work.
+5. Confirm the footer displays `6.3.1` and `WINDOWS` before starting paid work.
 
-The Windows beta is not Authenticode-signed. Windows may show **Unknown Publisher**. Download only from the tagged official release and verify `DaemonCore-Academy-Setup.exe` against `SHA256SUMS-windows.txt` before running it. Do not deploy this beta through a managed production fleet.
+The current Windows installer is not Authenticode-signed. Windows may show **Unknown Publisher**. Download only from the official release and verify `DaemonCore-Academy-Setup.exe` against `SHA256SUMS-windows.txt` before running it. Do not deploy it through a managed production fleet as a trusted signed package.
 
 ## Install on Linux
 
 Use the AppImage for a portable launch, or the Debian package for an installed desktop entry. The first beta support matrix covers x64 Ubuntu and Debian-family desktops; compatible derivatives may work but remain outside that matrix.
 
-1. Download either `DaemonCore-Academy-6.0.0-beta.1.AppImage` or `DaemonCore-Academy-6.0.0-beta.1.deb` from the tagged release.
-2. Verify the selected package against `SHA256SUMS.txt`.
-3. For AppImage, run `chmod +x DaemonCore-Academy-6.0.0-beta.1.AppImage`, then launch it as the desktop user.
-4. For Debian packages, run `sudo apt install ./DaemonCore-Academy-6.0.0-beta.1.deb`.
-5. Confirm the footer displays `6.0.0-beta.1` and `LINUX`.
+1. Download the AppImage or Debian package attached to the separate `v6.0.0-beta.3` Linux release.
+2. Verify the selected package against `SHA256SUMS-linux.txt`.
+3. For AppImage, run `chmod +x` on the downloaded file, then launch it as the desktop user.
+4. For Debian packages, run `sudo apt install ./<downloaded-package>.deb`.
+5. Confirm the footer displays `6.0.0-beta.3` and `LINUX`.
 
 Never launch DaemonCore with `--no-sandbox`, as root, or with `--password-store=basic`.
 
 ## Upgrade
 
-The Windows installer uses a stable application identity and is intended to replace the prior installed version. A newer Debian package upgrades in place. AppImage users replace the old AppImage file manually. Close the app before upgrading. Existing local operator progress, licensing metadata, identity material, engagements, captures, findings, and audit records are stored in the per-user application-data location rather than the installation directory.
+Close the app before upgrading. The Windows installer replaces the prior version, Debian packages upgrade in place, and AppImage users replace the old file manually. Operator progress, licensing metadata, identity material, engagements, captures, findings, and audit records remain in the per-user application-data directory.
 
-Before a material upgrade, export active engagement case files and complete any running campaign or Chaos Engine experiment. Do not remove the per-user application-data directory unless you intend to remove locally retained records.
+Before a material upgrade, export active case files and finish running campaigns or Chaos Engine experiments. Version 6.3.1 uses the version-independent `daemoncore-academy` data directory and retains it during Windows upgrades. When an affected earlier build has only a browser-fallback operator record, 6.3.1 migrates it automatically without replacing an existing durable profile.
 
 ---
 
@@ -215,7 +215,7 @@ The signature can demonstrate that a record was signed by the same device-held k
 
 # 5. Understand the authorization model
 
-FieldOps separates entitlement, attribution, and target authorization. All three must be satisfied.
+The authorization model separates entitlement, attribution, and target authorization. All three must be satisfied.
 
 | Layer | Question answered | Enforcement |
 | --- | --- | --- |
@@ -237,6 +237,14 @@ Includes Observe and adds broader inventory and assessment operations: DNS recor
 
 Includes Observe and Validate and permits the bounded Chaos Engine resilience profiles. Stress must be explicitly selected in the signed engagement.
 
+## Professional capacity contract
+
+The **Professional** execution profile is authorization-defined rather than product-cardinality-defined. The exact target list and exact TCP port list entered for an engagement become the signed capacity for that engagement; FieldOps does not impose a second arbitrary target or port ceiling in this profile. This is not an unrestricted mode. The operator must still provide a named approving authority, professional email, authorization or rules-of-engagement reference, exact scope, testing window, and explicit attestation before the permit can be issued.
+
+The operator also chooses the bounded workstation controls that are signed into the permit: port-survey worker count (1–64) and native-tool window (1–60 minutes). Every operation rechecks the permit, capacity, operator identity, target, port, network boundary, policy level, and validity window. Changing any of these fields requires a new permit. Guarded mode remains available with its conservative 100-target, 128-port limits.
+
+Professional capacity expands authorized assessment throughput; it does not add DDoS, credential guessing, destructive exploitation, arbitrary shell execution, or permission to test systems outside the written scope. Chaos Engine remains a bounded, recoverable resilience sample inside an explicitly authorized Stress engagement.
+
 ## Network boundary
 
 **External mode** accepts public addresses only. FieldOps blocks private, loopback, link-local, multicast, reserved, documentation, carrier-grade NAT, and mixed-boundary resolution results.
@@ -245,8 +253,8 @@ Includes Observe and Validate and permits the bounded Chaos Engine resilience pr
 
 ## Scope rules
 
-- Between 1 and 100 exact targets
-- Between 1 and 128 exact TCP ports
+- Professional: one or more exact targets and ports; the signed lists define capacity
+- Guarded: between 1 and 100 exact targets and between 1 and 128 exact TCP ports
 - No CIDR ranges or wildcard targets
 - Valid TCP ports from 1 through 65535
 - A testing window no longer than one year
@@ -554,6 +562,8 @@ FieldOps is local-first. It does not require an Academy account or automatically
 
 Records are written using temporary-file replacement to reduce partial-write risk. Running campaigns become interrupted after an unexpected desktop stop and can be resumed while the engagement remains valid. Running Chaos Engine experiments become interrupted and are not silently restarted.
 
+The authoritative desktop record remains outside the installation directory and is mirrored to browser storage as a recovery copy. On Windows, the durable record is beneath `%APPDATA%\daemoncore-academy`; on Linux, it is beneath the desktop user's configuration root in `daemoncore-academy`. Upgrading or uninstalling program files does not intentionally remove this record. A cleanup utility, manual directory deletion, or operating-system profile removal can still destroy local data.
+
 ## Backup
 
 Use FieldOps case-file exports as the supported portable engagement archive. Keep copies in an approved evidence repository. Application-data backups may depend on the original operating-system account, device protection context, and Linux keyring and should not be treated as a portable license or signing-key transfer.
@@ -570,14 +580,11 @@ Define retention before the engagement begins. Case files can contain hostnames,
 
 Check, in order:
 
-1. FieldOps Pro entitlement is active or in grace.
-2. The selected engagement is active.
-3. Current time is inside the signed validity window.
-4. The operation is allowed by Observe, Validate, or Stress.
-5. Target exactly matches the engagement allowlist.
-6. Port exactly matches the declared port list.
-7. DNS resolution stays inside the selected public or private boundary.
-8. No campaign, diagnostic, or Chaos Engine run conflicts with the operation.
+1. Confirm FieldOps Pro is active or in grace and the selected engagement is active.
+2. Confirm the current time is inside the signed validity window.
+3. Confirm the policy permits the operation and the exact target and port are allowlisted.
+4. Confirm DNS resolution stays inside the selected public or private boundary.
+5. Confirm no campaign, diagnostic, or Chaos Engine run conflicts with the operation.
 
 The activity ledger records the blocked reason when an engagement was identified.
 
@@ -595,6 +602,14 @@ FieldOps verifies certificates for HTTP HEAD operations and does not follow redi
 ## License is locked after account, device, or keyring changes
 
 The protected key may be tied to the original credential context. Restore access to that account or keyring, or deactivate/reactivate when possible. Contact the seller if an instance cannot be released.
+
+## Operator identity is missing after restart or upgrade
+
+1. Confirm the footer shows `6.3.1` or newer.
+2. Reopen the installed application shortcut rather than rerunning the setup file.
+3. Confirm the per-user `daemoncore-academy` application-data directory was not deleted or redirected.
+4. Allow the first 6.3.1 launch to complete recovery migration when no durable profile exists.
+5. Do not reactivate, reenroll, import, or delete data until the original directory and latest case-file export have been preserved for support review.
 
 ## Campaign was interrupted
 
@@ -666,7 +681,7 @@ FieldOps can continue local review, findings work, reporting, and authorized dia
 
 # 17. Product limits and responsible operation
 
-FieldOps 6.0.0-beta.1 provides scoped diagnostics and evidence workflow. It does not claim complete vulnerability coverage and does not replace specialist platforms for interception, packet capture, credentialed vulnerability management, exploitation, source review, cloud-provider APIs, wireless testing, malware analysis, or large-scale performance engineering.
+FieldOps 6.3.1 provides scoped diagnostics and evidence workflow. It does not claim complete vulnerability coverage and does not replace specialist platforms for interception, packet capture, credentialed vulnerability management, exploitation, source review, cloud-provider APIs, wireless testing, malware analysis, or large-scale performance engineering.
 
 ## Shipped safety boundaries
 
@@ -695,10 +710,10 @@ The operator must understand the target, authorization, expected load, third-par
 
 | Control | Shipped limit |
 | --- | --- |
-| Targets per engagement | 100 exact hosts |
-| TCP ports per engagement | 128 exact ports |
+| Guarded targets / ports | 100 targets / 128 TCP ports |
+| Professional targets / ports | Exact signed lists define capacity |
 | Engagement window | Maximum 366 days |
-| Port-survey concurrency | 4 |
+| Port-survey concurrency | Guarded 1–8; Professional 1–64 (signed) |
 | Surface web services | 8 |
 | Web-map requests | 8 sequential HEAD requests |
 | Service banner | 2 KB retained |
@@ -731,5 +746,5 @@ When requesting support, provide the application version, operating-system and d
 ---
 
 DaemonCore FieldOps
-Operator Manual - Version 6.0.0-beta.1
+Operator Manual - Version 6.3.1
 Copyright 2026 DaemonCore Apps. All rights reserved.

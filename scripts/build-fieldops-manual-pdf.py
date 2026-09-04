@@ -28,7 +28,7 @@ ROOT = Path(__file__).resolve().parents[1]
 GUIDE = "academy" if "--academy" in sys.argv else os.environ.get("DAEMONCORE_GUIDE", "fieldops").lower()
 if GUIDE == "academy":
     SOURCE = ROOT / "docs" / "ACADEMY-MISSION-OS-GUIDE.md"
-    OUTPUT = ROOT / "output" / "pdf" / "DaemonCore-Academy-Mission-OS-Guide-v6.0.0-beta.1.pdf"
+    OUTPUT = ROOT / "output" / "pdf" / "DaemonCore-Academy-Mission-OS-Guide.pdf"
     GUIDE_NAME = "ACADEMY MISSION OS GUIDE"
     COVER_TITLE = "ACADEMY"
     COVER_SUBTITLE = "MISSION OS OPERATOR GUIDE"
@@ -36,13 +36,13 @@ if GUIDE == "academy":
     COVER_LEAD = "Diagnose the signal. Build the route. Prove the work.<br/>A local-first operating guide for practical cyber training."
     COVER_NOTE = "PROGRESS IS RECORDED. CAPABILITY IS PROVEN BY THE WORK."
     DOCUMENT_TITLE = "DaemonCore Academy Mission OS Operator Guide"
-    DOCUMENT_SUBJECT = "Operator guidance for DaemonCore Academy Mission OS 6.0.0-beta.1"
+    DOCUMENT_SUBJECT = "Operator guidance for DaemonCore Academy Mission OS 6.3.1"
     SCREENSHOT = ROOT / "docs" / "screenshots" / "command-center.png"
     SCREENSHOT_ANCHOR = "__no_academy_screenshot__"
     SCREENSHOT_CAPTION = "DaemonCore Academy command center and recorded operator progress"
 else:
     SOURCE = ROOT / "docs" / "FIELDOPS-OPERATOR-MANUAL.md"
-    OUTPUT = ROOT / "output" / "pdf" / "DaemonCore-FieldOps-Operator-Manual-v6.0.0-beta.1.pdf"
+    OUTPUT = ROOT / "output" / "pdf" / "DaemonCore-FieldOps-Operator-Manual.pdf"
     GUIDE_NAME = "FIELDOPS OPERATOR MANUAL"
     COVER_TITLE = "FIELDOPS"
     COVER_SUBTITLE = "OPERATOR MANUAL"
@@ -50,7 +50,7 @@ else:
     COVER_LEAD = "Signed scope. Pinned targets. Sealed evidence.<br/>Professional assessment operations from one local-first desktop workspace."
     COVER_NOTE = "A LICENSE UNLOCKS THE TOOL. THE ENGAGEMENT AUTHORIZES THE TARGET."
     DOCUMENT_TITLE = "DaemonCore FieldOps Operator Manual"
-    DOCUMENT_SUBJECT = "Operator guidance for DaemonCore FieldOps 6.0.0-beta.1"
+    DOCUMENT_SUBJECT = "Operator guidance for DaemonCore FieldOps 6.3.1"
     SCREENSHOT = ROOT / "docs" / "screenshots" / "fieldops-pro-gate.png"
     SCREENSHOT_ANCHOR = "Move a license to another device"
     SCREENSHOT_CAPTION = "FieldOps Pro gate before commercial activation"
@@ -249,7 +249,7 @@ def cover_story(style_map):
     meta = Table(
         [
             [Paragraph("PRODUCT", meta_label), Paragraph("RELEASE", meta_label), Paragraph("EDITION", meta_label)],
-            [Paragraph("DaemonCore Academy", meta_value), Paragraph("6.0 Beta 1", meta_value), Paragraph("Public beta", meta_value)],
+            [Paragraph("DaemonCore Academy", meta_value), Paragraph("6.3.1", meta_value), Paragraph("Production release", meta_value)],
         ],
         colWidths=[CONTENT_WIDTH / 3] * 3,
     )
@@ -269,7 +269,7 @@ def cover_story(style_map):
         Paragraph(COVER_LEAD, lead),
         Spacer(1, 0.45 * inch), meta, Spacer(1, 0.5 * inch),
         Paragraph(COVER_NOTE, note),
-        Spacer(1, 0.12 * inch), Paragraph("30 AUGUST 2026  //  DAEMONCORE APPS", date),
+        Spacer(1, 0.12 * inch), Paragraph("4 SEPTEMBER 2026  //  DAEMONCORE APPS", date),
         PageBreak(),
     ]
 
@@ -369,9 +369,9 @@ def draw_later_page(canvas, doc) -> None:
     canvas.line(inch, PAGE_HEIGHT - 39, PAGE_WIDTH - inch, PAGE_HEIGHT - 39)
     canvas.setFont("Segoe-Bold", 7.2)
     canvas.setFillColor(MID)
-    canvas.drawString(inch, PAGE_HEIGHT - 31, f"DAEMONCORE  //  {GUIDE_NAME}  //  6.0.0-BETA.1")
+    canvas.drawString(inch, PAGE_HEIGHT - 31, f"DAEMONCORE  //  {GUIDE_NAME}  //  6.3.1")
     canvas.setFont("Segoe", 7.2)
-    canvas.drawString(inch, 28, "PUBLIC BETA  |  Copyright 2026 DaemonCore Apps")
+    canvas.drawString(inch, 28, "LATEST RELEASE  |  Copyright 2026 DaemonCore Apps")
     canvas.drawRightString(PAGE_WIDTH - inch, 28, str(doc.page))
     canvas.restoreState()
 

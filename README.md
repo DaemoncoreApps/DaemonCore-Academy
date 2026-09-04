@@ -8,10 +8,10 @@ DaemonCore is the course I wanted instead: learn the mental model, validate it, 
 
 Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 
-**[Download DaemonCore Academy 6 for Windows](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/latest/download/DaemonCore-Academy-Setup.exe)** · **[Download the Linux beta](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/tag/v6.0.0-beta.3)** · [FieldOps Manual](output/pdf/DaemonCore-FieldOps-Operator-Manual-v6.0.0-beta.1.pdf) · [Academy Guide](output/pdf/DaemonCore-Academy-Mission-OS-Guide-v6.0.0-beta.1.pdf) · [Release notes](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases)
+**[Download DaemonCore Academy 6.3.1 for Windows](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/latest/download/DaemonCore-Academy-Setup.exe)** · **[Download the Linux beta](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/tag/v6.0.0-beta.3)** · [FieldOps Manual](output/pdf/DaemonCore-FieldOps-Operator-Manual.pdf) · [Academy Guide](output/pdf/DaemonCore-Academy-Mission-OS-Guide.pdf) · [6.3.1 release notes](docs/RELEASE-V6.3.1.md) · [All releases](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases)
 
 > [!CAUTION]
-> **Temporary unsigned Windows build:** DaemonCore 6.3.0 is not yet Authenticode-signed, so Windows may display **Unknown Publisher**. Until the signing certificate is in place, install and evaluate the Windows build inside a disposable Windows 10/11 virtual machine—not on a production workstation. Download it only from this repository, verify the published SHA-256 checksum, and take a VM snapshot before installation. If the file hash does not match, do not run it.
+> **Temporary unsigned Windows build:** DaemonCore 6.3.1 is not yet Authenticode-signed, so Windows may display **Unknown Publisher**. Until the signing certificate is in place, install and evaluate the Windows build inside a disposable Windows 10/11 virtual machine—not on a production workstation. Download it only from this repository, verify the published SHA-256 checksum, and take a VM snapshot before installation. If the file hash does not match, do not run it.
 
 ## Temporary VM-first installation
 
@@ -46,6 +46,14 @@ The Academy lessons and non-Docker workbenches run normally in a VM. Live Docker
 ![FieldOps Pro license and authorization gate](docs/screenshots/fieldops-pro-gate.png)
 
 ## What ships
+
+### Current release // 6.3.1
+
+- **One truthful release identity** — 6.3.1 is the required identity for package metadata, desktop version reporting, installer metadata, documentation, tag, and GitHub release. It supersedes the incorrectly numbered 6.0.4 public release, whose source already carried the 6.3 product version.
+- **Docker launch corrections** — Web Forge and Enterprise Forge fixture permissions now preserve readable, traversable trees for their non-root operators, and Enterprise Forge uses corrected temporary mount declarations. Docker Desktop smoke testing remains a release-acceptance requirement.
+- **Integrity metadata refreshed** — range fingerprints match the corrected production packs, so legitimate launch fixes do not trip the fail-closed content verification boundary.
+- **Complete 6.3 FieldOps line** — the Windows release includes the War Room, signed Professional execution capacity, Execution Fabric, and the managed Nmap runner described below.
+- **Authorization still defines the ceiling** — Professional capacity is selected and signed into an operation permit. It expands exact target and declared-port limits; it does not enable DDoS, password attacks, an unrestricted shell, or execution outside the permit.
 
 ### Mission OS // 6.0
 
@@ -104,7 +112,7 @@ The stable Windows release carries the complete Mission OS 6 experience. Linux r
 - **Managed Native Runner // 6.3** — Nmap is no longer a manifest-only integration. FieldOps launches it as a real background process against a resolved, pinned address and the permit’s declared port set, streams process output into the War Room, exposes an operator Stop control, retains job history across restarts, and seals successful structured results as evidence.
 - **Shell-free execution boundary** — native runs use a fixed argument array instead of shell text. Exact-target membership, public/internal network mode, testing window, entitlement, policy level, signed permit integrity, and run-specific operator confirmation are rechecked before launch.
 - **Honest capability labels** — the War Room identifies Nmap as managed execution and leaves Nuclei, k6, Locust, TShark, and Hashcat as scope-manifest/evidence bridges until their own managed adapters ship.
-- **Signed professional capacity** — new engagements can select Guarded or Professional capacity as a field in the operation permit. Professional permits support up to 500 exact targets, 1,024 declared TCP ports, 16 survey workers, and longer deep-inventory windows without weakening exact-scope enforcement.
+- **Signed professional capacity** — new engagements can select Guarded or Professional capacity as a field in the operation permit. Professional permits use the exact signed target and port lists as their capacity, with 1–64 operator-selected survey workers and a signed native-tool window, without weakening exact-scope enforcement.
 - **Third-party chain of custody** — imported evidence is size-limited, parsed as data rather than executed, SHA-256 fingerprinted, bound to one authorized target, retained in the capture vault, and recorded in the signed audit ledger.
 - **No decorative readiness theater** — every status on the refreshed deck is derived from the protected operator identity, selected signed engagement, actual validity window, capture and audit integrity, or persisted case records.
 
@@ -120,7 +128,7 @@ The stable Windows release carries the complete Mission OS 6 experience. Linux r
 - **Change Intelligence** — repeat baselines compare resolved addresses, exposed ports, DNS control-plane records, HTTP posture, response behavior, server disclosure, and TLS certificate identity against the prior sealed capture.
 - **Service Profile** — one authorized port can be resolved into passive server-first banner evidence, protocol identity, HTTP posture, and TLS certificate context without sending credentials or protocol commands.
 - **Bounded Web Map** — a fixed eight-path, HEAD-only control-plane survey records security metadata, API descriptions, health endpoints, and disclosure signals without crawling or downloading response bodies.
-- **Professional network boundaries** — engagements can explicitly authorize public external targets or exact RFC1918/IPv6 ULA internal systems. Guarded permits support 100 hosts and 128 ports; Professional permits expand that signed boundary to 500 exact hosts and 1,024 declared ports.
+- **Professional network boundaries** — engagements can explicitly authorize public external targets or exact RFC1918/IPv6 ULA internal systems. Guarded permits support 100 hosts and 128 ports; Professional permits make the exact authorized host and port lists the signed boundary.
 - **Deeper protocol evidence** — DNS profiles cover address, mail, nameserver, TXT, CAA, and authority records. HTTP posture evaluates response controls, cookie flags, and implementation disclosure. TLS captures protocol, cipher, certificate identity, lifetime, and validation state.
 - **Asset intelligence** — every successful scoped diagnostic becomes a durable target observation instead of disappearing when the console changes screens.
 - **Sealed evidence vault** — diagnostic captures retain their raw result, target, timing, resolved addresses, and an independent SHA-256 digest.
@@ -207,7 +215,7 @@ A paid license unlocks the tool. It does not authorize a target.
 
 New FieldOps engagements also require a device-bound operator identity. DaemonCore generates an Ed25519 signing key and protects the private key with the operating system’s credential storage. The public fingerprint and named operator are embedded in signed permits and operation receipts; the private key is never included in an export. This provides device-key attribution and tamper evidence, not independent proof that a typed identity or authorization claim is truthful.
 
-Before a diagnostic or Chaos Engine experiment can run, the operator must create an engagement with a client, authorization reference, external or internal network mode, exact targets, exact TCP ports, a testing window, execution capacity, and an explicit authorization attestation. FieldOps resolves and pins the destination, rejects addresses outside the selected boundary, blocks loopback, link-local, multicast, reserved, and mixed-boundary results, refuses redirects, and writes every completed or blocked action to the evidence ledger. Port surveys operate only against the declared allowlist: Guarded permits allow 128 ports and four workers, while Professional permits allow 1,024 ports and 16 workers. Basic resilience sampling remains fixed at ten HEAD requests, concurrency one, with at least 500 milliseconds between requests.
+Before a diagnostic or Chaos Engine experiment can run, the operator must create an engagement with a client, named approving authority, authorization reference, external or internal network mode, exact targets, exact TCP ports, a testing window, execution capacity, and an explicit authorization attestation. FieldOps resolves and pins the destination, rejects addresses outside the selected boundary, blocks loopback, link-local, multicast, reserved, and mixed-boundary results, refuses redirects, and writes every completed or blocked action to the evidence ledger. Port surveys operate only against the declared allowlist: Guarded permits retain conservative 100-target and 128-port limits, while Professional permits use the exact signed target and port lists as their capacity with 1–64 operator-selected workers. Basic resilience sampling remains fixed at ten HEAD requests, concurrency one, with at least 500 milliseconds between requests.
 
 Campaign Engine applies that same boundary to the whole engagement. Operators select only allowlisted targets, choose a fixed assessment profile, and attest the campaign before launch. Work continues in the background, survives navigation, pauses between modules, resumes pending or failed tasks, and becomes recoverable after an unexpected desktop restart. Cancellation never abandons a half-written evidence record: the active module settles before the campaign closes.
 

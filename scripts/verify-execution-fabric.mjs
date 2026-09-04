@@ -11,8 +11,8 @@ const { ToolBridge } = require('../electron/tool-bridge.cjs')
 const { TrustAuthority } = require('../electron/trust-authority.cjs')
 
 assert.equal(executionPolicy('guarded').maxPorts, 128)
-assert.equal(executionPolicy('professional').maxTargets, 500)
-assert.equal(executionPolicy('professional').maxPorts, 1024)
+assert.equal(executionPolicy('professional').maxTargets, null)
+assert.equal(executionPolicy('professional').maxPorts, null)
 assert.equal(executionPolicy('professional').portConcurrency, 16)
 assert.throws(() => executionPolicy('unbounded'), /supported execution profile/)
 
@@ -55,7 +55,7 @@ try {
   assert.equal(engagement.executionProfile, 'professional')
   assert.equal(engagement.ports.length, 129)
   assert.equal(engagement.permit.executionProfile, 'professional')
-  assert.equal(engagement.permit.executionCapacity.maxPorts, 1024)
+  assert.equal(engagement.permit.executionCapacity.maxPorts, 129)
 
   const capabilities = await fieldops.capabilities()
   assert.equal(capabilities.tools.length, 7)

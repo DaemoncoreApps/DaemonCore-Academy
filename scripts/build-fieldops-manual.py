@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 GUIDE = "academy" if "--academy" in sys.argv else os.environ.get("DAEMONCORE_GUIDE", "fieldops").lower()
 if GUIDE == "academy":
     SOURCE = ROOT / "docs" / "ACADEMY-MISSION-OS-GUIDE.md"
-    OUTPUT = ROOT / "docs" / "manuals" / "DaemonCore-Academy-Mission-OS-Guide-v6.0.0-beta.1.docx"
+    OUTPUT = ROOT / "docs" / "manuals" / "DaemonCore-Academy-Mission-OS-Guide.docx"
     GUIDE_NAME = "ACADEMY MISSION OS GUIDE"
     COVER_TITLE = "ACADEMY"
     COVER_SUBTITLE = "MISSION OS OPERATOR GUIDE"
@@ -26,7 +26,7 @@ if GUIDE == "academy":
     COVER_LEAD = "Diagnose the signal. Build the route. Prove the work.\nA local-first operating guide for practical cyber training."
     COVER_NOTE = "PROGRESS IS RECORDED. CAPABILITY IS PROVEN BY THE WORK."
     DOCUMENT_TITLE = "DaemonCore Academy Mission OS Operator Guide"
-    DOCUMENT_SUBJECT = "Operator guidance for DaemonCore Academy Mission OS 6.0.0-beta.1"
+    DOCUMENT_SUBJECT = "Operator guidance for DaemonCore Academy Mission OS 6.3.1"
     DOCUMENT_KEYWORDS = "DaemonCore, Academy, Mission OS, operator guide, cyber range"
     SCREENSHOT = ROOT / "docs" / "screenshots" / "command-center.png"
     SCREENSHOT_ANCHOR = "__no_academy_screenshot__"
@@ -35,7 +35,7 @@ if GUIDE == "academy":
     SCREENSHOT_CAPTION = "DaemonCore Academy command center and recorded operator progress"
 else:
     SOURCE = ROOT / "docs" / "FIELDOPS-OPERATOR-MANUAL.md"
-    OUTPUT = ROOT / "docs" / "manuals" / "DaemonCore-FieldOps-Operator-Manual-v6.0.0-beta.1.docx"
+    OUTPUT = ROOT / "docs" / "manuals" / "DaemonCore-FieldOps-Operator-Manual.docx"
     GUIDE_NAME = "FIELDOPS OPERATOR MANUAL"
     COVER_TITLE = "FIELDOPS"
     COVER_SUBTITLE = "OPERATOR MANUAL"
@@ -43,7 +43,7 @@ else:
     COVER_LEAD = "Signed scope. Pinned targets. Sealed evidence.\nProfessional assessment operations from one local-first desktop workspace."
     COVER_NOTE = "A LICENSE UNLOCKS THE TOOL. THE ENGAGEMENT AUTHORIZES THE TARGET."
     DOCUMENT_TITLE = "DaemonCore FieldOps Operator Manual"
-    DOCUMENT_SUBJECT = "Operator guidance for DaemonCore FieldOps 6.0.0-beta.1"
+    DOCUMENT_SUBJECT = "Operator guidance for DaemonCore FieldOps 6.3.1"
     DOCUMENT_KEYWORDS = "DaemonCore, FieldOps, operator manual, authorized assessment"
     SCREENSHOT = ROOT / "docs" / "screenshots" / "fieldops-pro-gate.png"
     SCREENSHOT_ANCHOR = "Move a license to another device"
@@ -223,7 +223,7 @@ def add_running_furniture(section) -> None:
     p = header.paragraphs[0]
     p.alignment = WD_ALIGN_PARAGRAPH.LEFT
     p.paragraph_format.space_after = Pt(3)
-    run = p.add_run(f"DAEMONCORE  //  {GUIDE_NAME}  //  6.0.0-BETA.1")
+    run = p.add_run(f"DAEMONCORE  //  {GUIDE_NAME}  //  6.3.1")
     set_run_font(run, name="Aptos", size=7.5, color=MID, bold=True)
     p_pr = p._p.get_or_add_pPr()
     borders = OxmlElement("w:pBdr")
@@ -242,7 +242,7 @@ def add_running_furniture(section) -> None:
     table._tbl.tblPr.remove(table._tbl.tblPr.find(qn("w:tblBorders"))) if table._tbl.tblPr.find(qn("w:tblBorders")) is not None else None
     left = table.cell(0, 0).paragraphs[0]
     left.paragraph_format.space_after = Pt(0)
-    run = left.add_run("PUBLIC BETA  |  Copyright 2026 DaemonCore Apps")
+    run = left.add_run("LATEST RELEASE  |  Copyright 2026 DaemonCore Apps")
     set_run_font(run, size=7.5, color=MID)
     right = table.cell(0, 1).paragraphs[0]
     right.paragraph_format.space_after = Pt(0)
@@ -290,7 +290,7 @@ def add_cover(doc: Document) -> None:
     table = doc.add_table(rows=2, cols=3)
     set_table_geometry(table, [3120, 3120, 3120])
     set_repeat_table_header(table.rows[0])
-    labels = (("PRODUCT", "DaemonCore Academy"), ("RELEASE", "6.0 Beta 1"), ("EDITION", "Public beta"))
+    labels = (("PRODUCT", "DaemonCore Academy"), ("RELEASE", "6.3.1"), ("EDITION", "Production release"))
     for index, (label, value) in enumerate(labels):
         set_cell_shading(table.cell(0, index), DARK)
         set_cell_shading(table.cell(1, index), LIGHT)
@@ -315,7 +315,7 @@ def add_cover(doc: Document) -> None:
     date = doc.add_paragraph()
     date.alignment = WD_ALIGN_PARAGRAPH.CENTER
     date.paragraph_format.space_before = Pt(8)
-    run = date.add_run("30 AUGUST 2026  //  DAEMONCORE APPS")
+    run = date.add_run("4 SEPTEMBER 2026  //  DAEMONCORE APPS")
     set_run_font(run, size=8, color=MID)
 
     doc.add_page_break()
@@ -449,7 +449,7 @@ def render_markdown(doc: Document, lines: list[str]) -> None:
             index += 1
             continue
         # Cover metadata is already represented in the custom cover.
-        if index < 12 and (stripped.startswith("Version 6.0.0-beta.1") or stripped in {"Public beta edition", "30 August 2026"}):
+        if index < 12 and (stripped.startswith("Version 6.3.1") or stripped in {"Production release edition", "4 September 2026"}):
             index += 1
             continue
         paragraph_lines = [stripped]
@@ -497,7 +497,7 @@ def set_document_properties(doc: Document) -> None:
     props.subject = DOCUMENT_SUBJECT
     props.author = "DaemonCore Apps"
     props.keywords = DOCUMENT_KEYWORDS
-    props.comments = "Public beta edition"
+    props.comments = "Latest release edition"
 
 
 def main() -> int:

@@ -8,7 +8,7 @@ const { CONTRACTS, MODES, matchesObjective, normalizeMode, publicContract } = re
 const { sealReceipt, verifyReceipt } = require('../electron/range-integrity.cjs')
 
 assert.deepEqual(Object.keys(MODES), ['guided', 'assisted', 'blind', 'professional'])
-assert.equal(Object.keys(CONTRACTS).length, 7)
+assert.equal(Object.keys(CONTRACTS).length, 9)
 assert.ok(Object.values(CONTRACTS).every(contract => contract.objectives.length === 4))
 assert.equal(normalizeMode(), 'assisted')
 assert.throws(() => normalizeMode('speedrun'), /Unknown mission mode/)
