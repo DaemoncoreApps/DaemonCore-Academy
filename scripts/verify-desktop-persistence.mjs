@@ -45,6 +45,9 @@ try {
   assert.match(preload, /data:migrate-fallback/)
   assert.match(main, /ipcMain\.on\('app:version'/)
   assert.match(main, /data:migrate-fallback/)
+  assert.match(app, /version as packageVersion/)
+  assert.match(app, /window\.daemoncore\?\.version\|\|packageVersion/)
+  assert.doesNotMatch(app, /6\.0 PREVIEW/)
   assert.match(app, /api\.migrateFallback\(fallback\)/)
   assert.match(app, /localStorage\.setItem\('daemoncore-state-v1'/)
 

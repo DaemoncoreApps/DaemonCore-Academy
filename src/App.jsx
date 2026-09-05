@@ -24,6 +24,7 @@ import { MissionOSPage } from './MissionOS.jsx'
 import { AcademyWorkflowGuide, WorkflowDock } from './AcademyGuide.jsx'
 import { CertificationCenter } from './CertificationCenter.jsx'
 import missionOSData from '../shared/mission-os.json'
+import { version as packageVersion } from '../package.json'
 
 const nav = [
   { id: 'command', label: 'Command', icon: Grid2X2 },
@@ -316,6 +317,6 @@ export default function App() {
   else if(page==='operator')current=<OperatorPage profile={operator}/>
   else current=<SettingsPage data={store.data} {...licenseProps} onUpdate={store.updateSettings} onExport={store.exportData} onReset={store.reset}/>
   const platform={win32:'WINDOWS',linux:'LINUX',darwin:'MACOS'}[window.daemoncore?.platform]||'WEB PREVIEW'
-  const version=window.daemoncore?.version||'6.0 PREVIEW'
+  const version=window.daemoncore?.version||packageVersion
   return <div className="app-shell"><Sidebar page={page} setPage={p=>{setPage(p);setModule(null)}} collapsed={navigationCollapsed} setCollapsed={setCollapsed} profile={operator}/><main><Topbar title={title} profile={operator}/><WorkflowDock page={page} profile={operator} onNavigate={destination=>{setModule(null);setPage(destination)}} onOpenGuide={()=>setGuideState({handle:operator.handle,forced:true,dismissed:false})}/>{current}<footer className="app-footer"><span>DAEMONCORE ACADEMY // MISSION OS</span><span><i/> LICENSED LOCAL-FIRST PLATFORM</span><span>V{version} // {platform}</span></footer></main>{guideOpen&&<AcademyWorkflowGuide onClose={()=>closeGuide()} onNavigate={closeGuide}/>} {mission&&<MissionModal mission={mission} defaultMode={operator.completedMissions?.length?'assisted':'guided'} onClose={()=>setMission(null)} onLaunch={({mode})=>{setActiveMission({...mission,mode});setMission(null)}}/>}{quiz&&<QuizModal drill={quiz} onClose={()=>setQuiz(null)} onComplete={completeQuiz}/>} {toast&&<Toast message={toast}/>}</div>
 }
