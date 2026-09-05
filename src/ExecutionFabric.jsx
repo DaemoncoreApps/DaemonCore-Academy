@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Activity, ArrowRight, Check, Database, Download, FileInput, Gauge, Network, Play, RefreshCw, ShieldCheck, Square, TerminalSquare, Wrench } from 'lucide-react'
+import { Activity, ArrowRight, BarChart3, Check, CircleStop, Database, Download, FileInput, Gauge, Network, Play, RefreshCw, ShieldCheck, Square, TerminalSquare, Wrench } from 'lucide-react'
 
 const activeStatuses = new Set(['queued', 'starting', 'running', 'cancelling'])
 
@@ -11,12 +11,17 @@ export function ExecutionFabric({ engagement, jobs = [], onCapabilities, onExpor
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [attested, setAttested] = useState(false)
-  const [workload, setWorkload] = useState({ target: engagement.targets[0], port: engagement.ports.includes(443) ? 443 : engagement.ports[0], path: '/', secure: engagement.ports.includes(443), requestsPerSecond: 100, durationSeconds: 60, concurrency: 20 })
+  const [workload, setWorkload] = useState({ name: 'Authorized production resilience test', profile: 'ramp', target: engagement.targets[0], port: engagement.ports.includes(443) ? 443 : engagement.ports[0], path: '/', secure: engagement.ports.includes(443), requestsPerSecond: 100, durationSeconds: 60, concurrency: 20, p95LimitMs: 2000, errorRateLimit: 5, attested: false })
   const [capacityGrant, setCapacityGrant] = useState((engagement.capacityGrants || []).find(item => item.target === engagement.targets[0]) || null)
+  const [loadRuns, setLoadRuns] = useState([])
   const latestJob = jobs[0]
   const activeJob = jobs.find(job => activeStatuses.has(job.status))
   const hasActiveJob = Boolean(activeJob)
   const runnerAvailable = capabilities?.tools?.some(tool => ['nmap', 'docker'].includes(tool.id) && tool.available)
+  const k6Available = capabilities?.tools?.some(tool => tool.id === 'k6' && tool.available)
+  const activeLoad = loadRuns.find(run => activeStatuses.has(run.status))
+  const activeLoadId = activeLoad?.id
+  const latestLoad = activeLoad || loadRuns[0]
 
   const load = async refresh => {
     setBusy('refresh')
@@ -43,6 +48,15 @@ export function ExecutionFabric({ engagement, jobs = [], onCapabilities, onExpor
     const timer = setInterval(() => onRefresh().catch(() => {}), 800)
     return () => clearInterval(timer)
   }, [hasActiveJob, onRefresh])
+
+  useEffect(() => {
+    let alive = true
+    const refresh = () => window.daemoncore.fieldops.snapshot().then(next => { if (alive) setLoadRuns((next.loadRuns || []).filter(run => run.engagementId === engagement.id)) }).catch(() => {})
+    refresh()
+    if (!activeLoadId) return () => { alive = false }
+    const timer = setInterval(refresh, 750)
+    return () => { alive = false; clearInterval(timer) }
+  }, [engagement.id, activeLoadId])
 
   const profile = useMemo(
     () => capabilities?.profiles?.find(item => item.id === engagement.executionProfile) || engagement.executionCapacity,
@@ -102,6 +116,18 @@ export function ExecutionFabric({ engagement, jobs = [], onCapabilities, onExpor
     } catch (caught) { setError(caught.message) } finally { setBusy('') }
   }
 
+  const startLoad = async () => {
+    setBusy('load'); setError(''); setMessage('')
+    try { const next = await window.daemoncore.fieldops.startLoad({ engagementId: engagement.id, ...workload }); setLoadRuns((next.loadRuns || []).filter(run => run.engagementId === engagement.id)); setWorkload(current => ({ ...current, attested: false })); setMessage('Managed k6 execution queued under the verified capacity grant.') }
+    catch (caught) { setError(caught.message) } finally { setBusy('') }
+  }
+
+  const stopLoad = async () => {
+    if (!activeLoad) return
+    try { const next = await window.daemoncore.fieldops.cancelLoad(activeLoad.id); setLoadRuns((next.loadRuns || []).filter(run => run.engagementId === engagement.id)); setMessage('Emergency stop sent to the managed k6 process.') }
+    catch (caught) { setError(caught.message) }
+  }
+
   return <section className="execution-fabric">
     <header className="fabric-hero">
       <div>
@@ -144,16 +170,23 @@ export function ExecutionFabric({ engagement, jobs = [], onCapabilities, onExpor
       <code>/.well-known/daemoncore-capacity/{engagement.capacityChallenge || 'REISSUE-ENGAGEMENT'}.json</code>
       <details><summary>VIEW TARGET GRANT TEMPLATE</summary><pre>{JSON.stringify({ challenge: engagement.capacityChallenge || 'reissue-engagement', target: workload.target, authorizationReference: engagement.authorizationReference, maxRequestsPerSecond: 500, maxDurationSeconds: 900, maxConcurrency: 80, validUntil: engagement.validUntil }, null, 2)}</pre></details>
       <div className="capacity-fields">
+        <label>PROFILE<select value={workload.profile} onChange={event => setWorkload(current => ({ ...current, profile: event.target.value }))}><option value="ramp">Ramp</option><option value="spike">Spike</option><option value="soak">Soak</option><option value="breakpoint">Breakpoint</option><option value="recovery">Recovery</option></select></label>
         <label>TARGET<select value={workload.target} onChange={event => { setWorkload(current => ({ ...current, target: event.target.value })); setCapacityGrant(null) }}>{engagement.targets.map(item => <option key={item}>{item}</option>)}</select></label>
         <label>PORT<select value={workload.port} onChange={event => setWorkload(current => ({ ...current, port: Number(event.target.value) }))}>{engagement.ports.map(item => <option key={item}>{item}</option>)}</select></label>
         <label>PATH<input value={workload.path} onChange={event => setWorkload(current => ({ ...current, path: event.target.value }))}/></label>
         <label>REQ/S<input type="number" min="1" max={capacityGrant?.maxRequestsPerSecond || 1} value={workload.requestsPerSecond} onChange={event => setWorkload(current => ({ ...current, requestsPerSecond: Number(event.target.value) }))}/></label>
         <label>DURATION // SEC<input type="number" min="10" max={capacityGrant?.maxDurationSeconds || 10} value={workload.durationSeconds} onChange={event => setWorkload(current => ({ ...current, durationSeconds: Number(event.target.value) }))}/></label>
         <label>CONCURRENCY<input type="number" min="1" max={capacityGrant?.maxConcurrency || 1} value={workload.concurrency} onChange={event => setWorkload(current => ({ ...current, concurrency: Number(event.target.value) }))}/></label>
+        <label>P95 SLO // MS<input type="number" min="100" max="60000" value={workload.p95LimitMs} onChange={event => setWorkload(current => ({ ...current, p95LimitMs: Number(event.target.value) }))}/></label>
+        <label>ERROR SLO // %<input type="number" min="0.1" max="100" step="0.1" value={workload.errorRateLimit} onChange={event => setWorkload(current => ({ ...current, errorRateLimit: Number(event.target.value) }))}/></label>
       </div>
       <label className="capacity-tls"><input type="checkbox" checked={workload.secure} onChange={event => setWorkload(current => ({ ...current, secure: event.target.checked }))}/> Verified TLS endpoint</label>
       <button disabled={busy === 'capacity' || !engagement.capacityChallenge} onClick={verifyCapacity}><ShieldCheck/> {busy === 'capacity' ? 'VERIFYING TARGET' : 'VERIFY TARGET CAPACITY'}</button>
       {capacityGrant && <small>GRANT {capacityGrant.digest.slice(0, 12)} // EXPIRES {new Date(capacityGrant.validUntil).toLocaleString()} // EMERGENCY STOP REQUIRED</small>}
+      {capacityGrant && <label className="load-attest"><input type="checkbox" checked={workload.attested} onChange={event => setWorkload(current => ({ ...current, attested: event.target.checked }))}/><span>{workload.attested && <Check/>}</span><p>I confirm this managed workload is authorized by the active permit and verified target grant.</p></label>}
+      <div className="load-actions">{activeLoad?<button className="load-stop" onClick={stopLoad}><CircleStop/> EMERGENCY STOP</button>:<button disabled={!capacityGrant||!workload.attested||!k6Available||busy==='load'} onClick={startLoad}><Play/> {busy==='load'?'ARMING K6':'EXECUTE MANAGED LOAD'}</button>}<em>{k6Available?'K6 NATIVE ADAPTER READY':'INSTALL GRAFANA K6 TO ENABLE EXECUTION'}</em></div>
+      {latestLoad&&<section className="load-telemetry"><header><BarChart3/><span>{latestLoad.name}</span><strong>{latestLoad.status.toUpperCase()}</strong></header><div><article><span>REQUESTS</span><b>{latestLoad.metrics?.requests??'LIVE'}</b></article><article><span>ACHIEVED RPS</span><b>{latestLoad.metrics?.rps??'—'}</b></article><article><span>P95 LATENCY</span><b>{latestLoad.metrics?`${latestLoad.metrics.p95Ms} ms`:'—'}</b></article><article><span>ERROR RATE</span><b>{latestLoad.metrics?`${latestLoad.metrics.errorRate}%`:'—'}</b></article><article><span>DROPPED</span><b>{latestLoad.metrics?.droppedIterations??'—'}</b></article></div><p>{latestLoad.outcome}</p><pre>{latestLoad.output?.slice(-5000)||'$ Waiting for managed k6 telemetry...'}</pre></section>}
+      {loadRuns.length>0&&<div className="load-history"><header><span>COMPARATIVE RUN LEDGER</span><strong>{loadRuns.length} RUNS</strong></header>{loadRuns.slice(0,8).map(run=><div key={run.id}><b>{run.name}</b><span>{run.plan.profile.toUpperCase()} // {run.plan.requestsPerSecond} REQ/S GRANT</span><em>{run.metrics?.requests||0} REQ</em><em>{run.metrics?.p95Ms||0} MS P95</em><em>{run.metrics?.errorRate||0}% ERR</em><strong>{run.status.toUpperCase()}</strong></div>)}</div>}
     </section>
 
     <div className="fabric-grid">

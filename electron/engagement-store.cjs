@@ -1,17 +1,17 @@
 const dnsPromises = require('dns/promises')
 const { lookup } = dnsPromises
-const { mkdir, readFile, rename, writeFile } = require('fs/promises')
+const { mkdir, open, readFile, rename, writeFile } = require('fs/promises')
 const http = require('http')
 const https = require('https')
 const net = require('net')
 const path = require('path')
 const tls = require('tls')
 const { createHash, randomUUID } = require('crypto')
-const { ToolBridge, TOOL_CATALOG } = require('./tool-bridge.cjs')
+const { ToolBridge, TOOL_CATALOG, k6Script } = require('./tool-bridge.cjs')
 const { TrustAuthority } = require('./trust-authority.cjs')
 const { executionPolicy, publicExecutionProfiles } = require('./execution-policy.cjs')
 
-const cleanState = () => ({ schemaVersion: 8, engagements: [], operatorJobs: [], campaigns: [], chaosRuns: [], captures: [], findings: [], audit: [] })
+const cleanState = () => ({ schemaVersion: 9, engagements: [], operatorJobs: [], loadRuns: [], campaigns: [], chaosRuns: [], captures: [], findings: [], audit: [] })
 const clone = value => JSON.parse(JSON.stringify(value))
 const captureDigest = capture => { const { digest: _digest, ...unsigned }=capture;return createHash('sha256').update(JSON.stringify(unsigned)).digest('hex') }
 const hostnamePattern = /^(?=.{1,253}$)(?!-)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)*[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/
@@ -54,6 +54,7 @@ const serviceByPort={21:'ftp',22:'ssh',25:'smtp',53:'dns',80:'http',110:'pop3',1
 const campaignProfiles={inventory:['deep-inventory'],surface:['dns-profile','surface'],complete:['dns-profile','deep-inventory','surface']}
 const activeCampaignStatuses=new Set(['queued','running','pause-requested','paused','cancelling'])
 const activeJobStatuses=new Set(['queued','starting','running','cancelling'])
+const activeLoadStatuses=new Set(['queued','starting','running','cancelling'])
 const observedOperations=new Set(['dns','tcp','http','tls','http-posture','service-profile'])
 const safeExecutionPolicy=value=>{try{return executionPolicy(value)}catch{return executionPolicy('guarded')}}
 const executionCapacity=(profile,input,targets,ports)=>{
@@ -88,11 +89,12 @@ class EngagementStore {
     this.campaignAbort=new Set()
     this.campaignPause=new Set()
     this.jobControls=new Map()
+    this.loadTelemetry=new Map()
     this.writeQueue=Promise.resolve()
   }
 
-  async initialize(){await mkdir(this.directory,{recursive:true});try{this.state={...cleanState(),...JSON.parse(await readFile(this.file,'utf8')),schemaVersion:8};this.state.operatorJobs||=[];this.state.campaigns||=[];this.state.chaosRuns||=[];this.state.captures||=[];this.state.findings||=[];for(const engagement of this.state.engagements){engagement.networkMode||='external';engagement.policyLevel||=engagement.permit?.policyLevel||'legacy';const policy=safeExecutionPolicy(engagement.executionProfile||engagement.permit?.executionProfile);engagement.executionProfile=policy.id;engagement.executionCapacity||={...policy}}for(const job of this.state.operatorJobs){if(activeJobStatuses.has(job.status)){job.status='interrupted';job.finishedAt=this.now().toISOString();job.outcome='The desktop process ended before the native tool completed.'}}for(const campaign of this.state.campaigns){if(activeCampaignStatuses.has(campaign.status)){campaign.status='interrupted';campaign.finishedAt=this.now().toISOString();campaign.outcome='The desktop process ended before the campaign completed. Resume to continue pending work.';for(const task of campaign.tasks||[])if(task.status==='running')task.status='pending'}}for(const run of this.state.chaosRuns){if(['queued','running','recovering','aborting'].includes(run.status)){run.status='interrupted';run.finishedAt=this.now().toISOString();run.outcome='The desktop process ended before the experiment completed.'}}}catch{this.state=cleanState()}await this.persist();return this.snapshot()}
-  snapshot(){return {...clone(this.state),auditIntegrity:this.verifyAudit(),captureIntegrity:this.verifyCaptures(),signatureIntegrity:this.verifySignatures()}}
+  async initialize(){await mkdir(this.directory,{recursive:true});try{this.state={...cleanState(),...JSON.parse(await readFile(this.file,'utf8')),schemaVersion:9};this.state.operatorJobs||=[];this.state.loadRuns||=[];this.state.campaigns||=[];this.state.chaosRuns||=[];this.state.captures||=[];this.state.findings||=[];for(const engagement of this.state.engagements){engagement.networkMode||='external';engagement.policyLevel||=engagement.permit?.policyLevel||'legacy';const policy=safeExecutionPolicy(engagement.executionProfile||engagement.permit?.executionProfile);engagement.executionProfile=policy.id;engagement.executionCapacity||={...policy}}for(const job of this.state.operatorJobs){if(activeJobStatuses.has(job.status)){job.status='interrupted';job.finishedAt=this.now().toISOString();job.outcome='The desktop process ended before the native tool completed.'}}for(const run of this.state.loadRuns){if(activeLoadStatuses.has(run.status)){run.status='interrupted';run.finishedAt=this.now().toISOString();run.outcome='The desktop process ended before the managed workload completed.'}}for(const campaign of this.state.campaigns){if(activeCampaignStatuses.has(campaign.status)){campaign.status='interrupted';campaign.finishedAt=this.now().toISOString();campaign.outcome='The desktop process ended before the campaign completed. Resume to continue pending work.';for(const task of campaign.tasks||[])if(task.status==='running')task.status='pending'}}for(const run of this.state.chaosRuns){if(['queued','running','recovering','aborting'].includes(run.status)){run.status='interrupted';run.finishedAt=this.now().toISOString();run.outcome='The desktop process ended before the experiment completed.'}}}catch{this.state=cleanState()}await this.persist();return this.snapshot()}
+  snapshot(){this.state.loadRuns||=[];for(const run of this.state.loadRuns)if(['running','cancelling'].includes(run.status)&&!this.jobControls.has(`load:${run.id}`)){run.status='interrupted';run.finishedAt=this.now().toISOString();run.outcome='The desktop process ended before the managed workload completed.'}return {...clone(this.state),schemaVersion:9,auditIntegrity:this.verifyAudit(),captureIntegrity:this.verifyCaptures(),signatureIntegrity:this.verifySignatures()}}
   assertEntitled(){if(!this.entitlement().fieldOps)throw new Error('FieldOps Pro entitlement required')}
 
   async create(input){
@@ -126,6 +128,7 @@ class EngagementStore {
     if(this.state.chaosRuns.some(item=>item.engagementId===id&&['queued','running','recovering','aborting'].includes(item.status)))throw new Error('Stop the active Chaos Engine experiment before closing its authorization boundary')
     if(this.state.campaigns.some(item=>item.engagementId===id&&activeCampaignStatuses.has(item.status)))throw new Error('Stop the active assessment campaign before closing its authorization boundary')
     if(this.state.operatorJobs.some(item=>item.engagementId===id&&activeJobStatuses.has(item.status)))throw new Error('Stop the active native tool job before closing its authorization boundary')
+    if((this.state.loadRuns||[]).some(item=>item.engagementId===id&&activeLoadStatuses.has(item.status)))throw new Error('Stop the active managed load run before closing its authorization boundary')
     engagement.status='closed';engagement.closedAt=this.now().toISOString();this.audit(id,'engagement','closed','Authorization boundary closed by operator');await this.persist();return this.snapshot()
   }
 
@@ -167,11 +170,16 @@ class EngagementStore {
     const target=normalizeTarget(input?.target)
     const grant=(engagement.capacityGrants||[]).find(item=>item.target===target&&Date.parse(item.validUntil)>=this.now().getTime())
     if(!grant)throw new Error('Verify a current target-issued capacity grant before exporting a workload plan')
+    const port=Number(input?.port),secure=Boolean(input?.secure),profile=String(input?.profile||'ramp')
+    if(port!==grant.port||!engagement.ports.includes(port))throw new Error('Workload port must match the verified capacity grant')
+    if(secure!==grant.secure)throw new Error('Workload transport must match the verified capacity grant')
+    if(!['ramp','spike','soak','breakpoint','recovery'].includes(profile))throw new Error('Choose a supported verified load profile')
     const requestsPerSecond=Math.round(Number(input?.requestsPerSecond)),durationSeconds=Math.round(Number(input?.durationSeconds)),concurrency=Math.round(Number(input?.concurrency))
     if(!Number.isInteger(requestsPerSecond)||requestsPerSecond<1||requestsPerSecond>grant.maxRequestsPerSecond)throw new Error(`Arrival rate must be between 1 and the verified ${grant.maxRequestsPerSecond} req/s grant`)
     if(!Number.isInteger(durationSeconds)||durationSeconds<10||durationSeconds>grant.maxDurationSeconds)throw new Error(`Duration must be between 10 and the verified ${grant.maxDurationSeconds} second grant`)
     if(!Number.isInteger(concurrency)||concurrency<1||concurrency>grant.maxConcurrency)throw new Error(`Concurrency must be between 1 and the verified ${grant.maxConcurrency} worker grant`)
-    return {mode:'customer-controlled-load',target,path:normalizeHttpPath(input?.path),secure:Boolean(input?.secure),requestsPerSecond,durationSeconds,concurrency,emergencyStopRequired:true,capacityGrant:{id:grant.id,digest:grant.digest,verifiedAt:grant.verifiedAt,validUntil:grant.validUntil}}
+    const p95LimitMs=Math.max(100,Math.min(60_000,Math.round(Number(input?.p95LimitMs)||2000))),errorRateLimit=Math.max(0.1,Math.min(100,Number(input?.errorRateLimit)||5))
+    return {mode:'verified-managed-load',profile,target,port,path:normalizeHttpPath(input?.path),secure,requestsPerSecond,durationSeconds,concurrency,p95LimitMs,errorRateLimit,emergencyStopRequired:true,capacityGrant:{id:grant.id,digest:grant.digest,verifiedAt:grant.verifiedAt,validUntil:grant.validUntil,sourceAddress:grant.sourceAddress,secure:grant.secure,port:grant.port}}
   }
 
   async verifyCapacityGrant(input){
@@ -192,6 +200,86 @@ class EngagementStore {
     engagement.capacityGrants=[normalized,...(engagement.capacityGrants||[]).filter(item=>item.target!==target)].slice(0,engagement.targets.length)
     this.audit(engagement.id,'capacity-grant','verified',`${target} // ${maxRequestsPerSecond} req/s // ${maxConcurrency} workers // ${maxDurationSeconds}s`,{grantId:normalized.id,digest:normalized.digest});await this.persist()
     return this.snapshot()
+  }
+
+  async startLoad(input){
+    const engagement=this.getActive(input?.engagementId)
+    this.assertOperation(engagement,'resilience')
+    if(input?.attested!==true)throw new Error('Confirm this managed load run is authorized by the signed permit and target grant')
+    if(this.running||this.state.operatorJobs.some(item=>activeJobStatuses.has(item.status))||this.state.campaigns.some(item=>activeCampaignStatuses.has(item.status))||this.state.chaosRuns.some(item=>['queued','running','recovering','aborting'].includes(item.status)))throw new Error('Stop the active FieldOps operation before starting managed load')
+    this.state.loadRuns||=[]
+    if(this.state.loadRuns.some(item=>activeLoadStatuses.has(item.status)))throw new Error('Another managed load run is already active')
+    const workload=this.authorizedWorkload(engagement,input),addresses=await this.resolveAuthorized(workload.target,engagement.networkMode||'external')
+    if(!addresses.some(item=>item.address===workload.capacityGrant.sourceAddress))throw new Error('The target no longer resolves to the endpoint that issued the capacity grant; verify capacity again')
+    const runId=randomUUID(),scheme=workload.secure?'https':'http',url=`${scheme}://${workload.target}:${workload.port}${workload.path}`,now=this.now().toISOString()
+    const plan={...workload,runId,address:workload.capacityGrant.sourceAddress,url}
+    const run={id:runId,engagementId:engagement.id,name:String(input?.name||`${workload.profile} verified load`).trim().slice(0,100),status:'queued',phase:'preflight',plan,output:'',metrics:null,pid:null,engine:null,engineVersion:null,createdAt:now,startedAt:null,finishedAt:null,stopReason:null,outcome:'Target grant and signed permit verified. Managed k6 run queued.',authorizationReference:engagement.authorizationReference,permitId:engagement.permit?.id||null}
+    if(this.trust)run.receipt=this.trust.sign('fieldops-workload-receipt',{id:run.id,engagementId:run.engagementId,plan:run.plan,createdAt:run.createdAt,permitId:run.permitId})
+    this.state.loadRuns.unshift(run);this.state.loadRuns=this.state.loadRuns.slice(0,100)
+    this.audit(engagement.id,'managed-load','queued',`${run.name} // ${url} // ${workload.requestsPerSecond} req/s`,{runId,grantDigest:workload.capacityGrant.digest,profile:workload.profile});await this.persist()
+    this.executeLoad(runId).catch(()=>{})
+    return this.snapshot()
+  }
+
+  loadSummary(output){
+    const match=String(output||'').match(/DAEMONCORE_SUMMARY (\{[^\n]+\})/)
+    if(!match)return null
+    try{const summary=JSON.parse(match[1]),metrics=summary.metrics||{},value=name=>metrics[name]?.values||{};return{requests:value('http_reqs').count||0,rps:Math.round((value('http_reqs').rate||0)*10)/10,p50Ms:Math.round(value('http_req_duration')['p(50)']||0),p90Ms:Math.round(value('http_req_duration')['p(90)']||0),p95Ms:Math.round(value('http_req_duration')['p(95)']||0),p99Ms:Math.round(value('http_req_duration')['p(99)']||0),errorRate:Math.round((value('http_req_failed').rate||0)*1000)/10,droppedIterations:value('dropped_iterations').count||0,maxVUs:value('vus_max').max||value('vus_max').value||0,checksPassed:value('checks').passes||0,checksFailed:value('checks').fails||0,raw:summary}}catch{return null}
+  }
+
+  sealLoadRun(run){
+    if(run.captureId)return run.captureId
+    const engagement=this.state.engagements.find(item=>item.id===run.engagementId)
+    const capture={id:randomUUID(),engagementId:run.engagementId,networkMode:engagement?.networkMode||'external',executionProfile:'professional',type:'managed-load-run',target:run.plan.target,port:run.plan.port,path:run.plan.path,addresses:[{address:run.plan.address}],durationMs:run.startedAt&&run.finishedAt?Math.max(0,Date.parse(run.finishedAt)-Date.parse(run.startedAt)):0,result:{runId:run.id,status:run.status,outcome:run.outcome,engine:run.engine,engineVersion:run.engineVersion,plan:run.plan,metrics:run.metrics,receipt:run.receipt},at:run.finishedAt||this.now().toISOString()}
+    capture.digest=captureDigest(capture);this.state.captures.unshift(capture);run.captureId=capture.id
+    return capture.id
+  }
+
+  async executeLoad(id){
+    const run=this.state.loadRuns.find(item=>item.id===id)
+    if(!run)return
+    const loadDirectory=path.join(this.directory,'managed-load'),scriptPath=path.join(loadDirectory,`${run.id}.js`),metricsPath=path.join(loadDirectory,`${run.id}.json`)
+    try{
+      await mkdir(loadDirectory,{recursive:true});await writeFile(scriptPath,k6Script(run.plan),'utf8')
+      run.status='starting';run.phase='launch';run.startedAt=this.now().toISOString();await this.persist()
+      const execution=await this.toolBridge.startLoad({plan:run.plan,scriptPath,metricsPath,onOutput:event=>this.appendJobOutput(run,event)})
+      this.jobControls.set(`load:${id}`,execution);run.pid=execution.pid;run.engine=execution.engine;run.engineVersion=execution.engineVersion;run.status='running';run.phase='load';run.outcome='Verified load is active. Local and target-side stops are armed.';await this.persist()
+      const stopMonitor=this.monitorTargetStop(run,execution)
+      const metricMonitor=this.monitorLoadMetrics(run,metricsPath)
+      const result=await execution.completion
+      if(!run.output)run.output=`${result.stdout||''}${result.stderr||''}`;run.metrics=this.loadSummary(run.output)
+      run.status='completed';run.phase='complete';run.finishedAt=this.now().toISOString();run.outcome='Managed workload completed and the signed result was sealed.'
+      const captureId=this.sealLoadRun(run)
+      this.audit(run.engagementId,'managed-load','completed',`${run.name} // ${run.metrics?.requests||0} requests // ${run.metrics?.p95Ms||0}ms p95`,{runId:run.id,captureId,metrics:run.metrics});await this.persist();await Promise.all([stopMonitor,metricMonitor])
+    }catch(error){run.finishedAt=this.now().toISOString();run.phase='complete';run.status=run.stopReason?'aborted':'failed';run.outcome=run.stopReason||String(error.message||error);run.metrics=this.loadSummary(run.output)||run.metrics;const captureId=run.startedAt?this.sealLoadRun(run):null;this.audit(run.engagementId,'managed-load',run.status,`${run.name} // ${run.outcome}`,{runId:run.id,captureId,metrics:run.metrics});await this.persist().catch(()=>{})}finally{this.jobControls.delete(`load:${id}`)}
+  }
+
+  async monitorTargetStop(run,execution){
+    const stopPath=run.plan.capacityGrant.stopPath||`/.well-known/daemoncore-capacity/${encodeURIComponent(this.state.engagements.find(item=>item.id===run.engagementId)?.capacityChallenge)}-stop.json`
+    while(run.status==='running'){
+      await this.pause(2000)
+      if(run.status!=='running')break
+      try{const signal=await this.getJson(run.plan.target,run.plan.address,run.plan.port,run.plan.secure,stopPath),challenge=this.state.engagements.find(item=>item.id===run.engagementId)?.capacityChallenge;if(signal?.stop===true&&signal?.challenge===challenge&&(signal?.runId===run.id||signal?.runId==='*')){run.stopReason='Target-side emergency stop received';run.status='cancelling';run.phase='stopping';execution.cancel();await this.persist();break}}catch{}
+    }
+  }
+
+  async monitorLoadMetrics(run,metricsPath){
+    const state={offset:0,remainder:'',requests:0,failed:0,dropped:0,durations:[],maxVUs:0,startedAt:Date.now()};this.loadTelemetry.set(run.id,state)
+    while(run.status==='running'){
+      await this.pause(750)
+      if(run.status!=='running')break
+      try{
+        const handle=await open(metricsPath,'r');const stat=await handle.stat(),available=Math.max(0,stat.size-state.offset),length=Math.min(2*1024*1024,available)
+        if(length){const buffer=Buffer.alloc(length);await handle.read(buffer,0,length,state.offset);state.offset+=length;const lines=(state.remainder+buffer.toString('utf8')).split(/\r?\n/);state.remainder=lines.pop()||'';for(const line of lines){let point;try{point=JSON.parse(line)}catch{continue}if(point.type!=='Point')continue;const value=Number(point.data?.value)||0;if(point.metric==='http_reqs')state.requests+=value;else if(point.metric==='http_req_failed')state.failed+=value;else if(point.metric==='http_req_duration'){state.durations.push(value);if(state.durations.length>10000)state.durations.splice(0,state.durations.length-10000)}else if(point.metric==='dropped_iterations')state.dropped+=value;else if(point.metric==='vus')state.maxVUs=Math.max(state.maxVUs,value)}}await handle.close();const sorted=[...state.durations].sort((a,b)=>a-b),percentile=p=>sorted.length?Math.round(sorted[Math.min(sorted.length-1,Math.ceil(sorted.length*p)-1)]):0,seconds=Math.max(1,(Date.now()-state.startedAt)/1000);run.metrics={requests:Math.round(state.requests),rps:Math.round(state.requests/seconds*10)/10,p50Ms:percentile(.5),p90Ms:percentile(.9),p95Ms:percentile(.95),p99Ms:percentile(.99),errorRate:state.requests?Math.round(state.failed/state.requests*1000)/10:0,droppedIterations:Math.round(state.dropped),maxVUs:state.maxVUs,live:true};await this.persist()}
+      catch{}
+    }
+    this.loadTelemetry.delete(run.id)
+  }
+
+  async cancelLoad(id){
+    this.assertEntitled();const run=(this.state.loadRuns||[]).find(item=>item.id===id)
+    if(!run||!activeLoadStatuses.has(run.status))throw new Error('Active managed load run not found')
+    run.stopReason='Local emergency stop requested';run.status='cancelling';run.phase='stopping';run.outcome='Terminating the managed k6 process.';this.jobControls.get(`load:${id}`)?.cancel();this.audit(run.engagementId,'managed-load','abort-requested',run.name,{runId:id});await this.persist();return this.snapshot()
   }
 
   async importToolEvidence(input){
@@ -239,6 +327,7 @@ class EngagementStore {
     if(this.state.operatorJobs.some(item=>activeJobStatuses.has(item.status)))throw new Error('Another native tool job is already active')
     if(this.state.campaigns.some(item=>activeCampaignStatuses.has(item.status)))throw new Error('Stop the active assessment campaign first')
     if(this.state.chaosRuns.some(item=>['queued','running','recovering','aborting'].includes(item.status)))throw new Error('Stop the active Chaos Engine experiment first')
+    if((this.state.loadRuns||[]).some(item=>activeLoadStatuses.has(item.status)))throw new Error('Stop the active managed load run first')
     const target=normalizeTarget(input?.target)
     if(!engagement.targets.includes(target))throw new Error('Target is outside the signed engagement allowlist')
     const policy=engagement.executionCapacity||executionPolicy(engagement.executionProfile),addresses=await this.resolveAuthorized(target,engagement.networkMode||'external'),address=addresses[0].address,now=this.now().toISOString()
@@ -520,6 +609,7 @@ class EngagementStore {
     if(this.running)throw new Error('Wait for the active FieldOps diagnostic to finish')
     if(this.state.chaosRuns.some(item=>['queued','running','recovering','aborting'].includes(item.status)))throw new Error('Another Chaos Engine experiment is already active')
     if(this.state.campaigns.some(item=>activeCampaignStatuses.has(item.status)))throw new Error('Stop the active assessment campaign first')
+    if((this.state.loadRuns||[]).some(item=>activeLoadStatuses.has(item.status)))throw new Error('Stop the active managed load run first')
     if(!engagement.targets.includes(target))throw new Error('Target is outside the signed engagement allowlist')
     if(!engagement.ports.includes(port))throw new Error('Port is outside the engagement allowlist')
     if(!['baseline','ramp','spike','soak'].includes(profile))throw new Error('Unsupported load profile')
@@ -613,7 +703,7 @@ class EngagementStore {
   verifyCaptures(){return this.state.captures.every(capture=>capture.digest===captureDigest(capture))}
   verifyAudit(){return this.state.audit.every((entry,index)=>{const {hash,...unsigned}=entry;const expected=createHash('sha256').update(JSON.stringify(unsigned)).digest('hex'),next=this.state.audit.slice(index+1).find(item=>item.engagementId===entry.engagementId);return hash===expected&&(!next||entry.previousHash===next.hash)})}
   verifySignatures(){return this.state.engagements.every(item=>item.policyLevel==='legacy'&&!item.permit||Boolean(item.permit&&TrustAuthority.verify(item.permit.attestation,TrustAuthority.unsignedPermit(item.permit))))&&this.state.audit.every(entry=>{if(!entry.attestation)return true;const {hash:_hash,attestation,...unsigned}=entry;return TrustAuthority.verify(attestation,unsigned)})}
-  persist(){const serialized=`${JSON.stringify(this.state,null,2)}\n`;this.writeQueue=this.writeQueue.then(async()=>{const temporary=`${this.file}.tmp`;await writeFile(temporary,serialized,'utf8');await rename(temporary,this.file)});return this.writeQueue}
+  persist(){this.state.schemaVersion=9;this.state.loadRuns||=[];const serialized=`${JSON.stringify(this.state,null,2)}\n`;this.writeQueue=this.writeQueue.then(async()=>{const temporary=`${this.file}.tmp`;await writeFile(temporary,serialized,'utf8');await rename(temporary,this.file)});return this.writeQueue}
 }
 
 module.exports={EngagementStore,isPublicAddress,isPrivateAddress,normalizeTarget,normalizeHttpPath}

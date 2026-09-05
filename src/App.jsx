@@ -101,7 +101,7 @@ function useLicense() {
 
 function useFieldOps() {
   const api=window.daemoncore?.fieldops
-  const [data,setData]=useState(api?null:{schemaVersion:8,engagements:[],operatorJobs:[],campaigns:[],chaosRuns:[],captures:[],findings:[],audit:[]}),[identity,setIdentity]=useState(api?null:{configured:false,status:'preview',identity:null})
+  const [data,setData]=useState(api?null:{schemaVersion:9,engagements:[],operatorJobs:[],loadRuns:[],campaigns:[],chaosRuns:[],captures:[],findings:[],audit:[]}),[identity,setIdentity]=useState(api?null:{configured:false,status:'preview',identity:null})
   useEffect(()=>{if(api){api.snapshot().then(setData);api.identity().then(setIdentity)}},[api])
   const enrollIdentity=async input=>{if(!api)throw new Error('Operator identity requires the desktop build');const next=await api.enrollIdentity(input);setIdentity(next);return next}
   const create=async input=>{if(!api)throw new Error('FieldOps requires the desktop build');const next=await api.create(input);setData(next);return next}

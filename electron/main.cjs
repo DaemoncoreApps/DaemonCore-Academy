@@ -152,6 +152,8 @@ ipcMain.handle('fieldops:finding-retest', rangeHandler(({ id, input }) => engage
 ipcMain.handle('fieldops:chaos-start', rangeHandler(input => engagementStore.startChaos(input)))
 ipcMain.handle('fieldops:chaos-abort', rangeHandler(id => engagementStore.abortChaos(id)))
 ipcMain.handle('fieldops:capacity-verify', rangeHandler(input => engagementStore.verifyCapacityGrant(input)))
+ipcMain.handle('fieldops:load-start', rangeHandler(input => engagementStore.startLoad(input)))
+ipcMain.handle('fieldops:load-cancel', rangeHandler(id => engagementStore.cancelLoad(id)))
 ipcMain.handle('fieldops:execution-manifest', rangeHandler(async input => {
   const bundle=await engagementStore.createExecutionManifest(input)
   const result=await dialog.showSaveDialog({title:'Export signed execution manifest',defaultPath:`daemoncore-execution-${bundle.manifest.tool.id}-${bundle.manifest.manifestId}.json`,filters:[{name:'Signed DaemonCore execution manifest',extensions:['json']}]})
@@ -177,7 +179,7 @@ ipcMain.handle('fieldops:export', rangeHandler(async id => {
   const snapshot = engagementStore.snapshot()
   const engagement = snapshot.engagements.find(item => item.id === id)
   if (!engagement) throw new Error('Engagement not found')
-  const bundle = { schemaVersion: 8, exportedAt: new Date().toISOString(), auditIntegrity: snapshot.auditIntegrity, captureIntegrity: snapshot.captureIntegrity, signatureIntegrity: snapshot.signatureIntegrity, operatorIdentity: trustAuthority.snapshot(), engagement, operatorJobs: snapshot.operatorJobs.filter(item => item.engagementId === id), campaigns: snapshot.campaigns.filter(item => item.engagementId === id), captures: snapshot.captures.filter(item => item.engagementId === id), findings: snapshot.findings.filter(item => item.engagementId === id), chaosRuns: snapshot.chaosRuns.filter(item => item.engagementId === id), audit: snapshot.audit.filter(item => item.engagementId === id) }
+  const bundle = { schemaVersion: 9, exportedAt: new Date().toISOString(), auditIntegrity: snapshot.auditIntegrity, captureIntegrity: snapshot.captureIntegrity, signatureIntegrity: snapshot.signatureIntegrity, operatorIdentity: trustAuthority.snapshot(), engagement, operatorJobs: snapshot.operatorJobs.filter(item => item.engagementId === id), loadRuns: (snapshot.loadRuns||[]).filter(item => item.engagementId === id), campaigns: snapshot.campaigns.filter(item => item.engagementId === id), captures: snapshot.captures.filter(item => item.engagementId === id), findings: snapshot.findings.filter(item => item.engagementId === id), chaosRuns: snapshot.chaosRuns.filter(item => item.engagementId === id), audit: snapshot.audit.filter(item => item.engagementId === id) }
   const result = await dialog.showSaveDialog({ title: 'Export FieldOps evidence ledger', defaultPath: `daemoncore-fieldops-${engagement.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}.json`, filters: [{ name: 'JSON evidence bundle', extensions: ['json'] }] })
   if (result.canceled || !result.filePath) return { canceled: true }
   await writeFile(result.filePath, `${JSON.stringify(bundle, null, 2)}\n`, 'utf8')

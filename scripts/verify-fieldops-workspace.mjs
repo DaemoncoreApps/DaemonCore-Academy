@@ -18,7 +18,7 @@ try{
   const engagementId=state.engagements[0].id
   const first=await store.run({engagementId,type:'dns',target:'example.com'})
   state=store.snapshot()
-  assert.equal(state.schemaVersion,8)
+  assert.equal(state.schemaVersion,9)
   assert.equal(state.engagements[0].networkMode,'external')
   assert.equal(state.captures.length,1)
   assert.match(first.digest,/^[a-f0-9]{64}$/)

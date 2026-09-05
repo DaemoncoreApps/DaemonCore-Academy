@@ -7,7 +7,7 @@ const TOOL_CATALOG = Object.freeze([
   { id: 'nmap', label: 'Nmap', category: 'Discovery', command: 'nmap', versionArgs: ['--version'], integration: 'native', purpose: 'Service and version inventory' },
   { id: 'docker', label: 'Docker Engine', category: 'Runtime', command: 'docker', versionArgs: ['version', '--format', '{{.Server.Version}}'], integration: 'native', purpose: 'Contained adapters and Academy ranges' },
   { id: 'nuclei', label: 'Nuclei', category: 'Validation', command: 'nuclei', versionArgs: ['-version'], integration: 'evidence', purpose: 'Template-driven assessment evidence' },
-  { id: 'k6', label: 'Grafana k6', category: 'Resilience', command: 'k6', versionArgs: ['version'], integration: 'evidence', purpose: 'Customer-managed performance evidence' },
+  { id: 'k6', label: 'Grafana k6', category: 'Resilience', command: 'k6', versionArgs: ['version'], integration: 'native', purpose: 'Managed verified load execution' },
   { id: 'locust', label: 'Locust', category: 'Resilience', command: 'locust', versionArgs: ['--version'], integration: 'evidence', purpose: 'Customer-managed workload evidence' },
   { id: 'tshark', label: 'Wireshark / TShark', category: 'Network', command: 'tshark', versionArgs: ['--version'], integration: 'evidence', purpose: 'Packet and protocol evidence' },
   { id: 'hashcat', label: 'Hashcat', category: 'Credential audit', command: 'hashcat', versionArgs: ['--version'], integration: 'evidence', purpose: 'Offline credential-audit evidence' },
@@ -121,6 +121,19 @@ function nmapArguments(address, ports, maxPorts = 128) {
   return ['-sT', '-Pn', '-n', '--reason', '-sV', '--version-all', '--max-retries', '2', '--host-timeout', '5m', '-p', [...new Set(ports)].sort((a, b) => a - b).join(','), '-oX', '-', address]
 }
 
+function k6Script(plan) {
+  const seconds = fraction => `${Math.max(1, Math.round(plan.durationSeconds * fraction))}s`
+  const profiles = {
+    ramp: [{ target: Math.max(1, Math.ceil(plan.requestsPerSecond * .25)), duration: seconds(.2) }, { target: plan.requestsPerSecond, duration: seconds(.6) }, { target: 0, duration: seconds(.2) }],
+    spike: [{ target: Math.max(1, Math.ceil(plan.requestsPerSecond * .1)), duration: seconds(.3) }, { target: plan.requestsPerSecond, duration: seconds(.15) }, { target: Math.max(1, Math.ceil(plan.requestsPerSecond * .1)), duration: seconds(.35) }, { target: 0, duration: seconds(.2) }],
+    breakpoint: [{ target: Math.max(1, Math.ceil(plan.requestsPerSecond * .2)), duration: seconds(.2) }, { target: Math.max(1, Math.ceil(plan.requestsPerSecond * .5)), duration: seconds(.25) }, { target: plan.requestsPerSecond, duration: seconds(.35) }, { target: 0, duration: seconds(.2) }],
+  }
+  const scenario = ['soak', 'recovery'].includes(plan.profile)
+    ? `{executor:'constant-arrival-rate',rate:${plan.requestsPerSecond},timeUnit:'1s',duration:${JSON.stringify(`${plan.durationSeconds}s`)},preAllocatedVUs:${plan.concurrency},maxVUs:${plan.concurrency}}`
+    : `{executor:'ramping-arrival-rate',startRate:1,timeUnit:'1s',preAllocatedVUs:${plan.concurrency},maxVUs:${plan.concurrency},stages:${JSON.stringify(profiles[plan.profile] || profiles.ramp)}}`
+  return `import http from 'k6/http';\nimport { check } from 'k6';\nexport const options={discardResponseBodies:true,hosts:${JSON.stringify({[plan.target]:plan.address})},scenarios:{verified_load:${scenario}},thresholds:{http_req_failed:[${JSON.stringify(`rate<${plan.errorRateLimit / 100}`)}],http_req_duration:[${JSON.stringify(`p(95)<${plan.p95LimitMs}`)}]}}};\nconst url=${JSON.stringify(plan.url)};\nexport default function(){const r=http.get(url,{redirects:0,tags:{daemoncore_run:${JSON.stringify(plan.runId)}}});check(r,{'authorized endpoint responded':x=>x.status>0&&x.status<500});}\nexport function handleSummary(data){return{stdout:'DAEMONCORE_SUMMARY '+JSON.stringify(data)+'\\n'};}\n`
+}
+
 class ToolBridge {
   constructor(options = {}) {
     this.execute = options.execute || execute
@@ -200,6 +213,13 @@ class ToolBridge {
       }),
     }
   }
+
+  async startLoad({ plan, scriptPath, metricsPath, onOutput }) {
+    let probe
+    try { probe = await this.execute('k6', ['version'], 10_000) } catch { throw new Error('Managed load execution requires Grafana k6 on this workstation') }
+    const execution = this.spawnExecution('k6', ['run', '--no-color', '--out', `json=${metricsPath}`, scriptPath], { timeoutMs: (plan.durationSeconds + 30) * 1000, onOutput })
+    return { engine: 'native-k6', engineVersion: `${probe.stdout || probe.stderr}`.trim().split(/\r?\n/)[0].slice(0, 180), pid: execution.pid, cancel: execution.cancel, completion: execution.completion }
+  }
 }
 
-module.exports = { ToolBridge, TOOL_CATALOG, NMAP_IMAGE, nmapArguments, parseNmapXml, spawnExecution }
+module.exports = { ToolBridge, TOOL_CATALOG, NMAP_IMAGE, nmapArguments, parseNmapXml, spawnExecution, k6Script }

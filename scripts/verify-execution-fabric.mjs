@@ -7,7 +7,7 @@ import { createRequire } from 'node:module'
 const require = createRequire(import.meta.url)
 const { executionPolicy } = require('../electron/execution-policy.cjs')
 const { EngagementStore } = require('../electron/engagement-store.cjs')
-const { ToolBridge } = require('../electron/tool-bridge.cjs')
+const { ToolBridge, k6Script } = require('../electron/tool-bridge.cjs')
 const { TrustAuthority } = require('../electron/trust-authority.cjs')
 
 assert.equal(executionPolicy('guarded').maxPorts, 128)
@@ -69,10 +69,21 @@ try {
     validUntil: '2026-09-03T16:00:00.000Z',
   })
   await fieldops.verifyCapacityGrant({ engagementId: engagement.id, target: 'app.example.com', port: 80, secure: true })
-  const loadBundle = await fieldops.createExecutionManifest({ engagementId: engagement.id, toolId: 'k6', target: 'app.example.com', path: '/health', secure: true, requestsPerSecond: 500, durationSeconds: 900, concurrency: 80 })
+  const loadBundle = await fieldops.createExecutionManifest({ engagementId: engagement.id, toolId: 'k6', profile: 'soak', target: 'app.example.com', port: 80, path: '/health', secure: true, requestsPerSecond: 500, durationSeconds: 900, concurrency: 80 })
   assert.equal(loadBundle.manifest.workload.capacityGrant.digest.length, 64)
   assert.equal(loadBundle.manifest.workload.emergencyStopRequired, true)
-  await assert.rejects(() => fieldops.createExecutionManifest({ engagementId: engagement.id, toolId: 'k6', target: 'app.example.com', path: '/', secure: true, requestsPerSecond: 501, durationSeconds: 60, concurrency: 20 }), /verified 500 req\/s grant/)
+  await assert.rejects(() => fieldops.createExecutionManifest({ engagementId: engagement.id, toolId: 'k6', profile: 'ramp', target: 'app.example.com', port: 80, path: '/', secure: true, requestsPerSecond: 501, durationSeconds: 60, concurrency: 20 }), /verified 500 req\/s grant/)
+  const generated = k6Script({ runId: 'run-1', profile: 'spike', target: 'app.example.com', address: '93.184.216.34', url: 'https://app.example.com:80/health', requestsPerSecond: 100, durationSeconds: 60, concurrency: 20, p95LimitMs: 2000, errorRateLimit: 5 })
+  assert.match(generated, /ramping-arrival-rate/)
+  assert.match(generated, /93\.184\.216\.34/)
+  assert.doesNotMatch(generated, /eval\(|exec\(|require\(/)
+
+  const summary = { metrics: { http_reqs: { values: { count: 1000, rate: 100 } }, http_req_duration: { values: { 'p(50)': 40, 'p(90)': 80, 'p(95)': 100, 'p(99)': 180 } }, http_req_failed: { values: { rate: .01 } }, dropped_iterations: { values: { count: 2 } }, vus_max: { values: { max: 20 } }, checks: { values: { passes: 990, fails: 10 } } } }
+  fieldops.toolBridge.startLoad = async ({ onOutput }) => { onOutput({ channel: 'stdout', text: `DAEMONCORE_SUMMARY ${JSON.stringify(summary)}\n` }); return { engine: 'native-k6', engineVersion: 'k6 v1', pid: 42, cancel: () => true, completion: Promise.resolve({ stdout: '', stderr: '' }) } }
+  await fieldops.startLoad({ engagementId: engagement.id, name: 'Verified spike', profile: 'spike', target: 'app.example.com', port: 80, path: '/health', secure: true, requestsPerSecond: 100, durationSeconds: 60, concurrency: 20, p95LimitMs: 2000, errorRateLimit: 5, attested: true })
+  for(let attempt=0;attempt<100&&!fieldops.snapshot().loadRuns[0].metrics;attempt+=1)await new Promise(resolve=>setTimeout(resolve,10))
+  assert.equal(fieldops.snapshot().loadRuns[0].metrics.p95Ms, 100)
+  assert.equal(fieldops.snapshot().captures[0].type, 'managed-load-run')
 
   const capabilities = await fieldops.capabilities()
   assert.equal(capabilities.tools.length, 7)
