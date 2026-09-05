@@ -8,10 +8,10 @@ DaemonCore is the course I wanted instead: learn the mental model, validate it, 
 
 Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 
-**[Download DaemonCore Academy 6.4.0 for Windows](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/latest/download/DaemonCore-Academy-Setup.exe)** · **[Download the Linux beta](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/tag/v6.0.0-beta.3)** · [FieldOps Cheat Sheet](output/pdf/DaemonCore-FieldOps-Production-Cheat-Sheet-v6.4.0.pdf) · [FieldOps Manual](output/pdf/DaemonCore-FieldOps-Operator-Manual.pdf) · [Academy Guide](output/pdf/DaemonCore-Academy-Mission-OS-Guide.pdf) · [6.4.0 release notes](docs/RELEASE-V6.4.0.md) · [All releases](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases)
+**[Download DaemonCore Academy 6.5.0 for Windows](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/latest/download/DaemonCore-Academy-Setup.exe)** · **[Download the Linux beta](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/tag/v6.0.0-beta.3)** · [FieldOps Cheat Sheet](output/pdf/DaemonCore-FieldOps-Production-Cheat-Sheet-v6.4.0.pdf) · [FieldOps Manual](output/pdf/DaemonCore-FieldOps-Operator-Manual.pdf) · [Academy Guide](output/pdf/DaemonCore-Academy-Mission-OS-Guide.pdf) · [6.5.0 release notes](docs/RELEASE-V6.5.0.md) · [All releases](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases)
 
 > [!CAUTION]
-> **Temporary unsigned Windows build:** DaemonCore 6.4.0 is not yet Authenticode-signed, so Windows may display **Unknown Publisher**. Until the signing certificate is in place, install and evaluate the Windows build inside a disposable Windows 10/11 virtual machine—not on a production workstation. Download it only from this repository, verify the published SHA-256 checksum, and take a VM snapshot before installation. If the file hash does not match, do not run it.
+> **Temporary unsigned Windows build:** DaemonCore 6.5.0 is not yet Authenticode-signed, so Windows may display **Unknown Publisher**. Until the signing certificate is in place, install and evaluate the Windows build inside a disposable Windows 10/11 virtual machine—not on a production workstation. Download it only from this repository, verify the published SHA-256 checksum, and take a VM snapshot before installation. If the file hash does not match, do not run it.
 
 ## Temporary VM-first installation
 
@@ -47,7 +47,15 @@ The Academy lessons and non-Docker workbenches run normally in a VM. Live Docker
 
 ## What ships
 
-### Current release // 6.4.0
+### Current release // 6.5.0
+
+- **Managed k6 execution** — FieldOps can launch a fixed, shell-free k6 workload directly after the signed permit and target-hosted capacity grant pass verification.
+- **Five resilience profiles** — ramp, spike, soak, breakpoint, and recovery workloads remain inside the exact rate, concurrency, duration, port, transport, and resolved endpoint authorized by the grant.
+- **Live operational telemetry** — the War Room reports achieved request rate, latency percentiles, error rate, dropped iterations, active capacity, process output, and SLO results while a run is active.
+- **Two-sided emergency stops** — the operator has an immediate local stop, while the verified target can publish a challenge-bound stop signal that terminates the managed process.
+- **Sealed workload record** — signed workload receipts, completed/failed/aborted captures, and a comparative run ledger preserve what ran, under which authority, and what the target experienced.
+
+### Previous release // 6.4.0
 
 - **Verified Load Authority** — FieldOps now requires the exact target to publish a challenge-bound capacity grant before it will sign a k6 or Locust workload manifest.
 - **Customer-defined capacity** — the verified target grant sets approved request rate, concurrency, duration, expiration, endpoint, and emergency-stop requirement.
