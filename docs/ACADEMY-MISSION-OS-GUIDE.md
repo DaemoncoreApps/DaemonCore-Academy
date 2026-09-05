@@ -19,7 +19,7 @@ DaemonCore Academy is a local-first cyber operator training platform. Mission OS
 | Document | DaemonCore Academy Mission OS Operator Guide |
 | Product release | DaemonCore Academy 6.3.1 |
 | Edition | Production release |
-| Platforms | Windows 64-bit (6.3.1); x64 Ubuntu and Debian-family Linux (6.0.0-beta.3) |
+| Platforms | Windows 64-bit and x64 Ubuntu/Debian-family Linux (6.5.1) |
 | Publisher | DaemonCore Apps |
 | Classification | Customer training documentation |
 | Last revised | 4 September 2026 |
@@ -123,11 +123,11 @@ The current installer is not Authenticode-signed. Windows may show **Unknown Pub
 
 Use the AppImage for a portable file or the Debian package for an installed desktop entry.
 
-1. Download the AppImage or Debian package attached to the separate `v6.0.0-beta.3` Linux release.
+1. Download the AppImage or Debian package attached to the `v6.5.1` release.
 2. Verify the selected package against that release's `SHA256SUMS-linux.txt`.
 3. For AppImage: run `chmod +x` on the downloaded file, then launch it as the desktop user.
 4. For Debian: run `sudo apt install ./<downloaded-package>.deb`.
-5. Confirm the footer shows `6.0.0-beta.3` and `LINUX`.
+5. Confirm the footer shows `6.5.1` and `LINUX`.
 
 The supported beta matrix covers x64 Ubuntu and Debian-family desktops. Compatible derivatives may run, but they are outside the first beta support matrix.
 
@@ -536,8 +536,8 @@ FieldOps is the place for authorization-bound assessment operations. Its license
 
 - Release page: `https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/latest`
 - Windows installer: `https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/latest/download/DaemonCore-Academy-Setup.exe`
-- Linux AppImage: use the AppImage attached to `v6.0.0-beta.3`
-- Linux Debian package: use the `.deb` attached to `v6.0.0-beta.3`
+- Linux AppImage: use the AppImage attached to `v6.5.1`
+- Linux Debian package: use the `.deb` attached to `v6.5.1`
 - Product site: `https://academy.daemoncore.app`
 
 ---

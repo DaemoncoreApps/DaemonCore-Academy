@@ -1,20 +1,20 @@
 # DaemonCore Academy on Linux
 
-Version 6.0.0-beta.3 supports x64 Ubuntu and Debian-family desktop systems through an AppImage and a Debian package. The Linux beta contains Mission OS, the guided Academy workflow, the same curriculum and local progress record, sealed Docker ranges, Lemon Squeezy FieldOps entitlement, signed engagements, evidence vault, reports, and Chaos Engine as the Windows build.
+Version 6.5.1 supports x64 Ubuntu and Debian-family desktop systems through an AppImage and a Debian package. It contains Mission OS, the guided Academy workflow, the same curriculum and local progress record, sealed Docker ranges, Lemon Squeezy FieldOps entitlement, signed engagements, evidence vault, reports, Chaos Engine, War Room, and verified managed k6 execution.
 
 ## Choose a package
 
 Use the AppImage when you want a portable application without a system installation:
 
 ```shell
-chmod +x DaemonCore-Academy-6.0.0-beta.3.AppImage
-./DaemonCore-Academy-6.0.0-beta.3.AppImage
+chmod +x DaemonCore-Academy-6.5.1.AppImage
+./DaemonCore-Academy-6.5.1.AppImage
 ```
 
-Use the Debian package on Ubuntu or Debian. It may also install on compatible derivatives such as Kali, but those distributions remain outside the first beta support matrix:
+Use the Debian package on Ubuntu or Debian. It may also install on compatible derivatives such as Kali, but those distributions remain outside the formally tested support matrix:
 
 ```shell
-sudo apt install ./DaemonCore-Academy-6.0.0-beta.3.deb
+sudo apt install ./DaemonCore-Academy-6.5.1.deb
 ```
 
 The package manager installs a desktop entry and application icon. Removing the package does not remove the current user’s DaemonCore records.

@@ -8,7 +8,7 @@ DaemonCore is the course I wanted instead: learn the mental model, validate it, 
 
 Black glass. Red signal. No seeded XP. No imaginary leaderboard.
 
-**[Download DaemonCore Academy 6.5.1 for Windows](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/latest/download/DaemonCore-Academy-Setup.exe)** · **[Download the Linux beta](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/tag/v6.0.0-beta.3)** · [FieldOps Cheat Sheet](output/pdf/DaemonCore-FieldOps-Production-Cheat-Sheet-v6.4.0.pdf) · [FieldOps Manual](output/pdf/DaemonCore-FieldOps-Operator-Manual.pdf) · [Academy Guide](output/pdf/DaemonCore-Academy-Mission-OS-Guide.pdf) · [6.5.1 release notes](docs/RELEASE-V6.5.1.md) · [All releases](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases)
+**[Download DaemonCore Academy 6.5.1 for Windows](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/latest/download/DaemonCore-Academy-Setup.exe)** · **[Download Linux AppImage](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/latest/download/DaemonCore-Academy-6.5.1.AppImage)** · **[Download Linux Debian package](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases/latest/download/DaemonCore-Academy-6.5.1.deb)** · [FieldOps Cheat Sheet](output/pdf/DaemonCore-FieldOps-Production-Cheat-Sheet-v6.4.0.pdf) · [FieldOps Manual](output/pdf/DaemonCore-FieldOps-Operator-Manual.pdf) · [Academy Guide](output/pdf/DaemonCore-Academy-Mission-OS-Guide.pdf) · [6.5.1 release notes](docs/RELEASE-V6.5.1.md) · [All releases](https://github.com/DaemoncoreApps/DaemonCore-Academy/releases)
 
 > [!CAUTION]
 > **Temporary unsigned Windows build:** DaemonCore 6.5.1 is not yet Authenticode-signed, so Windows may display **Unknown Publisher**. Until the signing certificate is in place, install and evaluate the Windows build inside a disposable Windows 10/11 virtual machine—not on a production workstation. Download it only from this repository, verify the published SHA-256 checksum, and take a VM snapshot before installation. If the file hash does not match, do not run it.
@@ -98,12 +98,12 @@ The stable Windows release carries the complete Mission OS 6 experience. Linux r
 - **Minimal public verification contract** — the included Supabase migration keeps submissions private and exposes only credential identity, holder, dates, status, policy version, and issuer key ID through a narrow verification function.
 - **Published governance** — the candidate handbook and credential operations runbook define requirements, independent review, appeals, revocation, two-year validity, issuer-key separation, privacy, and launch prerequisites.
 
-### Linux beta // 6.0
+### Linux production // 6.5.1
 
 - **First-class desktop packages** — the same Academy, sealed ranges, FieldOps workspace, licensing, local records, and exports ship as an x64 AppImage and Debian package.
 - **Native Linux toolchain** — DaemonCore uses the host Docker Engine and Nmap directly, retains the pinned Docker Nmap fallback, and preserves the same exact-target and declared-port boundary.
 - **Keyring-backed secrets** — Lemon Squeezy keys and FieldOps signing keys use GNOME Keyring or KWallet. DaemonCore refuses Electron’s unencrypted `basic_text` fallback instead of silently writing commercial credentials in plaintext.
-- **Portable release verification** — Ubuntu CI lints and exercises the full product, extracts and inspects the AppImage, validates the Debian package, and publishes SHA-256 checksums with the prerelease.
+- **Portable release verification** — Ubuntu CI lints and exercises the full product, extracts and inspects the AppImage, validates the Debian package, and publishes SHA-256 checksums with the stable release.
 - **Shared product contract** — version metadata now comes from the package manifest, Linux icons are generated from the same source mark, and platform copy no longer treats Docker Desktop or Windows as universal requirements.
 
 ### Adaptive Range Engine // 5.4
@@ -311,7 +311,7 @@ Build the x64 Linux packages on Linux with:
 npm run package:linux
 ```
 
-The build produces `release/DaemonCore-Academy-6.0.0-beta.3.AppImage` and `release/DaemonCore-Academy-6.0.0-beta.3.deb`. The AppImage runs without installation after `chmod +x`. The Debian package installs system-wide while keeping operator data in the user’s standard Electron configuration directory. Linux FieldOps activation requires an unlocked Secret Service-compatible keyring; Academy remains available if secure storage is unavailable.
+The build produces `release/DaemonCore-Academy-6.5.1.AppImage` and `release/DaemonCore-Academy-6.5.1.deb`. The AppImage runs without installation after `chmod +x`. The Debian package installs system-wide while keeping operator data in the user’s standard Electron configuration directory. Linux FieldOps activation requires an unlocked Secret Service-compatible keyring; Academy remains available if secure storage is unavailable.
 
 ## Project map
 

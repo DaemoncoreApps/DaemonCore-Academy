@@ -2,11 +2,11 @@
 
 ## Operator Manual
 
-Version 6.3.1
+Version 6.5.1
 Production release edition
 4 September 2026
 
-FieldOps is an authorization-bound assessment control plane for Windows and supported x64 Linux desktops. This edition documents Windows 6.3.1 and identifies the separately released Linux 6.0.0-beta.3 package where platform behavior differs. It combines scoped diagnostics, multi-target assessment campaigns, evidence preservation, findings management, bounded resilience experiments, and professional exports in one local-first workspace.
+FieldOps is an authorization-bound assessment control plane for Windows and supported x64 Linux desktops. This edition documents the shared 6.5.1 Windows and Linux application where platform behavior differs. It combines scoped diagnostics, multi-target assessment campaigns, evidence preservation, findings management, verified managed load testing, bounded resilience experiments, and professional exports in one local-first workspace.
 
 > A FieldOps Pro license unlocks the tool. It does not authorize a target. The operator remains responsible for obtaining and preserving valid written authorization.
 
@@ -17,14 +17,14 @@ FieldOps is an authorization-bound assessment control plane for Windows and supp
 | Field | Value |
 | --- | --- |
 | Document | DaemonCore FieldOps Operator Manual |
-| Product release | DaemonCore Academy 6.3.1 |
+| Product release | DaemonCore Academy 6.5.1 |
 | Edition | Production release |
-| Platform | Windows 64-bit (6.3.1); x64 Ubuntu and Debian-family Linux (6.0.0-beta.3) |
+| Platform | Windows 64-bit and x64 Ubuntu/Debian-family Linux (6.5.1) |
 | Publisher | DaemonCore Apps |
 | Classification | Customer documentation |
 | Last revised | 4 September 2026 |
 
-This manual describes the FieldOps functionality shipped with DaemonCore Academy 6.3.1. Product behavior is authoritative when it differs from this document. Preserve an export before upgrading a production workstation and verify release artifacts against the published SHA-256 files.
+This manual describes the FieldOps functionality shipped with DaemonCore Academy 6.5.1. Product behavior is authoritative when it differs from this document. Preserve an export before upgrading a production workstation and verify release artifacts against the published SHA-256 files.
 
 The product is proprietary commercial software. Possession of this manual or source access does not grant permission to bypass licensing, copy, redistribute, modify, or resell the software. Refer to the license and end-user agreement distributed with the application.
 
@@ -123,13 +123,13 @@ The current Windows installer is not Authenticode-signed. Windows may show **Unk
 
 ## Install on Linux
 
-Use the AppImage for a portable launch, or the Debian package for an installed desktop entry. The first beta support matrix covers x64 Ubuntu and Debian-family desktops; compatible derivatives may work but remain outside that matrix.
+Use the AppImage for a portable launch, or the Debian package for an installed desktop entry. The tested support matrix covers x64 Ubuntu and Debian-family desktops; compatible derivatives may work but remain outside that matrix.
 
-1. Download the AppImage or Debian package attached to the separate `v6.0.0-beta.3` Linux release.
+1. Download the AppImage or Debian package attached to the `v6.5.1` release.
 2. Verify the selected package against `SHA256SUMS-linux.txt`.
 3. For AppImage, run `chmod +x` on the downloaded file, then launch it as the desktop user.
 4. For Debian packages, run `sudo apt install ./<downloaded-package>.deb`.
-5. Confirm the footer displays `6.0.0-beta.3` and `LINUX`.
+5. Confirm the footer displays `6.5.1` and `LINUX`.
 
 Never launch DaemonCore with `--no-sandbox`, as root, or with `--password-store=basic`.
 

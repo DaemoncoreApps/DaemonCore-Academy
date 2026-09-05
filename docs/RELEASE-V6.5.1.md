@@ -15,4 +15,4 @@ This patch repairs the Docker terminal workflow across Mission OS, Web Forge, an
 ## Platform status
 
 - Windows: production patch 6.5.1, unsigned pending Authenticode certificate.
-- Linux: remains the separately published 6.0.0-beta.3 package.
+- Linux: production 6.5.1 AppImage and Debian packages are attached to this release with SHA-256 checksums.
