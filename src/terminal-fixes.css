@@ -1,0 +1,31 @@
+/* Terminal flex children must be allowed to shrink or their output escapes the viewport. */
+.terminal-history,
+.forge-history {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #743039 #0a0c0f;
+}
+
+.forge-runner > main,
+.forge-console {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.terminal-history::-webkit-scrollbar,
+.forge-history::-webkit-scrollbar {
+  width: 10px;
+}
+
+.terminal-history::-webkit-scrollbar-track,
+.forge-history::-webkit-scrollbar-track {
+  background: #0a0c0f;
+}
+
+.terminal-history::-webkit-scrollbar-thumb,
+.forge-history::-webkit-scrollbar-thumb {
+  background: #743039;
+  border: 2px solid #0a0c0f;
+}

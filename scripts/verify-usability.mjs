@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 
 const read = path => readFile(new URL(`../${path}`, import.meta.url), 'utf8')
-const [app, guide, lesson, store, onboarding, warRoom, warRoomStyles] = await Promise.all([
+const [app, guide, lesson, store, onboarding, warRoom, warRoomStyles, webRange, terminalStyles] = await Promise.all([
   read('src/App.jsx'),
   read('src/AcademyGuide.jsx'),
   read('src/phase2.jsx'),
@@ -10,6 +10,8 @@ const [app, guide, lesson, store, onboarding, warRoom, warRoomStyles] = await Pr
   read('src/production.jsx'),
   read('src/FieldOpsWarRoom.jsx'),
   read('src/fieldops-war-room.css'),
+  read('src/WebRange.jsx'),
+  read('src/terminal-fixes.css'),
 ])
 
 assert.match(guide, /LEARN.*PRACTICE.*LAUNCH.*PROVE/s)
@@ -30,5 +32,10 @@ assert.match(warRoom, /Diagnostics.*Campaigns.*Evidence vault.*Findings.*Chaos E
 assert.match(warRoom, /document\.querySelector\('\.fieldops-layout'\)\?\.scrollIntoView/)
 assert.match(warRoomStyles, /prefers-reduced-motion:reduce/)
 assert.match(warRoomStyles, /war-module-deck>button\.active/)
+assert.match(lesson, /inputRef\.current\?\.focus\(\)/)
+assert.match(lesson, /readOnly=\{busy\}/)
+assert.match(webRange, /querySelector\('input'\)\?\.focus\(\)/)
+assert.match(terminalStyles, /\.terminal-history,[\s\S]*\.forge-history[\s\S]*overflow-y: auto/)
+assert.match(terminalStyles, /\.forge-console[\s\S]*overflow: hidden/)
 
 console.log('Usability contract verified // first-run guide, command boundaries, guided range handoff, persistent next action, and FieldOps command routing')

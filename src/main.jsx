@@ -25,6 +25,7 @@ import './mission-os.css'
 import './academy-guide.css'
 import './certification.css'
 import './execution-fabric.css'
+import './terminal-fixes.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
